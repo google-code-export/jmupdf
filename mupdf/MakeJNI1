@@ -22,6 +22,7 @@ BIT     := ""
 #
 TDMGCC  := $(shell gcc --version)
 ifeq "$(findstring tdm64,$(TDMGCC))" "tdm64"
+#BIT := -m64
 BIT := -m32
 endif
 
