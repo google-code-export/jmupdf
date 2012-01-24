@@ -48,6 +48,7 @@ import javax.swing.UIManager;
 import javax.swing.event.ChangeListener;
 
 import com.examples.swing.resources.Images;
+import com.jmupdf.JmuPdf;
 import com.jmupdf.page.Page;
 
 /**
@@ -315,9 +316,9 @@ public class MainView {
 	 */
 	public void setTitle(String title) {
 		if (title == null || title.trim().length() == 0) {
-			mainFrame.setTitle("JMuPdf v0.2d");
+			mainFrame.setTitle("JMuPDF " + JmuPdf.getLibVersion());
 		} else {
-			mainFrame.setTitle("JMuPdf v0.2d - " + title);
+			mainFrame.setTitle("JMuPDF " + JmuPdf.getLibVersion() + " - " + title);
 		}
 	}
 

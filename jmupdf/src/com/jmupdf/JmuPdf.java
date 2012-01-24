@@ -18,7 +18,7 @@ import com.jmupdf.page.PageText;
  *
  */
 public abstract class JmuPdf {
-	static final String jmupdf_version = "0.3.0";
+	private static final String jmupdf_version = "0.3.0";
 
 	/*
 	 * Open DLL dependency
@@ -64,6 +64,14 @@ public abstract class JmuPdf {
 	protected native synchronized int writeTif(long handle, int page, float zoom, int color, String file, int compression, int mode, int quality);
 	protected native synchronized int writeJPeg(long handle, int page, float zoom, int color, String file, int quality);
 	protected native synchronized int writeBmp(long handle, int page, float zoom, int color, String file);
+	
+	/**
+	 * Get library version
+	 * @return
+	 */
+	public static String getLibVersion() {
+		return jmupdf_version;
+	}
 	
 	/**
 	 * Load native resource file
