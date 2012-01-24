@@ -22,7 +22,7 @@
  *  (2) MakeJNI2 will need to be modified so that JVM_INCLUDES variable has the proper JVM
  *      include paths for the installed JVM.
  *
- *  (3) pthreads is no longer required
+ *  (3) As of v0.3.0 pthreads is no longer required
  */
  
 ====================================================================================================
@@ -30,7 +30,7 @@
 ====================================================================================================
 Program Name      Date		  Description
 ================  ==========  ======================================================================
-MuPdf             Sat, 21 Jan 2012 13:54:17 +0000  git://git.ghostscript.com/mupdf.git
+MuPdf             Tue, 24 Jan 2012 19:05:08 +0000  git://git.ghostscript.com/mupdf.git
 ThirdParty        04/21/2011  Added TIFFLIB 3.9.5
 ThirdParty        07/31/2011  Added bmplib folder
 tiffiop.h         04/21/2011  Added !defined(__GNUC__) on line #65
