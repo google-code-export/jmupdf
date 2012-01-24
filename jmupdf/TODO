@@ -1,0 +1,24 @@
+
+Todo List:
+==========
+
+1. Implement capturing errors from MuPdf at document level in java. This way errors aren't
+   just pushed through the console but captured in an array so that it may be logged in a database 
+   for example. This would require implementing a more sophisticated error handler at the 
+   document level. Much of the JNI code has already been changed to do so.
+   
+2. Implement more printing features similar to Adobe.
+
+3. Add Adobe style print dialog box.
+
+4. Implement pdf repair feature and write to new file afterwards.
+
+5. Extract embedded fonts and images.
+
+6. Expand tile implementation. Use tiling when rendering to reduce memory footprint while
+   creating higher resolution images. Tiling is already implemented in printing so no more
+   out of memory errors. 
+
+7. Document.clean() needs further work. This method is experimental and should not be used in production.  
+   
+8. Extract embedded pdfs.

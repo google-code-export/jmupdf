@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<project name="jmupdf" default="jmupdf" basedir=".">
+
+		<property name="source.dir" value="${basedir}/bin"/>		
+		<property name="target.dir" value="${basedir}"/>
+		<property name="build.dir" value="${basedir}/build"/>
+
+		<target name ="jmupdf" description="Create binaries for JMuPDF project">
+			
+			<delete dir="${build.dir}" failonerror="false"/>
+			
+			<mkdir dir="${build.dir}"/>
+
+	    	<copy todir="${build.dir}"> 
+	    		<fileset dir="${source.dir}" includes="**/*"/>
+	    	</copy>
+
+			<jar destfile="${build.dir}/jmupdf.jar">
+				<manifest>
+					<attribute name="Created-By" value="Pedro J Rivera"/>
+				</manifest>
+				<fileset dir="${build.dir}" includes="**/jmupdf/**"/>   
+			</jar>
+
+			<jar destfile="${build.dir}/jmupdf-viewer.jar">
+				<manifest>
+					<attribute name="Created-By" value="Pedro J Rivera"/>
+					<attribute name="Main-Class" value="com.examples.swing.Main"/>
+					<attribute name="Class-Path" value=". jmupdf.jar"/>
+				</manifest>
+				<fileset dir="${build.dir}" includes="**/examples/**"/>   
+			</jar>
+
+		</target>
+		
+	</project>

@@ -1,0 +1,81 @@
+JNI Rendering Memory Limits
+===========================
+JMuPdf uses native libraries, i.e, DLL's or SO's. These libraries use memory at the OS
+level. This means that this memory isn't controlled by the JVM. 
+
+JMuPdf provides a mechanism to control the maximum amount of memory that is allocated on 
+a per document basis. The default maximum memory used per document is 60mb. This can be 
+changed at runtime when creating a new document object. 
+  
+  example PDF:
+  
+    int maxMemory = 20;
+    PdfDocument pdf = new PdfDocument("c:\\test.pdf", maxMemory);
+    
+  example XPS:
+  
+    int maxMemory = 20;
+    XpsDocument xps = new XpsDocument("c:\\test.pdf", maxMemory);     
+
+The examples above will set the max memory to be used to 20mb. Once a document is closed the memory is freed.
+Additional memory considerations should be taken when rendering multiple documents simultaneously. Each document 
+can have its own memory limit but the total memory used will be the sum of the memory limits used for each
+document. For example:
+
+    int maxMemory = 20;
+    PdfDocument pdf1 = new PdfDocument("c:\\test.pdf", maxMemory);
+    PdfDocument pdf2 = new PdfDocument("c:\\test.pdf", maxMemory);
+
+In this case JMuPDF may use upto 40mb while rendering.
+
+	int maxMemory = 20;
+    PdfDocument pdf1 = new PdfDocument("c:\\test.pdf", maxMemory);
+    
+    maxMemory = 10;
+    PdfDocument pdf2 = new PdfDocument("c:\\test.pdf", maxMemory);
+
+In this case JMuPdf could use upto 30mb of memory while rendering.
+
+
+JVM Memory
+==========
+As JAVA starts, it creates within the systems memory a Java Virtual Machine (JVM). 
+JVM is where the complete processing of any Java program takes place. All JAVA 
+applications by default allocates & reserves up to 64 MB of memory resource pool 
+from the system on which it is running.
+
+-Xms
+====
+The Xms is the initial / minimum Java memory (heap) size within the JVM. Setting the initial 
+memory (heap) size higher can help in a couple of ways. First, it will allow garbage collection 
+(GC) to work less which is more efficient. The higher initial memory value will cause the size 
+of the memory (heap) not to have to grow as fast as a lower initial memory (heap) size, thereby 
+saving the overhead of the Java VM asking the OS for more memory.
+
+-Xmx
+====
+The Xmx is the maximum Java memory (heap) size within the Java Virtual Memory (JVM). As the JVM 
+gets closer to fully utilizing the initial memory, it checks the Xmx settings to find out if it 
+can draw more memory from the system resources. If it can, it does so. For the JVM to allocate contiguous 
+memory to itself is a very expensive operation. So as the JVM gets closer to the initial memory, the 
+JVM will use aggressive garbage collection (to clean the memory and if possible avoid memory allocation), 
+increasing the load on the system.
+
+-XX:PermSize
+============
+The section of the heap reserved for the permanent generation holds all of the reflective data for the JVM. 
+This size should be increased to optimize the performance of applications that dynamically load and unload 
+a lot of classes. Setting this to a value of 128MB eliminates the overhead of increasing this part of the heap.
+
+-XX:MaxPermSize
+===============
+-XX:MaxPermSize=64m	Size of the Permanent Generation.  
+[5.0 and newer: 64 bit VMs are scaled 30% larger; 1.4 amd64: 96m; 1.3.1 -client: 32m.]
+
+
+Example settings
+================
+-Xms1g 
+-Xmx2g 
+-XX:PermSize=512m 
+-XX:MaxPermSize=512m
