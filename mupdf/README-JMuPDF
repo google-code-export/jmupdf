@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2010-2012 Pedro J Rivera
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+ 
+/* 
+ * NOTES:
+ * ------ 
+ *  (1) All the JNI code is found in mupdf/jni folder.  
+ * 
+ *  (2) MakeJNI2 will need to be modified so that JVM_INCLUDES variable has the proper JVM
+ *      include paths for the installed JVM.
+ *
+ *  (3) pthreads is no longer required
+ */
+ 
+====================================================================================================
+**** Change log ****
+====================================================================================================
+Program Name      Date		  Description
+================  ==========  ======================================================================
+MuPdf             Sat, 21 Jan 2012 13:54:17 +0000  git://git.ghostscript.com/mupdf.git
+ThirdParty        04/21/2011  Added TIFFLIB 3.9.5
+ThirdParty        07/31/2011  Added bmplib folder
+tiffiop.h         04/21/2011  Added !defined(__GNUC__) on line #65
+tif_config.h      04/21/2011  Custom config for GNUC
+tiffconf.h        04/21/2011  Custom config for GNUC
+
+======================
+MuPDF customized code
+======================
+draw_glyph.c	  01/14/2011  Increased MAX_FONT_SIZE from 1000 to 3000
+
+
+  

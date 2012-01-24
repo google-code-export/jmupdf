@@ -1,0 +1,6 @@
+*~
+.*.swp
+/generated
+/build
+/.project
+/.cproject

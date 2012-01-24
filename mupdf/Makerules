@@ -1,0 +1,45 @@
+# Configuration for the Makefile
+
+OS ?= $(shell uname)
+OS := $(OS:MINGW%=MINGW)
+
+CFLAGS += -Wall
+
+ifeq "$(build)" "debug"
+CFLAGS += -pipe -g
+else ifeq "$(build)" "profile"
+CFLAGS += -pipe -O2 -DNDEBUG -pg
+LDFLAGS += -pg
+else ifeq "$(build)" "release"
+CFLAGS += -pipe -O2 -DNDEBUG -fomit-frame-pointer
+else ifeq "$(build)" "native"
+CFLAGS += -pipe -O2 -DNDEBUG -fomit-frame-pointer -march=native -mfpmath=sse
+else
+$(error unknown build setting: '$(build)')
+endif
+
+ifeq "$(OS)" "Linux"
+SYS_FREETYPE_INC := `pkg-config --cflags freetype2`
+X11_LIBS := -lX11 -lXext
+endif
+
+ifeq "$(OS)" "FreeBSD"
+SYS_FREETYPE_INC := `pkg-config --cflags freetype2`
+LDFLAGS += -L/usr/local/lib
+X11_LIBS := -lX11 -lXext
+endif
+
+# Mac OS X build depends on some thirdparty libs
+ifeq "$(OS)" "Darwin"
+SYS_FREETYPE_INC := -I/usr/X11R6/include/freetype2
+CFLAGS += -I/usr/X11R6/include
+LDFLAGS += -L/usr/X11R6/lib
+X11_LIBS := -lX11 -lXext
+ifeq "$(arch)" "amd64"
+CFLAGS += -m64
+LDFLAGS += -m64
+else
+CFLAGS += -m32
+LDFLAGS += -m32
+endif
+endif

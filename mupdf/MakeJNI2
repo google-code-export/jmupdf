@@ -1,0 +1,56 @@
+# --------------------------------------------------------------
+# MakeJNI2
+# --------------------------------------------------------------
+# 
+# GNU Makefile for JNI code
+#
+# NOTES:
+#   1. JVM_INCLUDES needs to be modified to reflect your
+#      own Java install
+# --------------------------------------------------------------
+
+JNI_DIR      := $(wildcard jni*)
+JNI_SRC      := $(notdir $(wildcard $(JNI_DIR)/*.c))
+JNI_DLL      := ""
+JNI_CMD      := ""
+JVM_INCLUDES := ""
+
+#
+# --- Windows
+#
+ifeq "$(findstring Windows,$(OS))" "Windows"
+ifeq "$(BIT)" "-m32"
+JNI_DLL := $(OUT)/jmupdf32.dll
+else
+JNI_DLL := $(OUT)/jmupdf64.dll
+endif
+JNI_CMD := $(BIT) -Wl,-export-all,-kill-at -shared
+JVM_INCLUDES := -I"C:\Program Files\Java\jdk1.6.0_26\include" -I"C:\Program Files\Java\jdk1.6.0_26\include\win32"
+endif
+
+#
+# --- Linux 
+#
+ifeq "$(findstring Linux,$(OS))" "Linux"
+LBITS := $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+JNI_DLL := $(OUT)/libjmupdf64.so
+else
+JNI_DLL := $(OUT)/libjmupdf32.so
+endif
+JNI_CMD := --enable-shared -Wl,-export-all -shared
+JVM_INCLUDES := -I"/usr/lib/jvm/java-6-openjdk/include" -I"/usr/lib/jvm/java-6-openjdk/include/linux"
+endif
+
+#
+# --- Compile rules
+#
+$(OUT)/%.o : $(JNI_DIR)/%.c | $(OUT)
+	$(CC_CMD) -D_JNI_IMPLEMENTATION -I$(JNI_DIR) $(JVM_INCLUDES)
+
+#
+# --- Link rules
+#
+$(JNI_DLL) : $(MUXPS_LIB) $(MUPDF_LIB) $(FITZ_LIB) $(THIRD_LIBS)
+$(JNI_DLL) : $(addprefix $(OUT)/, $(JNI_SRC:%.c=%.o))	
+	$(LINK_CMD) $(JNI_CMD)

@@ -1,0 +1,49 @@
+# --------------------------------------------------------------
+# MakeJNI1
+# --------------------------------------------------------------
+# 
+# GNU Makefile for JNI code
+#
+# Set some defaults needed in order to create DLL file
+# --------------------------------------------------------------
+
+OS ?= $(shell uname)
+OS := $(OS:MINGW%=MINGW)
+
+prefix  := build
+#build   := debug
+build   := release
+verbose := ""
+OUT 	:= $(prefix)/$(build)
+BIT     := "" 
+
+#
+# --- Set bit value when using TDM-GCC 
+#
+TDMGCC  := $(shell gcc --version)
+ifeq "$(findstring tdm64,$(TDMGCC))" "tdm64"
+BIT := -m32
+endif
+
+#
+# --- Windows
+#
+ifeq "$(findstring Windows,$(OS))" "Windows"
+CC  	:= gcc.exe $(BIT)
+WINDRES := windres.exe
+CFLAGS  += -std=c99
+endif
+
+#
+# --- Linux 
+#
+ifeq "$(findstring Linux,$(OS))" "Linux"
+CFLAGS += -fPIC -std=c99
+endif
+
+#
+# --- Omit symbol information on release version
+#
+ifeq "$(build)" "release"
+CC += -s 
+endif
