@@ -52,21 +52,17 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 		this.pageCount = 0;
 		this.isCached = false;
 
-		File file = new File(document);
+		File file = new File(getDocumentName());
 
 		if (!file.exists()) {
 			throw new DocException("Document " + document + " does not exist.");
 		}
 
-		if (type == DOC_PDF) {
-			this.handle = pdfOpen(document, password, getMaxStore());
-		} else if (type == DOC_XPS) {
-			this.handle = xpsOpen(document, getMaxStore());
-		}
+		this.handle = open(getType(), getDocumentName(), getPassWord(), getMaxStore());
 
-		if (this.handle > 0) {
-			this.pageCount = getPageCount(this.handle);
-			this.antiAliasLevel = getAntiAliasLevel(this.handle);
+		if (getHandle() > 0) {
+			this.pageCount = getPageCount(getHandle());
+			this.antiAliasLevel = getAntiAliasLevel(getHandle());
 		}
 	}
 
@@ -100,11 +96,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 */
 	public void close() {
 		if (handle > 0) {
-			if (getType() == DOC_PDF) {
-				pdfClose(handle);
-			} else if (getType() == DOC_XPS) {
-				xpsClose(handle);
-			}
+			close(handle);
 			if (isCached) {
 				File file = new File(document);
 				if (file.exists()) {
@@ -151,11 +143,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 */
 	public int getVersion() {
 		if (handle > 0) {
-			if (getType() == DOC_PDF) {
-				return pdfVersion(handle);
-			} else {
-				//TODO: Get xps version
-			}
+			return getVersion(handle);
 		}
 		return 0;
 	}
@@ -176,17 +164,20 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @return
 	 */
 	public String getDocumentName() {
-		if (handle > 0) {
-			return document;
+		if (document == null) {
+			document = "";
 		}
-		return null;
+		return document;
 	}
-	
+
 	/**
 	 * Get document password
 	 * @return
 	 */
 	public String getPassWord() {
+		if (password == null) {
+			password = "";
+		}
 		return password;
 	}
 	
@@ -221,11 +212,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 */
 	public PageLinks[] getPageLinks(int page) {
 		if (handle > 0) {
-			if (getType() == DOC_PDF) {
-				return pdfGetPageLinks(handle, page);
-			} else if (getType() == DOC_XPS) {
-				// TODO: Get xps links
-			}
+			return getPageLinks(handle, page);
 		}
 		return null;
 	}

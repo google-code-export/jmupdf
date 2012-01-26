@@ -9,7 +9,7 @@ public class Pdf_Outline {
 	
 	public static void main(String[] args) {
 		//String f = "E:\\development\\indigo\\workspace_jmupdf\\pdf_docs\\pdf_reference_1-7.pdf";
-		String f = "E:\\development\\indigo\\workspace_jmupdf\\pdf_docs\\itextinaction.pdf";
+		String f = "E:\\development\\indigo\\workspace_jmupdf-old\\pdf_docs\\itextinaction.pdf";
 		Outline o;
 		try {
 			PdfDocument doc = new PdfDocument(f);

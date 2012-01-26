@@ -18,7 +18,7 @@ import com.jmupdf.page.PageText;
  *
  */
 public abstract class JmuPdf {
-	private static final String jmupdf_version = "0.3.0";
+	private static final String jmupdf_version = "0.3.1-beta";
 
 	/*
 	 * Open DLL dependency
@@ -30,26 +30,20 @@ public abstract class JmuPdf {
 	/*
 	 * PDF/XPS Common Functions 
 	 */
+	protected native synchronized long open(int type, String pdf, String password, int maxStore);
+	protected native synchronized int close(long handle);
+	protected native synchronized int getVersion(long handle);
 	protected native synchronized int getPageCount(long handle);
 	protected native synchronized float[] loadPage(long handle, int page);
 	protected native synchronized PageText[] getPageText(long handle, int page, float zoom, int rotate, int x0, int y0, int x1, int y1);
 	protected native synchronized Outline getOutline(long handle);
+	protected native synchronized PageLinks[] getPageLinks(long handle, int page);
 	
 	/*
 	 * PDF Specific Functions
 	 */
-	protected native synchronized long pdfOpen(String pdf, String password, int maxStore);
-	protected native synchronized int pdfClose(long handle);
 	protected native synchronized String pdfInfo(long handle, String key);
 	protected native synchronized int[] pdfEncryptInfo(long handle);
-	protected native synchronized int pdfVersion(long handle);	
-	protected native synchronized PageLinks[] pdfGetPageLinks(long handle, int page);
-
-	/*
-	 * XPS Specific Functions
-	 */
-	protected native synchronized long xpsOpen(String xps, int maxStore);
-	protected native synchronized int xpsClose(long handle);
 
 	/*
 	 * Rendering Functions 

@@ -10,20 +10,20 @@
 OS ?= $(shell uname)
 OS := $(OS:MINGW%=MINGW)
 
-prefix  := build
 #build   := debug
 build   := release
-verbose := ""
+prefix  := build
 OUT 	:= $(prefix)/$(build)
 BIT     := "" 
+verbose := ""
 
 #
 # --- Set bit value when using TDM-GCC 
 #
 TDMGCC  := $(shell gcc --version)
 ifeq "$(findstring tdm64,$(TDMGCC))" "tdm64"
-#BIT := -m64
-BIT := -m32
+BIT := -m64
+#BIT := -m32
 endif
 
 #

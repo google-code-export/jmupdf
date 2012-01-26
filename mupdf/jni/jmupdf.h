@@ -10,7 +10,7 @@
 #include "jni.h"
 
 // Define JMuPdf internal version
-#define JMUPDF_VERSION "0.3.0"
+#define JMUPDF_VERSION "0.3.1-beta"
 
 // Document handle
 typedef struct jni_doc_handle_s jni_doc_handle;
