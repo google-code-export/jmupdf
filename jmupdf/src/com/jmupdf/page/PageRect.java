@@ -8,7 +8,7 @@ package com.jmupdf.page;
 import com.jmupdf.interfaces.PageTypes;
 
 /**
- * Cartesian or Java2D representation of a Rectangle
+ * PageRect Class
  * 
  * Object is reusable.
  * 
@@ -122,19 +122,6 @@ public class PageRect implements PageTypes {
     public float getY1() {
     	return p2y;
     }
-    
-//    /**
-//     * Translate a Cartesian/Java2D coordinates to Java2D/Cartesian coordinates 
-//     * @param mediabox This is the rectangle that this rectangle belongs to. 
-//     * @return rectangle in the Java2D or Cartesian coordinate space.
-//     */
-//    public PageRect translate(PageRect mediabox) {
-//    	float x1 = getX0();
-//    	float y1 = (mediabox.getY1() - mediabox.getY0()) - getY1();
-//    	float x2 = (getX1() - getX0()) + x1;
-//    	float y2 = (getY1() - getY0()) + y1;
-//    	return new PageRect(x1, y1, x2, y2);
-//    }
 
     /**
      * Scale rectangle
@@ -219,8 +206,7 @@ public class PageRect implements PageTypes {
         x1 = x0 + p_w;
         y1 = y0 + p_h;
         
-        return new PageRect(x0, y0, x1, y1);
-        
+        return new PageRect(x0, y0, x1, y1);   
     }
     
     /**
