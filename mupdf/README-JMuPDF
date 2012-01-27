@@ -30,7 +30,7 @@
 ====================================================================================================
 Program Name      Date		  Description
 ================  ==========  ======================================================================
-MuPdf             Tue, 24 Jan 2012 19:05:08 +0000  git://git.ghostscript.com/mupdf.git
+MuPdf             Thu, 26 Jan 2012 19:24:12 +0000  git://git.ghostscript.com/mupdf.git
 ThirdParty        04/21/2011  Added TIFFLIB 3.9.5
 ThirdParty        07/31/2011  Added bmplib folder
 tiffiop.h         04/21/2011  Added !defined(__GNUC__) on line #65
