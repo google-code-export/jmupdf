@@ -52,6 +52,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	private PrintServices printService;
 	private float zoom = 1f;
 	private int antiAliasLevel = 8;
+	private float gammaLevel = 1f;
 	private int color = Document.IMAGE_TYPE_RGB;
 	private boolean isOpened = false;
 	private boolean isZooming = false;
@@ -185,6 +186,11 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 			setPage();
 		}
 		
+		else if (source.equals(view.getComboGamma())) {
+			gammaLevel = getGammaLevel();
+			setPage();
+		}
+		
 		else if (source.equals(view.getComboColor())) { 
 			if (view.getComboColor().getSelectedIndex() == 0) {
 				color = Document.IMAGE_TYPE_RGB;
@@ -226,7 +232,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 					if (isZooming) {
 						view.getPageCanvas().scaleImage(zoom);
 					}
-					view.getPageCanvas().setPage(page, zoom, getRotation(), color, antiAliasLevel);
+					view.getPageCanvas().setPage(page, zoom, getRotation(), color, antiAliasLevel, gammaLevel);
 				} catch (OutOfMemoryError e) {
 					view.getPageCanvas().getRenderer().dispose();				
 					view.getPageCanvas().repaint();
@@ -261,7 +267,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 						} else if (document.getType() == Document.DOC_XPS) {
 							page = ((XpsDocument)document).getPage(1);
 						}
-						view.setPageCanvas(page, zoom, Page.PAGE_ROTATE_AUTO, color, antiAliasLevel);
+						view.setPageCanvas(page, zoom, Page.PAGE_ROTATE_AUTO, color, antiAliasLevel, gammaLevel);
 						mousePanController = new MousePanController(view);
 						view.setPanningListener(mousePanController);
 						view.getPageNumber().setValue(Integer.valueOf(1));
@@ -363,7 +369,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	}
 
 	/**
-	 * Get zoom level as float value
+	 * Get anti alias level as int value
 	 * @return
 	 */
 	private int getAntiAliasLevel() {
@@ -371,6 +377,17 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 		s = s.replace("%", "");
 		int i = Integer.valueOf(s.trim());
 		return i;
+	}
+	
+	/**
+	 * Get gamma level as float value
+	 * @return
+	 */
+	private float getGammaLevel() {
+		String s = (String)view.getComboGamma().getSelectedItem();
+		s = s.replace("%", "");
+		float f = Float.valueOf(s.trim());
+		return f;
 	}
 	
     /**

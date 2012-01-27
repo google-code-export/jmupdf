@@ -127,18 +127,19 @@ public class PageView extends JComponent {
      * Set page object to view
      * @param page
      */
-    public void setPage(Page page, float zoom, int rotate, int color, int antiAliasLevel) {    	
+    public void setPage(Page page, float zoom, int rotate, int color, int antiAliasLevel, float gamma) {    	
     	if (renderer == null) {        	
     		renderer = new PageRenderer(page, zoom, rotate, color);
         	renderer.setComponent(this);
-        	renderer.setAntiAliasLevel(antiAliasLevel);
     	} else {
     		renderer.setPage(page);
     		renderer.setZoom(zoom);
     		renderer.setRotation(rotate);
     		renderer.setColorType(color);
-    		renderer.setAntiAliasLevel(antiAliasLevel);
     	}
+		
+    	renderer.setAntiAliasLevel(antiAliasLevel);
+		renderer.setGamma(gamma);
 		
     	unSetRect();
     	

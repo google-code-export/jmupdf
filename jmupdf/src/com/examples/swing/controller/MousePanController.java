@@ -280,7 +280,9 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 		if (copyAsImage) {
 			int rotate = pageView.getRenderer().getNormalizedRotation();
 			float zoom = pageView.getRenderer().getZoom();
-
+			float gamma = pageView.getRenderer().getGamma();
+			int aa = pageView.getRenderer().getAntiAliasLevel();
+			
 			// Rotate mediabox to current rotation
 			PageRect mb = pageView.getPage().getMediaBox().rotate(pageView.getPage().getMediaBox(), rotate);
 
@@ -293,7 +295,9 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 			// Render region
 			PageRenderer r = new PageRenderer(pageView.getPage(), zoom, rotate, pageView.getRenderer().getColorType());
 			r.setCroppingArea(rect.getX0(), rect.getY0(), rect.getX1(), rect.getY1());
-			r.render(true);
+			r.setGamma(gamma);
+			r.setAntiAliasLevel(aa);
+			r.render(true);			
 
 			// Copy to clip board
 			ImageSelection is = new ImageSelection(r.getImage());			

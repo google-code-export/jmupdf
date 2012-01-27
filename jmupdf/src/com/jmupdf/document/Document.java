@@ -262,9 +262,9 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param y1
 	 * @return
 	 */
-	public Object getPagePixels(int page, float zoom, int rotate, int color, int[] bbox, float x0, float y0, float x1, float y1) {
+	public Object getPagePixels(int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1) {
 		if (handle > 0) {
-			return getPixMap(handle, page, zoom, rotate, color, bbox, x0, y0, x1, y1);
+			return getPixMap(handle, page, zoom, rotate, color, gamma, bbox, x0, y0, x1, y1);
 		}
 		return null;
 	}
@@ -300,15 +300,47 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param page
 	 * @param file
 	 * @param zoom
+	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPbm(int page, String file, float zoom) {
+	public boolean saveAsPbm(int page, String file, float zoom, float gamma) {
 		if (handle > 0) {
-			return writePbm(handle, page, zoom, file) == 0;
+			return writePbm(handle, page, zoom, gamma, file) == 0;
 		}
 		return false;
 	}
-
+	
+	/**
+	 * Save a page to a file in PBM format</br>
+	 * PBM is the portable bitmap format, a lowest common denominator monochrome file format. 
+	 * @param page
+	 * @param file
+	 * @param zoom
+	 * @return
+	 */
+	public boolean saveAsPbm(int page, String file, float zoom) {
+		return saveAsPbm(page, file, zoom, 1f);
+	}
+	
+	/**
+	 * Save a page to a file in PNM format
+	 * @param page
+	 * @param file
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @return
+	 */
+	public boolean saveAsPnm(int page, String file, float zoom, int color, float gamma) {
+		if (handle > 0) {
+			if (color == IMAGE_TYPE_RGB || 
+				color == IMAGE_TYPE_GRAY) {
+				return writePnm(handle, page, zoom, color, gamma, file) == 0;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Save a page to a file in PNM format
 	 * @param page
@@ -318,15 +350,8 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @return
 	 */
 	public boolean saveAsPnm(int page, String file, float zoom, int color) {
-		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB || 
-				color == IMAGE_TYPE_GRAY) {
-				return writePnm(handle, page, zoom, color, file) == 0;
-			}
-		}
-		return false;
+		return saveAsPnm(page, file, zoom, color, 1f);
 	}
-	
 
 	/**
 	 * Save a page to a file in JPEG format
@@ -334,23 +359,58 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param file
 	 * @param zoom
 	 * @param color
+	 * @param gamma
 	 * @param quality
 	 * <blockquote>quality levels are in the range 0-100 with a default value of 75.</blockquote>
 	 * @return
 	 */
-	public boolean saveAsJPeg(int page, String file, float zoom, int color, int quality) {
+	public boolean saveAsJPeg(int page, String file, float zoom, int color, float gamma, int quality) {
 		if (handle > 0) {
 			if (color == IMAGE_TYPE_RGB || 
 				color == IMAGE_TYPE_GRAY) {
 				if (!(quality >= 0 && quality <= 100)) {
 					quality = 75;
 				}
-				return writeJPeg(handle, page, zoom, color, file, quality) == 0;
+				return writeJPeg(handle, page, zoom, color, gamma, file, quality) == 0;
 			}
 		}
 		return false;
 	}
-
+	
+	/**
+	 * Save a page to a file in JPEG format 
+	 * @param page
+	 * @param file
+	 * @param zoom
+	 * @param color
+	 * @param quality
+	 * @return
+	 */
+	public boolean saveAsJPeg(int page, String file, float zoom, int color, int quality) {
+		return saveAsJPeg(page, file, zoom, color, 1f, quality);
+	}
+	
+	/**
+	 * Save a page to a BMP format
+	 * @param page
+	 * @param file
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @return
+	 */
+	public boolean saveAsBmp(int page, String file, float zoom, int color, float gamma) {
+		if (handle > 0) {
+			if (color == IMAGE_TYPE_RGB    || 
+				color == IMAGE_TYPE_GRAY   ||
+				color == IMAGE_TYPE_BINARY ||
+				color == IMAGE_TYPE_BINARY_DITHER) {
+				return writeBmp(handle, page, zoom, color, gamma, file) == 0;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Save a page to a BMP format
 	 * @param page
@@ -360,12 +420,24 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @return
 	 */
 	public boolean saveAsBmp(int page, String file, float zoom, int color) {
+		return saveAsBmp(page, file, zoom, color, 1f);
+	}
+	
+	/**
+	 * Save a page to a file in PNG format
+	 * @param page
+	 * @param file
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @return
+	 */
+	public boolean saveAsPng(int page, String file, float zoom, int color, float gamma) {
 		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB    || 
-				color == IMAGE_TYPE_GRAY   ||
-				color == IMAGE_TYPE_BINARY ||
-				color == IMAGE_TYPE_BINARY_DITHER) {
-				return writeBmp(handle, page, zoom, color, file) == 0;
+			if (color == IMAGE_TYPE_RGB  || 
+				color == IMAGE_TYPE_ARGB || 
+				color == IMAGE_TYPE_GRAY) {
+				return writePng(handle, page, zoom, color, gamma, file) == 0;
 			}
 		}
 		return false;
@@ -380,16 +452,9 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @return
 	 */
 	public boolean saveAsPng(int page, String file, float zoom, int color) {
-		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB  || 
-				color == IMAGE_TYPE_ARGB || 
-				color == IMAGE_TYPE_GRAY) {
-				return writePng(handle, page, zoom, color, file) == 0;
-			}
-		}
-		return false;
+		return saveAsPng(page, file, zoom, color, 1f);
 	}
-
+	
 	/**
 	 * Save a page to a file in PAM format</br>
 	 * The name "PAM" is an acronym derived from "Portable Arbitrary Map"
@@ -397,17 +462,30 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param file
 	 * @param zoom
 	 * @param color
+	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPam(int page, String file, float zoom, int color) {
+	public boolean saveAsPam(int page, String file, float zoom, int color, float gamma) {
 		if (handle > 0) {
 			if (color == IMAGE_TYPE_RGB  || 
 				color == IMAGE_TYPE_ARGB || 
 				color == IMAGE_TYPE_GRAY) {
-				return writePam(handle, page, zoom, color, file) == 0;
+				return writePam(handle, page, zoom, color, gamma, file) == 0;
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Save a page to a file in PAM format</br>
+	 * @param page
+	 * @param file
+	 * @param zoom
+	 * @param color
+	 * @return
+	 */
+	public boolean saveAsPam(int page, String file, float zoom, int color) {
+		return saveAsPam(page, file, zoom, color, 1f);
 	}
 	
 	/**
@@ -416,6 +494,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param file
 	 * @param zoom
 	 * @param color
+	 * @param gamma
 	 * @param compression
 	 * @param mode
 	 * @param quality <br/><br/>
@@ -434,7 +513,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 *        </blockquote>  
 	 * @return
 	 */
-	public boolean saveAsTif(int page, String file, float zoom, int color, int compression, int mode, int quality) {
+	public boolean saveAsTif(int page, String file, float zoom, int color, float gamma, int compression, int mode, int quality) {
 		if (handle > 0) {
 			
 			if (!(color == IMAGE_TYPE_RGB    || 
@@ -478,12 +557,27 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 				}
 			}
 
-			return writeTif(handle, page, zoom, color, file, compression, mode, quality) == 0;
+			return writeTif(handle, page, zoom, color, gamma, file, compression, mode, quality) == 0;
 		}
 
 		return false;
 	}
-
+	
+	/**
+	 * Save a page to a TIF format
+	 * @param page
+	 * @param file
+	 * @param zoom
+	 * @param color
+	 * @param compression
+	 * @param mode
+	 * @param quality
+	 * @return
+	 */
+	public boolean saveAsTif(int page, String file, float zoom, int color, int compression, int mode, int quality) {
+		return saveAsTif(page, file, zoom, color, 1f, compression, mode, quality);
+	}
+	
 	/**
 	 * Validate Anti-alias level
 	 */

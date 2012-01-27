@@ -50,14 +50,14 @@ public abstract class JmuPdf {
 	 */
 	protected native synchronized int getAntiAliasLevel(long handle);
 	protected native synchronized int setAntiAliasLevel(long handle, int antiAliasLevel);
-	protected native synchronized Object getPixMap(long handle, int page, float zoom, int rotate, int color, int[] bbox, float x0, float y0, float x1, float y1);
-	protected native synchronized int writePbm(long handle, int page, float zoom, String file);
-	protected native synchronized int writePnm(long handle, int page, float zoom, int color, String file);
-	protected native synchronized int writePam(long handle, int page, float zoom, int color, String file);
-	protected native synchronized int writePng(long handle, int page, float zoom, int color, String file);
-	protected native synchronized int writeTif(long handle, int page, float zoom, int color, String file, int compression, int mode, int quality);
-	protected native synchronized int writeJPeg(long handle, int page, float zoom, int color, String file, int quality);
-	protected native synchronized int writeBmp(long handle, int page, float zoom, int color, String file);
+	protected native synchronized Object getPixMap(long handle, int page, float zoom, int rotate, int color, float gamma,  int[] bbox, float x0, float y0, float x1, float y1);
+	protected native synchronized int writePbm(long handle, int page, float zoom, float gamma, String file);
+	protected native synchronized int writePnm(long handle, int page, float zoom, int color, float gamma, String file);
+	protected native synchronized int writePam(long handle, int page, float zoom, int color, float gamma, String file);
+	protected native synchronized int writePng(long handle, int page, float zoom, int color, float gamma, String file);
+	protected native synchronized int writeTif(long handle, int page, float zoom, int color, float gamma, String file, int compression, int mode, int quality);
+	protected native synchronized int writeJPeg(long handle, int page, float zoom, int color, float gamma, String file, int quality);
+	protected native synchronized int writeBmp(long handle, int page, float zoom, int color, float gamma, String file);
 	
 	/**
 	 * Get library version

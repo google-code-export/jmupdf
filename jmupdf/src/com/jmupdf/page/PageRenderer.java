@@ -37,6 +37,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	private float resolution;
 	private int rotate;
 	private int color;
+	private float gamma;
 
 	private int x;
 	private int y;
@@ -69,18 +70,20 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	public PageRenderer(float zoom, int rotate, int color) {
 		this(null, zoom, rotate, color);
 	}
-	
+
 	/**
-	 * Create renderer instance. 
+	 * Create renderer instance.
 	 * @param page
 	 * @param zoom
 	 * @param rotate
+	 * @param color
 	 */
 	public PageRenderer(Page page, float zoom, int rotate, int color) {
 		this.page = page;
 		this.zoom = zoom;
 		this.rotate = rotate;
 		this.color = color;
+		this.gamma = 1f;
 		if (page == null) {
 			setCroppingArea(0, 0, 0, 0);
 		} else {
@@ -301,6 +304,33 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	}
 	
 	/**
+	 * Get gamma correction
+	 * @return
+	 */
+	public float getGamma() {
+		return gamma;
+	}
+
+	/**
+	 * Set gamma correction </br></br>
+	 * 
+	 * Gamma correct the output image. </br>
+	 * Some typical values are 0.7 or 1.4 to thin or darken text rendering.
+	 * 
+	 * @param gamma
+	 */
+	public void setGamma(float gamma) {
+		if (getGamma() == gamma) {
+			return;
+		}
+		if (gamma <= 0) {
+			gamma = 1f;
+		}
+		this.gamma = gamma;
+		needsRendering();
+	}
+
+	/**
 	 * Get anti-alias level.
 	 * @return
 	 */
@@ -448,6 +478,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 					getZoom(), 
 					getNormalizedRotation(), 
 					getColorType(),
+					getGamma(),
 					bbox, 
 					c.getX0(), 
 					c.getY0(), 

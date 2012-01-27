@@ -30,6 +30,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.EventListener;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -37,6 +38,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -80,6 +82,7 @@ public class MainView {
     private JComboBox comboColor;
     private JComboBox comboZoom;
     private JComboBox comboAntiAlias;
+    private JComboBox comboGamma;
     private JSpinner pageNumber;
     private JLabel pageCount;
     private JButton open;
@@ -95,6 +98,7 @@ public class MainView {
     private final String[] rotate = {"Auto", "90 CW", "90 CCW", "180"};
     private final String[] zoomLevels = {"5", "10", "25", "50", "75", "100", "125", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "1200", "2400", "4800", "6400"};
     private final String[] antiAliasLevels = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
+    private final String[] gamma = {"0.5", "0.7", "1.0", "1.5", "1.7", "2"};
     private final int defaultZoomIndex = 5;
 
 	/**
@@ -190,8 +194,12 @@ public class MainView {
 	 * Build main tool bar
 	 */
 	private void buildToolBar() {
-		JToolBar toolBar = new JToolBar();				
-
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		
+		JToolBar toolBar1 = new JToolBar();				
+		JToolBar toolBar2 = new JToolBar();
+		
 		Insets margins = new Insets(0, 0, 0, 0);
 		
 		/*
@@ -199,19 +207,19 @@ public class MainView {
 		 */
 		this.open = new JButton(Images.getImageIcon("open.gif"));		
 		this.open.setMargin(margins);
-		toolBar.add(open);
+		toolBar1.add(open);
 		
 		/*
 		 * Print button 
 		 */
 		this.print = new JButton(Images.getImageIcon("print.gif"));		
 		this.print.setMargin(margins);
-		toolBar.add(print);
+		toolBar1.add(print);
 
 		/*
 		 * Page navigation buttons |< << >> >|
 		 */
-		toolBar.addSeparator();		
+		toolBar1.addSeparator();		
 		this.fstPage = new JButton(Images.getImageIcon("first.gif"));
 		this.prvPage = new JButton(Images.getImageIcon("prev.gif"));
 		this.nxtPage = new JButton(Images.getImageIcon("next.gif"));		
@@ -220,75 +228,95 @@ public class MainView {
 		this.prvPage.setMargin(margins);
 		this.nxtPage.setMargin(margins);		
 		this.lstPage.setMargin(margins);
-		toolBar.add(fstPage);
-		toolBar.add(prvPage);
-		toolBar.add(nxtPage);		
-		toolBar.add(lstPage);
+		toolBar1.add(fstPage);
+		toolBar1.add(prvPage);
+		toolBar1.add(nxtPage);		
+		toolBar1.add(lstPage);
 
 		/*
 		 * Page Number Spinner
 		 */
-		toolBar.addSeparator();
+		toolBar1.addSeparator();
 		this.pageCount = new JLabel();
 		this.pageNumber = new JSpinner();
 		Dimension d = new Dimension(this.pageNumber.getPreferredSize());
 		d.setSize(60, d.getHeight());
 		this.pageNumber.setMaximumSize(d);
-		toolBar.add(new JLabel("Page: "));		
-		toolBar.add(this.pageNumber);
-		toolBar.add(new JLabel(" of "));
-		toolBar.add(this.pageCount);
+		toolBar1.add(new JLabel("Page: "));		
+		toolBar1.add(this.pageNumber);
+		toolBar1.add(new JLabel(" of "));
+		toolBar1.add(this.pageCount);
 		
 		/*
 		 * Zoom level combo box
 		 */
-		toolBar.addSeparator();		
+		toolBar1.addSeparator();		
 		JLabel zoomText = new JLabel("Zoom:");
 		this.comboZoom = new JComboBox(zoomLevels);
 		d = new Dimension(comboZoom.getPreferredSize());
 		d.setSize(60, d.getHeight());
 		this.comboZoom.setMaximumSize(d);
-		toolBar.add(zoomText);
-		toolBar.add(comboZoom);
-		
-		/*
-		 * Anti Alias Level
-		 */
-		toolBar.addSeparator();
-		JLabel antiAliasText = new JLabel("Antialias Level:");
-		this.comboAntiAlias = new JComboBox(antiAliasLevels);
-		d = new Dimension(comboAntiAlias.getPreferredSize());
-		d.setSize(40, d.getHeight());
-		this.comboAntiAlias.setMaximumSize(d);
-		toolBar.add(antiAliasText);
-		toolBar.add(comboAntiAlias);
+		toolBar1.add(zoomText);
+		toolBar1.add(comboZoom);
 		
 		/*
 		 * Page rotate combo box
 		 */
-		toolBar.addSeparator();		
+		toolBar1.addSeparator();		
 		JLabel rotateText = new JLabel("Rotate:");
 		this.comboRotate = new JComboBox(rotate);
 		d = new Dimension(comboRotate.getPreferredSize());
 		d.setSize(65, d.getHeight());
 		this.comboRotate.setMaximumSize(d);
-		toolBar.add(rotateText);
-		toolBar.add(comboRotate);
+		toolBar1.add(rotateText);
+		toolBar1.add(comboRotate);
 		
+		/*
+		 * Anti Alias Level
+		 */
+		JLabel antiAliasText = new JLabel("Antialias Level:");
+		this.comboAntiAlias = new JComboBox(antiAliasLevels);
+		d = new Dimension(comboAntiAlias.getPreferredSize());
+		d.setSize(40, d.getHeight());
+		this.comboAntiAlias.setMaximumSize(d);
+		toolBar2.add(antiAliasText);
+		toolBar2.add(comboAntiAlias);
+		
+		/*
+		 * Gamma Level
+		 */
+		toolBar2.addSeparator();
+		JLabel gammaText = new JLabel("Gamma Level:");
+		this.comboGamma = new JComboBox(gamma);
+		d = new Dimension(comboGamma.getPreferredSize());
+		d.setSize(60, d.getHeight());
+		this.comboGamma.setMaximumSize(d);
+		toolBar2.add(gammaText);
+		toolBar2.add(comboGamma);
+
 		/*
 		 * Color space combo box
 		 */
-		toolBar.addSeparator();				
+		toolBar2.addSeparator();				
 		JLabel colorText = new JLabel("Color:");
 		this.comboColor = new JComboBox(colors);
 		d = new Dimension(this.comboColor.getPreferredSize());
 		d.setSize(130, d.getHeight());
 		this.comboColor.setMaximumSize(d);
-		toolBar.add(colorText);
-		toolBar.add(this.comboColor);
-		
-		this.mainFrame.getContentPane().add(toolBar, BorderLayout.NORTH);	
+		toolBar2.add(colorText);
+		toolBar2.add(this.comboColor);
 
+		// Set alignment
+		toolBar1.setAlignmentX(0);
+		toolBar2.setAlignmentX(0);
+		
+		// Add toolbars to panel
+		panel.add(toolBar1);
+		panel.add(toolBar2);
+
+		// Add panel to frame
+		this.mainFrame.getContentPane().add(panel, BorderLayout.NORTH);
+		
 	}
 
 	/**
@@ -378,6 +406,7 @@ public class MainView {
 		this.comboColor.addActionListener(al);	  
 		this.comboRotate.addActionListener(al);
 		this.comboAntiAlias.addActionListener(al);
+		this.comboGamma.addActionListener(al);
 	}	
 
 	/**
@@ -443,6 +472,7 @@ public class MainView {
 		this.comboColor.setEnabled(false);
 		this.comboRotate.setEnabled(false);
 		this.comboAntiAlias.setEnabled(false);
+		this.comboGamma.setEnabled(false);
 		this.open.setEnabled(true);
 		this.print.setEnabled(false);
 		this.prvPage.setEnabled(false);
@@ -456,6 +486,7 @@ public class MainView {
 		this.comboZoom.setSelectedIndex(defaultZoomIndex);
 		this.comboRotate.setSelectedIndex(0);
 		this.comboAntiAlias.setSelectedIndex(8);
+		this.comboGamma.setSelectedIndex(2);
 		this.setTitle("");
 		this.mainFrame.validate();
 	}
@@ -464,12 +495,12 @@ public class MainView {
 	 * Set page canvas area
 	 * @param page
 	 */
-	public void setPageCanvas(Page page, float zoom, int rotate, int color, int antiAliasLevel) {
+	public void setPageCanvas(Page page, float zoom, int rotate, int color, int antiAliasLevel, float gamma) {
 		if (this.pageView == null) {
 			this.pageView = new PageView();
 			this.scrollPane.setViewportView(pageView);
 		}
-		this.pageView.setPage(page, zoom, rotate, color, antiAliasLevel);
+		this.pageView.setPage(page, zoom, rotate, color, antiAliasLevel, gamma);
 		this.splitPane.setVisible(true);		
 		this.itemClose.setEnabled(true);
 		this.itemPrint.setEnabled(true);
@@ -478,6 +509,7 @@ public class MainView {
 		this.comboColor.setEnabled(true);
 		this.comboRotate.setEnabled(true);
 		this.comboAntiAlias.setEnabled(true);
+		this.comboGamma.setEnabled(true);
 		this.open.setEnabled(true);
 		this.print.setEnabled(true);
 		this.prvPage.setEnabled(true);
@@ -490,6 +522,7 @@ public class MainView {
 		this.comboZoom.setSelectedIndex(defaultZoomIndex);
 		this.comboRotate.setSelectedIndex(0);
 		this.comboAntiAlias.setSelectedIndex(8);
+		this.comboGamma.setSelectedIndex(2);
 		this.setTitle(page.getDocument().getDocumentName());
 		this.mainFrame.validate();
 	}
@@ -578,6 +611,14 @@ public class MainView {
 	 */
 	public JComboBox getComboAntiAlias() {
 		return comboAntiAlias;
+	}
+	
+	/**
+	 * Get Gamma Level Combo Box
+	 * @return
+	 */
+	public JComboBox getComboGamma() {
+		return comboGamma;
 	}
 	
 	/**
