@@ -1,7 +1,7 @@
 #include "jmupdf.h"
 #include "bmpfile.h"
 
-int jni_write_bmp(fz_context *ctx, fz_pixmap *pix, char *filename, int color, float zoom)
+int jni_write_bmp(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom, int color)
 {
 	bmpfile_t *bmp;
 	rgb_pixel_t pixel;
@@ -89,7 +89,7 @@ int jni_write_bmp(fz_context *ctx, fz_pixmap *pix, char *filename, int color, fl
 		}
 	}
 
-	bmp_save(bmp, filename);
+	bmp_save(bmp, file);
 	bmp_destroy(bmp);
 
 	return rc;

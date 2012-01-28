@@ -81,21 +81,23 @@ static void jni_load_outline(JNIEnv *env, jclass cls, jobject obj,
 	{
 		if (outline->title)
 		{
-			(*env)->CallVoidMethod(env, obj, set_title, (*env)->NewStringUTF(env, outline->title));
+			jstring title = jni_new_string(outline->title);
+			jni_outline_set_title_call(obj, set_title, title);
 		}
 		if (outline->dest.kind == FZ_LINK_GOTO)
 		{
-			(*env)->CallVoidMethod(env, obj, set_page, outline->dest.ld.gotor.page+1);
+			int page = outline->dest.ld.gotor.page + 1;
+			jni_outline_set_title_call(obj, set_page, page);
 		}
 		if (outline->down)
 		{
-			jni_load_outline(env, cls, (*env)->CallObjectMethod(env, obj, add_child),
-					         add_next, add_child, set_page, set_title, hdoc, outline->down);
+			jobject new_child = jni_outline_add_child_call(obj, add_child);
+			jni_load_outline(env, cls, new_child, add_next, add_child, set_page, set_title, hdoc, outline->down);
 		}
 		outline = outline->next;
 		if (outline)
 		{
-			obj = (*env)->CallObjectMethod(env, obj, add_next);
+			obj = jni_outline_add_next_call(obj, add_next);
 		}
 	}
 }
@@ -113,8 +115,8 @@ JNIEXPORT jlong JNICALL Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jin
 		return -1;
 	}
 
-	const char *file = (*env)->GetStringUTFChars(env, document, 0);
-	char *pass = (char*)(*env)->GetStringUTFChars(env, password, 0);
+	const char *file = jni_new_char(document);
+	char *pass = (char*)jni_new_char(password);
 	int rc = 0;
 
 	if (type == DOC_PDF)
@@ -130,8 +132,8 @@ JNIEXPORT jlong JNICALL Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jin
 		rc = -1;
 	}
 
-	(*env)->ReleaseStringUTFChars(env, document, file);
-	(*env)->ReleaseStringUTFChars(env, password, pass);
+	jni_free_char(document, file);
+	jni_free_char(password, pass);
 
 	if (rc != 0)
 	{
@@ -180,17 +182,18 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 		return NULL;
 	}
 
-	jclass cls = (*env)->FindClass(env, "com/jmupdf/document/Outline");
+	jclass cls = jni_new_outline_class();
+
 	if (!cls)
 	{
 		return NULL;
 	}
 
-	jmethodID init      = (*env)->GetMethodID(env, cls, "<init>",   "()V");
-	jmethodID add_next  = (*env)->GetMethodID(env, cls, "addNext",  "()Lcom/jmupdf/document/Outline;");
-	jmethodID add_child = (*env)->GetMethodID(env, cls, "addChild", "()Lcom/jmupdf/document/Outline;");
-	jmethodID set_page  = (*env)->GetMethodID(env, cls, "setPage",  "(I)V");
-	jmethodID set_title = (*env)->GetMethodID(env, cls, "setTitle", "(Ljava/lang/String;)V");
+	jmethodID init      = jni_get_outline_init(cls);
+	jmethodID add_next  = jni_get_outline_add_next(cls);
+	jmethodID add_child = jni_get_outline_add_child(cls);
+	jmethodID set_page  = jni_get_outline_set_page(cls);
+	jmethodID set_title = jni_get_outline_set_title(cls);
 
 	fz_outline *outline = NULL;
 	jobject out = NULL;
@@ -207,7 +210,7 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 		}
 		if (outline)
 		{
-			out = (*env)->NewObject(env, cls, init);
+			out = jni_new_outline_obj(cls, init);
 			if (out)
 			{
 				jni_load_outline(env, cls, out, add_next, add_child, set_page, set_title, hdoc, outline);
@@ -217,7 +220,7 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 
 	if (cls)
 	{
-		(*env)->DeleteLocalRef(env, cls);
+		jni_free_ref(cls);
 	}
 	if (outline && hdoc->pdf)
 	{
@@ -245,9 +248,9 @@ JNIEXPORT jstring JNICALL Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj
 
 	if (info)
 	{
-		const char *dictkey = (*env)->GetStringUTFChars(env, key, 0);
+		const char *dictkey = jni_new_char(key);
 		fz_obj *obj = fz_dict_gets(info, (char*)dictkey);
-		(*env)->ReleaseStringUTFChars(env, key, dictkey);
+		jni_free_char(key, dictkey);
 		if (!obj)
 		{
 			return NULL;
@@ -255,7 +258,9 @@ JNIEXPORT jstring JNICALL Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj
 		text = pdf_to_utf8(hdoc->ctx, obj);
 	}
 
-	return (*env)->NewStringUTF(env, text);
+	jstring str = jni_new_string(text);
+
+	return str;
 }
 
 /**
@@ -278,24 +283,24 @@ JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, j
 
 	int sizeofarray = 12;
 
-	jintArray dataarray = (*env)->NewIntArray(env, sizeofarray);
+	jintArray dataarray = jni_new_int_array(sizeofarray);
 
 	if (!dataarray)
 	{
 		return NULL;
 	}
 
-	jint *data = (*env)->GetIntArrayElements(env, dataarray, 0);
+	jint *data = jni_start_array_critical(dataarray);
 
-	data[1]  = pdf_has_permission(hdoc->pdf, PDF_PERM_PRINT); 				// print
+	data[1]  = pdf_has_permission(hdoc->pdf, PDF_PERM_PRINT); 			// print
 	data[2]  = pdf_has_permission(hdoc->pdf, PDF_PERM_CHANGE); 			// modify
-	data[3]  = pdf_has_permission(hdoc->pdf, PDF_PERM_COPY);				// copy
-	data[4]  = pdf_has_permission(hdoc->pdf, PDF_PERM_NOTES);				// annotate
-	data[5]  = pdf_has_permission(hdoc->pdf, PDF_PERM_FILL_FORM);			// Fill form fields
-	data[6]  = pdf_has_permission(hdoc->pdf, PDF_PERM_ACCESSIBILITY);		// Extract text and graphics
-	data[7]  = pdf_has_permission(hdoc->pdf, PDF_PERM_ASSEMBLE);			// Document assembly
-	data[8]  = pdf_has_permission(hdoc->pdf, PDF_PERM_HIGH_RES_PRINT);		// Print quality
-	data[9]  = pdf_get_crypt_revision(hdoc->pdf);							// Revision
+	data[3]  = pdf_has_permission(hdoc->pdf, PDF_PERM_COPY);			// copy
+	data[4]  = pdf_has_permission(hdoc->pdf, PDF_PERM_NOTES);			// annotate
+	data[5]  = pdf_has_permission(hdoc->pdf, PDF_PERM_FILL_FORM);		// Fill form fields
+	data[6]  = pdf_has_permission(hdoc->pdf, PDF_PERM_ACCESSIBILITY);	// Extract text and graphics
+	data[7]  = pdf_has_permission(hdoc->pdf, PDF_PERM_ASSEMBLE);		// Document assembly
+	data[8]  = pdf_has_permission(hdoc->pdf, PDF_PERM_HIGH_RES_PRINT);	// Print quality
+	data[9]  = pdf_get_crypt_revision(hdoc->pdf);						// Revision
 	data[10] = pdf_get_crypt_length(hdoc->pdf);							// Length
 
 	char *method = pdf_get_crypt_method(hdoc->pdf);						// Method
@@ -305,9 +310,9 @@ JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, j
 	else if (strcmp(method, "Unknown") == 0) 	data[11] = 3;
 	else 										data[11] = 0;
 
-	data[0] = data[11] > 0;													// Is encrypted
+	data[0] = data[11] > 0;												// Is encrypted
 
-	(*env)->ReleaseIntArrayElements(env, dataarray, data, 0);
+	jni_end_array_critical(dataarray, data);
 
 	return dataarray;
 }

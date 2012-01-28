@@ -38,7 +38,7 @@
  * Create a new single page or multi-page TIF image
  *
  */
-static int write_tif(unsigned char *pixels, char *filename, int mode,
+static int write_tif(unsigned char *pixels, const char *file, int mode,
 		     int quality, int compression, int photometric,
 		     float resolution, int bitspersample, int samplesperpixel,
 		     size_t size, int w, int h)
@@ -74,7 +74,7 @@ static int write_tif(unsigned char *pixels, char *filename, int mode,
 	int r = 0;
 	while (r < 500)
 	{
-		image = TIFF_OPEN(filename, cmode);
+		image = TIFF_OPEN(file, cmode);
 		if (image) 	break;
 		else		++r;
 		SLEEP(1000);
@@ -136,7 +136,7 @@ static int write_tif(unsigned char *pixels, char *filename, int mode,
  * Create a new single page or multi-page TIF image
  *
  */
-int jni_write_tif(fz_context *ctx, fz_pixmap *pix, char *filename, float zoom, int compression, int color, int mode, int quality)
+int jni_write_tif(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom, int compression, int color, int mode, int quality)
 {
 	int ccitt = 0;
 	int samplesperpixel = 1;
@@ -184,7 +184,7 @@ int jni_write_tif(fz_context *ctx, fz_pixmap *pix, char *filename, float zoom, i
 
 	if (color == COLOR_ARGB)
 	{
-		return write_tif(pixels, filename, mode, quality,
+		return write_tif(pixels, file, mode, quality,
 				        compression, photometric, resolution, bitspersample,
 				        samplesperpixel, size, pix->w, pix->h);
 	}
@@ -240,7 +240,7 @@ int jni_write_tif(fz_context *ctx, fz_pixmap *pix, char *filename, float zoom, i
 
 	if (rc == 0)
 	{
-		rc = write_tif(trgbuf, filename, mode, quality,
+		rc = write_tif(trgbuf, file, mode, quality,
 					  compression, photometric, resolution, bitspersample,
 					  samplesperpixel, size, pix->w, pix->h);
 	}

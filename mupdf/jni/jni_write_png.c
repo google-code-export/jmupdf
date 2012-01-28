@@ -33,7 +33,7 @@ static void putchunk(char *tag, unsigned char *data, int size, FILE *fp)
 	put32(sum, fp);
 }
 
-int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, char *filename, int savealpha, float zoom)
+int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *file, float zoom, int savealpha)
 {
 	static const unsigned char pngsig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
 	FILE *fp;
@@ -114,7 +114,7 @@ int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, char *filename, int saveal
 		return -1;
 	}
 
-	fp = fopen(filename, "wb");
+	fp = fopen(file, "wb");
 	if (!fp)
 	{
 		fz_free(ctx, udata);

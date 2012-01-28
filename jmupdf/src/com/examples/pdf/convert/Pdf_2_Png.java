@@ -18,13 +18,13 @@ public class Pdf_2_Png {
 			 * Open document
 			 */
 			//PdfDocument pdfDoc = new PdfDocument("c:\\tmp\\test1.pdf");
-			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf\\pdf_docs\\itextinaction.pdf");
+			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_docs\\itextinaction.pdf");
 
 			/*
 			 * Create JPeg file
 			 */
 			pdfDoc.saveAsPng(
-					3,									// Page number
+					1,									// Page number
 					"e:\\tmp\\test1-RGB.png",				// PNG file
 					2f,									// Zoom	
 					PdfDocument.IMAGE_TYPE_RGB);		// Color space. Only RGB, ARGB & Gray.

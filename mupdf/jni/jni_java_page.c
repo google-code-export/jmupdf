@@ -210,14 +210,14 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 		return NULL;
 	}
 
-	jfloatArray dataarray = (*env)->NewFloatArray(env, 5);
+	jfloatArray dataarray = jni_new_float_array(5);
 
 	if (!dataarray)
 	{
 		return NULL;
 	}
 
-	jfloat *data = (*env)->GetFloatArrayElements(env, dataarray, 0);
+	jfloat *data = jni_start_array_critical(dataarray);
 
 	data[0] = 0;
 	data[1] = 0;
@@ -243,7 +243,7 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 		data[3] = hdoc->page_bbox.y1;
 	}
 
-	(*env)->ReleaseFloatArrayElements(env, dataarray, data, 0);
+	jni_end_array_critical(dataarray, data);
 
 	return dataarray;
 }
@@ -318,20 +318,28 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, j
 		}
 	}
 
-	jobjectArray joa = NULL;
-	jclass cls = (*env)->FindClass(env, "com/jmupdf/page/PageText");
-	jmethodID mid = (*env)->GetMethodID(env, cls, "<init>", "(IIIII[I)V");
+	jclass cls = jni_new_page_text_class();
+
+	if (!cls)
+	{
+		fz_free_text_span(hdoc->ctx, page_text);
+		return NULL;
+	}
+
+	jmethodID init = jni_get_page_text_init(cls);
+	jobjectArray page_text_arr = NULL;
 
 	// Load up span objects with text
 	if (totspan > 0)
 	{
-		joa = (*env)->NewObjectArray(env, totspan, cls, NULL);
-		if (joa != NULL)
+		page_text_arr = jni_new_object_array(totspan, cls);
+		if (page_text_arr)
 		{
 			int e = 0;
 			int p = 0;
 			jintArray txtarr = NULL;
 			jint *txtptr = NULL;
+			jobject new_page;
 			for (span = page_text; span; span = span->next)
 			{
 				seen = 0;
@@ -343,8 +351,8 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, j
 					{
 						if (seen == 0)
 						{
-							txtarr = (*env)->NewIntArray(env, span->len);
-							txtptr = (*env)->GetIntArrayElements(env, txtarr, 0);
+							txtarr = jni_new_int_array(span->len);
+							txtptr = jni_start_array_critical(txtarr);
 						}
 						txtptr[p++] = span->text[i].c;
 						seen = 1;
@@ -352,25 +360,22 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, j
 				}
 				if (seen == 1)
 				{
-					(*env)->SetIntArrayRegion(env, txtarr, 0, span->len, txtptr);
-					(*env)->ReleaseIntArrayElements(env, txtarr, txtptr, 0);
-					(*env)->SetObjectArrayElement(env, joa, e++,
-							(*env)->NewObject(env, cls, mid, span->text[0].bbox.x0,
-															 span->text[0].bbox.y0,
-															 hitbox->x1,
-															 hitbox->y1,
-															 span->eol,
-															 txtarr));
+					jni_end_array_critical(txtarr, txtptr);
+					new_page = jni_new_page_text_obj(
+						               cls, init,
+						               span->text[0].bbox.x0, span->text[0].bbox.y0,
+						               hitbox->x1, hitbox->y1, span->eol, txtarr);
+					jni_set_object_array_el(page_text_arr, e++, new_page);
 				}
 			}
 		}
 	}
 
 	// Free resources
-	(*env)->DeleteLocalRef(env, cls);
+	jni_free_ref(cls);
 	fz_free_text_span(hdoc->ctx, page_text);
 
-	return joa;
+	return page_text_arr;
 }
 
 /**
@@ -395,9 +400,15 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 		return NULL;
 	}
 
-	jobjectArray joa = NULL;
-	jclass cls = (*env)->FindClass(env, "com/jmupdf/page/PageLinks");
-	jmethodID mid = (*env)->GetMethodID(env, cls, "<init>", "(FFFFILjava/lang/String;)V");
+	jclass cls = jni_new_page_links_class();
+
+	if (!cls)
+	{
+		return NULL;
+	}
+
+	jmethodID mid = jni_get_page_links_init(cls);
+	jobjectArray page_links_arr = NULL;
 
 	// Count up total links
 	int totlinks = 0;
@@ -414,13 +425,15 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 	// Store link data in object array
 	if (totlinks > 0)
 	{
-		joa = (*env)->NewObjectArray(env, totlinks, cls, NULL);
-		if (joa)
+		page_links_arr = jni_new_object_array(totlinks, cls);
+		if (page_links_arr)
 		{
 			int e = 0;
 			int seen;
 			int type;
 			char *buf;
+			jobject new_page_links;
+			jstring text;
 			for (link = hdoc->pdf_page->links; link; link = link->next)
 			{
 				seen = 0;
@@ -442,14 +455,12 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 				}
 				if (seen == 1)
 				{
-					(*env)->SetObjectArrayElement(env, joa, e++,
-							(*env)->NewObject(env, cls, mid,
-									link->rect.x0,
-									link->rect.y0,
-									link->rect.x1,
-									link->rect.y1,
-									type,
-									(*env)->NewStringUTF(env, buf)));
+					text = jni_new_string(buf);
+					new_page_links = jni_new_page_links_obj(
+							cls, mid,
+							link->rect.x0, link->rect.y0,
+							link->rect.x1, link->rect.y1, type, text);
+					jni_set_object_array_el(page_links_arr, e++, new_page_links);
 					if (type == 0)
 						fz_free(hdoc->ctx, buf);
 				}
@@ -458,7 +469,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 	}
 
 	// Free resources
-	(*env)->DeleteLocalRef(env, cls);
+	jni_free_ref(cls);
 
-	return joa;
+	return page_links_arr;
 }

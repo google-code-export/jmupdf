@@ -1,7 +1,7 @@
 #include "jmupdf.h"
 #include "jpeglib.h"
 
-int jni_write_jpeg(fz_context *ctx, fz_pixmap *pix, char *filename, float zoom, int color, int quality)
+int jni_write_jpg(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom, int color, int quality)
 {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -17,7 +17,7 @@ int jni_write_jpeg(fz_context *ctx, fz_pixmap *pix, char *filename, float zoom, 
 	/*
 	 * Step 2: specify data destination
 	 */
-	fp = fopen(filename, "wb");
+	fp = fopen(file, "wb");
 	if (!fp) {
 		jpeg_destroy_compress(&cinfo);
 		return -1;

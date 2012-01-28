@@ -72,16 +72,46 @@ fz_matrix jni_get_view_ctm(jni_doc_handle*, float, int);
 int jni_pix_to_black_white(fz_context*, fz_pixmap*, int, unsigned char* );
 int jni_pix_to_binary(fz_context*, fz_pixmap*, int, unsigned char*);
 
-// jni_write_tiff.c
-int jni_write_tif(fz_context*, fz_pixmap*, char*, float, int, int, int, int);
+// jni_write_xxx.c
+int jni_write_png(fz_context*, fz_pixmap*, const char*, float, int);
+int jni_write_tif(fz_context*, fz_pixmap*, const char*, float, int, int, int, int);
+int jni_write_jpg(fz_context*, fz_pixmap*, const char*, float, int, int);
+int jni_write_bmp(fz_context*, fz_pixmap*, const char*, float, int);
 
-// jni_write_jpeg.c
-int jni_write_jpeg(fz_context*, fz_pixmap*, char*, float, int, int);
+// JNI Strong Typing
+#define jni_new_char(str) (*env)->GetStringUTFChars(env, str, 0);
+#define jni_free_char(str, chars) (*env)->ReleaseStringUTFChars(env, str, chars);
+#define jni_start_array_critical(array) (*env)->GetPrimitiveArrayCritical(env, array, 0);
+#define jni_end_array_critical(array, carray) (*env)->ReleasePrimitiveArrayCritical(env, array, carray, 0);
+#define jni_new_string(chars) (*env)->NewStringUTF(env, chars);
+#define jni_new_byte_array(size) (*env)->NewByteArray(env, size);
+#define jni_new_int_array(size) (*env)->NewIntArray(env, size);
+#define jni_new_float_array(size) (*env)->NewFloatArray(env, size);
+#define jni_new_object_array(size, cls) (*env)->NewObjectArray(env, size, cls, NULL);
+#define jni_set_object_array_el(array, idx, obj) (*env)->SetObjectArrayElement(env, array, idx, obj);
+#define jni_free_ref(cls) (*env)->DeleteLocalRef(env, cls);
 
-// jni_write_png.c
-int jni_write_png(fz_context*, fz_pixmap*, char*, int, float);
+// Outline class and methods: Strong Typing
+#define jni_new_outline_class() (*env)->FindClass(env, "com/jmupdf/document/Outline");
+#define jni_new_outline_obj(cls, method) (*env)->NewObject(env, cls, method);
+#define jni_get_outline_init(cls) (*env)->GetMethodID(env, cls, "<init>",   "()V");
+#define jni_get_outline_add_next(cls) (*env)->GetMethodID(env, cls, "addNext",  "()Lcom/jmupdf/document/Outline;");
+#define jni_get_outline_add_child(cls) (*env)->GetMethodID(env, cls, "addChild", "()Lcom/jmupdf/document/Outline;");
+#define jni_get_outline_set_page(cls) (*env)->GetMethodID(env, cls, "setPage",  "(I)V");
+#define jni_get_outline_set_title(cls) (*env)->GetMethodID(env, cls, "setTitle", "(Ljava/lang/String;)V");
+#define jni_outline_set_title_call(obj, method, string) (*env)->CallVoidMethod(env, obj, method, string);
+#define jni_outline_set_page_call(obj, method, page) (*env)->CallVoidMethod(env, obj, method, page);
+#define jni_outline_add_child_call(obj, method) (*env)->CallObjectMethod(env, obj, method);
+#define jni_outline_add_next_call(obj, method) (*env)->CallObjectMethod(env, obj, method);
 
-// jni_write_bmp.c
-int jni_write_bmp(fz_context*, fz_pixmap*, char*, int, float);
+// Page class and methods: Strong Typing
+#define jni_new_page_text_class() (*env)->FindClass(env, "com/jmupdf/page/PageText");
+#define jni_new_page_text_obj(cls, method, x0, y0, x1, y1, eol, text) (*env)->NewObject(env, cls, method, x0, y0, x1, y1, eol, text);
+#define jni_get_page_text_init(cls) (*env)->GetMethodID(env, cls, "<init>", "(IIIII[I)V");
+
+// Page links and methods: Strong Typing
+#define jni_new_page_links_class() (*env)->FindClass(env, "com/jmupdf/page/PageLinks");
+#define jni_new_page_links_obj(cls, method, x0, y0, x1, y1, eol, text) (*env)->NewObject(env, cls, method, x0, y0, x1, y1, type, text);
+#define jni_get_page_links_init(cls) (*env)->GetMethodID(env, cls, "<init>", "(FFFFILjava/lang/String;)V");
 
 #endif
