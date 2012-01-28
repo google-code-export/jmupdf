@@ -32,6 +32,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	
 	private JComponent component;
 	private BufferedImage image;
+	private Object pixels;
 	
 	private float zoom;
 	private float resolution;
@@ -473,18 +474,18 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 			int[] bbox = new int[4];
 
 			// Get pixels
-			Object pixels = getPage().getDocument().getPagePixels(
-					getPage().getPageNumber(), 
-					getZoom(), 
-					getNormalizedRotation(), 
-					getColorType(),
-					getGamma(),
-					bbox, 
-					c.getX0(), 
-					c.getY0(), 
-					c.getX1(), 
-					c.getY1());
-
+			pixels = getPage().getDocument().getPagePixels(
+					 getPage().getPageNumber(), 
+					 getZoom(), 
+					 getNormalizedRotation(), 
+					 getColorType(),
+					 getGamma(),
+					 bbox, 
+					 c.getX0(), 
+					 c.getY0(), 
+					 c.getX1(), 
+					 c.getY1());
+			
 			// Create buffered image
 			if (pixels != null) {
 				this.x = bbox[0];
@@ -526,6 +527,9 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 		if (image != null) {
 			image.flush();
 			image = null;
+		}
+		if (pixels != null) {
+			pixels = null;
 		}
 		if (worker != null) {
 			worker.shutdown();

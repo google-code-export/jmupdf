@@ -24,7 +24,7 @@ jni_doc_handle *jni_new_doc_handle(int max_store)
 	hdoc->handle = jni_ptr_to_jlong(hdoc);
 	hdoc->anti_alias_level = fz_get_aa_level(hdoc->ctx);
 	hdoc->page_number = 0;
-	hdoc->xref = NULL;
+	hdoc->pdf = NULL;
 	hdoc->xps = NULL;
 	hdoc->xps_page = NULL;
 	hdoc->pdf_page = NULL;
@@ -54,13 +54,13 @@ int jni_free_doc_handle(jlong handle)
 
 	jni_free_page(hdoc);
 
-	if (hdoc->xref)
+	if (hdoc->pdf)
 	{
-		pdf_free_xref(hdoc->xref);
+		pdf_close_document(hdoc->pdf);
 	}
 	if (hdoc->xps)
 	{
-		xps_free_context(hdoc->xps);
+		xps_close_document(hdoc->xps);
 	}
 
 	fz_free(ctx, hdoc);

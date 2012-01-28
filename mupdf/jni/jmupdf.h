@@ -18,7 +18,7 @@ struct jni_doc_handle_s {
 	jlong handle;
 	fz_context *ctx;
 
-	pdf_xref *xref;
+	pdf_document *pdf;
 	xps_document *xps;
 
 	pdf_page *pdf_page;

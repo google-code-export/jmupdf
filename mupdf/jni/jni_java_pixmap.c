@@ -1,5 +1,7 @@
 #include "jmupdf.h"
 
+#define buf_addr(jp) (jp != NULL ? (*env)->GetDirectBufferAddress(env, jp) : NULL)
+
 /**
  * Get Current Transformation Matrix
  */
@@ -77,7 +79,7 @@ static fz_pixmap *jni_get_pixmap(jni_doc_handle *hdoc, int pagen, float zoom, in
 	if (rotate == -1)
 	{
 		rotate = 0;
-		if (hdoc->xref)
+		if (hdoc->pdf)
 		{
 			rotate = hdoc->pdf_page->rotate;
 		}
@@ -346,7 +348,8 @@ int jni_pix_to_binary(fz_context *ctx, fz_pixmap * pix, int dither, unsigned cha
  * Get an RGB, Gray or Binary pixels
  *
  */
-JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint color, jfloat gamma, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
+//JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint color, jfloat gamma, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
+JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint color, jfloat gamma, jobject bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
 {
 	jni_doc_handle *hdoc = jni_get_doc_handle(handle);
 
@@ -460,10 +463,13 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass o
 	{
 		// Populate bbox with image information
 		jint *data1 = (*env)->GetIntArrayElements(env, bbox, 0);
-		data1[0] = 0;
-		data1[1] = 0;
-		data1[2] = ABS(pix->w);
-		data1[3] = ABS(pix->h);
+		if (data1)
+		{
+			data1[0] = 0;
+			data1[1] = 0;
+			data1[2] = ABS(pix->w);
+			data1[3] = ABS(pix->h);
+		}
 		(*env)->ReleaseIntArrayElements(env, bbox, data1, 0);
 	}
 

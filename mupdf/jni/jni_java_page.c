@@ -16,8 +16,8 @@ static void jni_load_pdf_page(jni_doc_handle *hdoc, int pagen)
 	fz_try(hdoc->ctx)
 	{
 		jni_free_page(hdoc);
-		hdoc->pdf_page = pdf_load_page(hdoc->xref, pagen-1);
-		hdoc->page_bbox = pdf_bound_page(hdoc->xref, hdoc->pdf_page);
+		hdoc->pdf_page = pdf_load_page(hdoc->pdf, pagen-1);
+		hdoc->page_bbox = pdf_bound_page(hdoc->pdf, hdoc->pdf_page);
 		hdoc->page_number = pagen;
 	}
 	fz_catch(hdoc->ctx)
@@ -40,7 +40,7 @@ static void jni_load_pdf_page_for_view(jni_doc_handle *hdoc, int pagen)
 		{
 			hdoc->page_list = fz_new_display_list(hdoc->ctx);
 			dev = fz_new_list_device(hdoc->ctx, hdoc->page_list);
-			pdf_run_page(hdoc->xref, hdoc->pdf_page, dev, fz_identity, NULL);
+			pdf_run_page(hdoc->pdf, hdoc->pdf_page, dev, fz_identity, NULL);
 		}
 	}
 	fz_always(hdoc->ctx)
@@ -130,7 +130,7 @@ static void jni_load_xps_page_for_view(jni_doc_handle *hdoc, int pagen)
  */
 void jni_get_doc_page(jni_doc_handle *hdoc, int pagen)
 {
-	if (hdoc->xref)
+	if (hdoc->pdf)
 	{
 		jni_load_pdf_page_for_view(hdoc, pagen);
 	}
@@ -183,9 +183,9 @@ JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getPageCount(JNIEnv *env, jclass o
 
 	fz_try(hdoc->ctx)
 	{
-		if (hdoc->xref)
+		if (hdoc->pdf)
 		{
-			rc = pdf_count_pages(hdoc->xref);
+			rc = pdf_count_pages(hdoc->pdf);
 		}
 		else if (hdoc->xps)
 		{
@@ -225,7 +225,7 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 	data[3] = 0;
 	data[4] = 0;
 
-	if (hdoc->xref)
+	if (hdoc->pdf)
 	{
 		jni_load_pdf_page(hdoc, pagen);
 		data[4] = hdoc->pdf_page->rotate;

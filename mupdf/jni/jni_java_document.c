@@ -16,7 +16,7 @@ static int jni_open_pdf(jni_doc_handle *hdoc, const char *file, char *password)
 	fz_try(hdoc->ctx)
 	{
 		stm = fz_open_file(hdoc->ctx, file);
-		hdoc->xref = pdf_open_xref_with_stream(stm);
+		hdoc->pdf = pdf_open_document_with_stream(stm);
 	}
 	fz_always(hdoc->ctx)
 	{
@@ -28,17 +28,17 @@ static int jni_open_pdf(jni_doc_handle *hdoc, const char *file, char *password)
 		{
 			rc = -1;
 		}
-		else if (!hdoc->xref)
+		else if (!hdoc->pdf)
 		{
 			rc = -2;
 		}
 	}
 
-	if (hdoc->xref)
+	if (hdoc->pdf)
 	{
-		if (pdf_needs_password(hdoc->xref))
+		if (pdf_needs_password(hdoc->pdf))
 		{
-			if(!pdf_authenticate_password(hdoc->xref, password))
+			if(!pdf_authenticate_password(hdoc->pdf, password))
 			{
 				rc = -3;
 			}
@@ -58,7 +58,7 @@ static int jni_open_xps(jni_doc_handle *hdoc, const char *file)
 
 	fz_try(hdoc->ctx)
 	{
-		hdoc->xps = xps_open_file(hdoc->ctx, (char*)file);
+		hdoc->xps = xps_open_document(hdoc->ctx, (char*)file);
 	}
 	fz_catch(hdoc->ctx)
 	{
@@ -160,9 +160,9 @@ JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getVersion(JNIEnv *env, jclass obj
 	jni_doc_handle *hdoc = jni_get_doc_handle(handle);
 	int v = 0;
 
-	if (hdoc->xref)
+	if (hdoc->pdf)
 	{
-		v = hdoc->xref->version;
+		v = hdoc->pdf->version;
 	}
 
 	return v;
@@ -197,9 +197,9 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 
 	if(init > 0 && add_next > 0 && add_child > 0 && set_page > 0 && set_title > 0)
 	{
-		if(hdoc->xref)
+		if(hdoc->pdf)
 		{
-			outline = pdf_load_outline(hdoc->xref);
+			outline = pdf_load_outline(hdoc->pdf);
 		}
 		else if(hdoc->xps)
 		{
@@ -219,7 +219,7 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 	{
 		(*env)->DeleteLocalRef(env, cls);
 	}
-	if (outline && hdoc->xref)
+	if (outline && hdoc->pdf)
 	{
 		fz_free_outline(outline);
 	}
@@ -240,7 +240,7 @@ JNIEXPORT jstring JNICALL Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj
 		return NULL;
 	}
 
-	fz_obj *info = fz_dict_gets(hdoc->xref->trailer, "Info");
+	fz_obj *info = fz_dict_gets(hdoc->pdf->trailer, "Info");
 	char *text = NULL;
 
 	if (info)
@@ -271,7 +271,7 @@ JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, j
 		return NULL;
 	}
 
-	if (!hdoc->xref)
+	if (!hdoc->pdf)
 	{
 		return NULL;
 	}
@@ -287,18 +287,18 @@ JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, j
 
 	jint *data = (*env)->GetIntArrayElements(env, dataarray, 0);
 
-	data[1]  = pdf_has_permission(hdoc->xref, PDF_PERM_PRINT); 				// print
-	data[2]  = pdf_has_permission(hdoc->xref, PDF_PERM_CHANGE); 			// modify
-	data[3]  = pdf_has_permission(hdoc->xref, PDF_PERM_COPY);				// copy
-	data[4]  = pdf_has_permission(hdoc->xref, PDF_PERM_NOTES);				// annotate
-	data[5]  = pdf_has_permission(hdoc->xref, PDF_PERM_FILL_FORM);			// Fill form fields
-	data[6]  = pdf_has_permission(hdoc->xref, PDF_PERM_ACCESSIBILITY);		// Extract text and graphics
-	data[7]  = pdf_has_permission(hdoc->xref, PDF_PERM_ASSEMBLE);			// Document assembly
-	data[8]  = pdf_has_permission(hdoc->xref, PDF_PERM_HIGH_RES_PRINT);		// Print quality
-	data[9]  = pdf_get_crypt_revision(hdoc->xref);							// Revision
-	data[10] = pdf_get_crypt_length(hdoc->xref);							// Length
+	data[1]  = pdf_has_permission(hdoc->pdf, PDF_PERM_PRINT); 				// print
+	data[2]  = pdf_has_permission(hdoc->pdf, PDF_PERM_CHANGE); 			// modify
+	data[3]  = pdf_has_permission(hdoc->pdf, PDF_PERM_COPY);				// copy
+	data[4]  = pdf_has_permission(hdoc->pdf, PDF_PERM_NOTES);				// annotate
+	data[5]  = pdf_has_permission(hdoc->pdf, PDF_PERM_FILL_FORM);			// Fill form fields
+	data[6]  = pdf_has_permission(hdoc->pdf, PDF_PERM_ACCESSIBILITY);		// Extract text and graphics
+	data[7]  = pdf_has_permission(hdoc->pdf, PDF_PERM_ASSEMBLE);			// Document assembly
+	data[8]  = pdf_has_permission(hdoc->pdf, PDF_PERM_HIGH_RES_PRINT);		// Print quality
+	data[9]  = pdf_get_crypt_revision(hdoc->pdf);							// Revision
+	data[10] = pdf_get_crypt_length(hdoc->pdf);							// Length
 
-	char *method = pdf_get_crypt_method(hdoc->xref);						// Method
+	char *method = pdf_get_crypt_method(hdoc->pdf);						// Method
 
 	if (strcmp(method, "RC4") == 0)  			data[11] = 1;
 	else if (strcmp(method, "AES") == 0)  		data[11] = 2;

@@ -24,7 +24,7 @@ public class Pdf_2_BufferedImage_RGB {
 			/*
 			 * Open document
 			 */
-			PdfDocument pdfDoc = new PdfDocument("c:\\tmp\\margin-bad.pdf", "");
+			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_docs\\itextinaction.pdf", "");
 			
 			/*
 			 * Get page object
@@ -40,7 +40,7 @@ public class Pdf_2_BufferedImage_RGB {
 			/*
 			 * Save to disk for review
 			 */
-			ImageIO.write(render.getImage(), "JPEG", new File("c:\\tmp\\test-1.jpg"));
+			ImageIO.write(render.getImage(), "JPEG", new File("e:\\tmp\\test-1.jpg"));
 			
 			/*
 			 * Dispose

@@ -641,7 +641,7 @@ fz_obj *fz_new_int(fz_context *ctx, int i);
 fz_obj *fz_new_real(fz_context *ctx, float f);
 fz_obj *fz_new_name(fz_context *ctx, char *str);
 fz_obj *fz_new_string(fz_context *ctx, char *str, int len);
-fz_obj *fz_new_indirect(fz_context *ctx, int num, int gen, void *xref);
+fz_obj *fz_new_indirect(fz_context *ctx, int num, int gen, void *doc);
 
 fz_obj *fz_new_array(fz_context *ctx, int initialcap);
 fz_obj *fz_new_dict(fz_context *ctx, int initialcap);
@@ -704,7 +704,7 @@ void fz_debug_obj(fz_obj *obj);
 void fz_debug_ref(fz_obj *obj);
 
 void fz_set_str_len(fz_obj *obj, int newlen); /* private */
-void *fz_get_indirect_xref(fz_obj *obj); /* private */
+void *fz_get_indirect_document(fz_obj *obj); /* private */
 
 /*
  * Data buffers.
@@ -897,11 +897,13 @@ fz_stream *fz_open_aesd(fz_stream *chain, unsigned char *key, unsigned keylen);
 fz_stream *fz_open_a85d(fz_stream *chain);
 fz_stream *fz_open_ahxd(fz_stream *chain);
 fz_stream *fz_open_rld(fz_stream *chain);
-fz_stream *fz_open_dctd(fz_stream *chain, fz_obj *param);
-fz_stream *fz_open_faxd(fz_stream *chain, fz_obj *param);
+fz_stream *fz_open_dctd(fz_stream *chain, int color_transform);
+fz_stream *fz_open_faxd(fz_stream *chain,
+	int k, int end_of_line, int encoded_byte_align,
+	int columns, int rows, int end_of_block, int black_is_1);
 fz_stream *fz_open_flated(fz_stream *chain);
-fz_stream *fz_open_lzwd(fz_stream *chain, fz_obj *param);
-fz_stream *fz_open_predict(fz_stream *chain, fz_obj *param);
+fz_stream *fz_open_lzwd(fz_stream *chain, int early_change);
+fz_stream *fz_open_predict(fz_stream *chain, int predictor, int columns, int colors, int bpc);
 fz_stream *fz_open_jbig2d(fz_stream *chain, fz_buffer *global);
 
 /*
@@ -1067,8 +1069,8 @@ struct fz_font_s
 	fz_buffer **t3procs; /* has 256 entries if used */
 	float *t3widths; /* has 256 entries if used */
 	char *t3flags; /* has 256 entries if used */
-	void *t3xref; /* a pdf_xref for the callback */
-	void (*t3run)(void *xref, fz_obj *resources, fz_buffer *contents,
+	void *t3doc; /* a pdf_document for the callback */
+	void (*t3run)(void *doc, fz_obj *resources, fz_buffer *contents,
 		struct fz_device_s *dev, fz_matrix ctm, void *gstate);
 
 	fz_rect bbox;	/* font bbox is used only for t3 fonts */

@@ -17,7 +17,7 @@ public class Pdf_2_JPeg {
 			/*
 			 * Open document
 			 */
-			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf\\pdf_docs\\itextinaction.pdf", "");
+			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_docs\\itextinaction.pdf", "");
 
 			/*
 			 * Create JPeg file
