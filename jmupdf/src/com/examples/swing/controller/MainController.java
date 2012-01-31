@@ -30,6 +30,7 @@ import javax.swing.event.ChangeListener;
 import com.examples.swing.util.FileChooser;
 import com.examples.swing.view.DocInfoView;
 import com.examples.swing.view.MainView;
+import com.jmupdf.cbz.CbzDocument;
 import com.jmupdf.document.Document;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
@@ -222,11 +223,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	private void setPage() {
 		if (isOpened) {			
 			page = null;
-			if (document.getType() == Document.DOC_PDF) { 
-				page = ((PdfDocument)document).getPage(getPageNumber());
-			} else if (document.getType() == Document.DOC_XPS) {
-				page = ((XpsDocument)document).getPage(getPageNumber());
-			}
+			page = document.getPage(getPageNumber());
 			if (page != null) {
 				try {
 					if (isZooming) {
@@ -258,15 +255,13 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 						document = new PdfDocument(file.toString(), pass, maxStore);	
 					} else if (FileChooser.getExtension(file).equals("xps")) {
 						document = new XpsDocument(file.toString(), maxStore);
+					} else if (FileChooser.getExtension(file).equals("cbz")) {
+						document = new CbzDocument(file.toString(), maxStore);
 					}
 					if (document != null && document.getHandle() > 0) {
 						zoom = 1f;
 						antiAliasLevel = 8;
-						if (document.getType() == Document.DOC_PDF) { 
-							page = ((PdfDocument)document).getPage(1);
-						} else if (document.getType() == Document.DOC_XPS) {
-							page = ((XpsDocument)document).getPage(1);
-						}
+						page = document.getPage(1);								
 						view.setPageCanvas(page, zoom, Page.PAGE_ROTATE_AUTO, color, antiAliasLevel, gammaLevel);
 						mousePanController = new MousePanController(view);
 						view.setPanningListener(mousePanController);
@@ -275,6 +270,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 						break;
 					}
 				} catch (DocException e1) {
+					break;
 				} catch (DocSecurityException e1) {
 					pass = JOptionPane.showInputDialog(null, "Document requires authentication:");
 					if (pass == null) {

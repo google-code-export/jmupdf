@@ -183,6 +183,7 @@ public class PageView extends JComponent {
         	if (isPageRendered()) {
 				width = getRenderer().getWidth();
 				height = getRenderer().getHeight();
+				//log("page: " + width+", "+height);
         	} else {
             	msg = "Error, could not render page.";
             	msg2 = "Please try a lower zoom level.";

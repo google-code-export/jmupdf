@@ -3,6 +3,7 @@
 // Document type constants
 static const int DOC_PDF = 0;
 static const int DOC_XPS = 1;
+static const int DOC_CBZ = 2;
 
 /**
  * Open a PDF document
@@ -69,6 +70,39 @@ static int jni_open_xps(jni_doc_handle *hdoc, const char *file)
 }
 
 /**
+ * Open a CBZ document
+ *
+ */
+static int jni_open_cbz(jni_doc_handle *hdoc, const char *file)
+{
+	fz_stream *stm = NULL;
+	int rc = 0;
+
+	fz_try(hdoc->ctx)
+	{
+		stm = fz_open_file(hdoc->ctx, file);
+		hdoc->cbz = cbz_open_document_with_stream(stm);
+	}
+	fz_always(hdoc->ctx)
+	{
+		fz_close(stm);
+	}
+	fz_catch(hdoc->ctx)
+	{
+		if (!stm)
+		{
+			rc = -1;
+		}
+		else if (!hdoc->cbz)
+		{
+			rc = -2;
+		}
+	}
+
+	return rc;
+}
+
+/**
  * Load outline to PdfOutline object structure
  *
  */
@@ -126,6 +160,10 @@ JNIEXPORT jlong JNICALL Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jin
 	else if (type == DOC_XPS)
 	{
 		rc = jni_open_xps(hdoc, file);
+	}
+	else if (type == DOC_CBZ)
+	{
+		rc = jni_open_cbz(hdoc, file);
 	}
 	else
 	{
@@ -222,9 +260,9 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 	{
 		jni_free_ref(cls);
 	}
-	if (outline && hdoc->pdf)
+	if (outline)
 	{
-		fz_free_outline(outline);
+		fz_free_outline(hdoc->ctx, outline);
 	}
 
 	return out;
@@ -239,6 +277,11 @@ JNIEXPORT jstring JNICALL Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj
 	jni_doc_handle *hdoc = jni_get_doc_handle(handle);
 
 	if (!hdoc)
+	{
+		return NULL;
+	}
+
+	if (!hdoc->pdf)
 	{
 		return NULL;
 	}

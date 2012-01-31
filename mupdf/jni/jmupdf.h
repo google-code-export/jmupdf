@@ -7,6 +7,7 @@
 #include "fitz.h"
 #include "mupdf.h"
 #include "muxps.h"
+#include "mucbz.h"
 #include "jni.h"
 
 // Define JMuPdf internal version
@@ -20,9 +21,11 @@ struct jni_doc_handle_s {
 
 	pdf_document *pdf;
 	xps_document *xps;
+	cbz_document *cbz;
 
 	pdf_page *pdf_page;
 	xps_page *xps_page;
+	cbz_page *cbz_page;
 
 	fz_rect page_bbox;
 	fz_display_list *page_list;

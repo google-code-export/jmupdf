@@ -124,6 +124,59 @@ static void jni_load_xps_page_for_view(jni_doc_handle *hdoc, int pagen)
 	return;
 }
 
+/*
+ * Load a cbz page
+ */
+static void jni_load_cbz_page(jni_doc_handle *hdoc, int pagen)
+{
+	if (pagen == hdoc->page_number)
+	{
+		if (hdoc->cbz_page)
+		{
+			return;
+		}
+	}
+
+	jni_free_page(hdoc);
+
+	fz_try(hdoc->ctx)
+	{
+		hdoc->cbz_page = cbz_load_page(hdoc->cbz, pagen-1);
+		hdoc->page_bbox = cbz_bound_page(hdoc->cbz, hdoc->cbz_page);
+		hdoc->page_number = pagen;
+	}
+	fz_catch(hdoc->ctx) {}
+
+	return;
+}
+
+/**
+ * Create a new CBZ page object and cache it
+ */
+static void jni_load_cbz_page_for_view(jni_doc_handle *hdoc, int pagen)
+{
+	fz_device *dev = NULL;
+
+	fz_try(hdoc->ctx)
+	{
+		jni_load_cbz_page(hdoc, pagen);
+		if (!hdoc->page_list)
+		{
+			hdoc->page_list = fz_new_display_list(hdoc->ctx);
+			dev = fz_new_list_device(hdoc->ctx, hdoc->page_list);
+			cbz_run_page(hdoc->cbz, hdoc->cbz_page, dev, fz_identity, NULL);
+		}
+	}
+	fz_always(hdoc->ctx)
+	{
+		fz_free_device(dev);
+	}
+	fz_catch(hdoc->ctx)
+	{
+		jni_free_page(hdoc);
+	}
+}
+
 /**
  * Create a new page object
  *
@@ -137,6 +190,10 @@ void jni_get_doc_page(jni_doc_handle *hdoc, int pagen)
 	else if (hdoc->xps)
 	{
 		jni_load_xps_page_for_view(hdoc, pagen);
+	}
+	else if (hdoc->cbz)
+	{
+		jni_load_cbz_page_for_view(hdoc, pagen);
 	}
 }
 
@@ -157,10 +214,15 @@ void jni_free_page(jni_doc_handle *hdoc)
 	{
 		pdf_free_page(hdoc->ctx, hdoc->pdf_page);
 	}
+	if (hdoc->cbz_page)
+	{
+		cbz_free_page(hdoc->cbz, hdoc->cbz_page);
+	}
 
 	hdoc->page_list = NULL;
 	hdoc->pdf_page = NULL;
 	hdoc->xps_page = NULL;
+	hdoc->cbz_page = NULL;
 	hdoc->page_number = 0;
 
 	fz_flush_warnings(hdoc->ctx);
@@ -190,6 +252,10 @@ JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getPageCount(JNIEnv *env, jclass o
 		else if (hdoc->xps)
 		{
 			rc = xps_count_pages(hdoc->xps);
+		}
+		else if (hdoc->cbz)
+		{
+			rc = cbz_count_pages(hdoc->cbz);
 		}
 	}
 	fz_catch(hdoc->ctx) {}
@@ -234,8 +300,12 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 	{
 		jni_load_xps_page(hdoc, pagen);
 	}
+	else if (hdoc->cbz)
+	{
+		jni_load_cbz_page(hdoc, pagen);
+	}
 
-	if(hdoc->pdf_page || hdoc->xps_page)
+	if(hdoc->pdf_page || hdoc->xps_page || hdoc->cbz_page)
 	{
 		data[0] = hdoc->page_bbox.x0;
 		data[1] = hdoc->page_bbox.y0;

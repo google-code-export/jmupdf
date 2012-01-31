@@ -26,25 +26,41 @@ fz_matrix jni_get_view_ctm(jni_doc_handle *hdoc, float zoom, int rotate)
 static fz_rect jni_normalize_rect(jni_doc_handle *hdoc, float x0, float y0, float x1, float y1)
 {
 	fz_rect rect;
-	if (hdoc->pdf_page || hdoc->xps_page)
+	if (hdoc->pdf_page || hdoc->xps_page || hdoc->cbz_page)
 	{
 		if (x0==0 && y0==0 && x1==0 && y1==0)
 		{
-			rect.x0 = hdoc->pdf_page ? hdoc->page_bbox.x0 : jni_to_96_dpi(hdoc->page_bbox.x0);
-			rect.y0 = hdoc->pdf_page ? hdoc->page_bbox.y0 : jni_to_96_dpi(hdoc->page_bbox.y0);
-			rect.x1 = hdoc->pdf_page ? hdoc->page_bbox.x1 : jni_to_96_dpi(hdoc->page_bbox.x1);
-			rect.y1 = hdoc->pdf_page ? hdoc->page_bbox.y1 : jni_to_96_dpi(hdoc->page_bbox.y1);
+			if(hdoc->xps_page)
+			{
+				rect.x0 = jni_to_96_dpi(hdoc->page_bbox.x0);
+				rect.y0 = jni_to_96_dpi(hdoc->page_bbox.y0);
+				rect.x1 = jni_to_96_dpi(hdoc->page_bbox.x1);
+				rect.y1 = jni_to_96_dpi(hdoc->page_bbox.y1);
+			}
+			else
+			{
+				rect.x0 = hdoc->page_bbox.x0;
+				rect.y0 = hdoc->page_bbox.y0;
+				rect.x1 = hdoc->page_bbox.x1;
+				rect.y1 = hdoc->page_bbox.y1;
+			}
 		}
 		else
 		{
-			rect.x0 = MAX(hdoc->pdf_page ? x0 : jni_to_96_dpi(x0),
-						  hdoc->pdf_page ? hdoc->page_bbox.x0 : jni_to_96_dpi(hdoc->page_bbox.x0));
-			rect.y0 = MAX(hdoc->pdf_page ? y0 : jni_to_96_dpi(y0),
-						  hdoc->pdf_page ? hdoc->page_bbox.y0 : jni_to_96_dpi(hdoc->page_bbox.y0));
-			rect.x1 = MIN(hdoc->pdf_page ? x1 : jni_to_96_dpi(x1),
-						  hdoc->pdf_page ? hdoc->page_bbox.x1 : jni_to_96_dpi(hdoc->page_bbox.x1));
-			rect.y1 = MIN(hdoc->pdf_page ? y1 : jni_to_96_dpi(y1),
-						  hdoc->pdf_page ? hdoc->page_bbox.y1 : jni_to_96_dpi(hdoc->page_bbox.y1));
+			if(hdoc->xps_page)
+			{
+				rect.x0 = MAX(jni_to_96_dpi(x0), jni_to_96_dpi(hdoc->page_bbox.x0));
+				rect.y0 = MAX(jni_to_96_dpi(y0), jni_to_96_dpi(hdoc->page_bbox.y0));
+				rect.x1 = MIN(jni_to_96_dpi(x1), jni_to_96_dpi(hdoc->page_bbox.x1));
+				rect.y1 = MIN(jni_to_96_dpi(y1), jni_to_96_dpi(hdoc->page_bbox.y1));
+			}
+			else
+			{
+				rect.x0 = MAX(x0, hdoc->page_bbox.x0);
+				rect.y0 = MAX(y0, hdoc->page_bbox.y0);
+				rect.x1 = MIN(x1, hdoc->page_bbox.x1);
+				rect.y1 = MIN(y1, hdoc->page_bbox.y1);
+			}
 		}
 	}
 	return rect;
@@ -68,7 +84,7 @@ static fz_pixmap *jni_get_pixmap(jni_doc_handle *hdoc, int pagen, float zoom, in
 	// Get page object
 	jni_get_doc_page(hdoc, pagen);
 
-	if (!hdoc->pdf_page && !hdoc->xps_page)
+	if (!hdoc->pdf_page && !hdoc->xps_page && !hdoc->cbz_page)
 	{
 		return NULL;
 	}

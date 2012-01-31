@@ -30,8 +30,8 @@ import java.io.File;
  *
  */
 public class FileChooser {
-    public final static String[] pdfExtension = {"pdf", "xps"};
-    public final static String[] pdfDescription = {"Adobe PDF Files (*.pdf)", "XPS Document (*.xps)"};
+    public final static String[] pdfExtension = {"pdf", "xps", "cbz"};
+    public final static String[] pdfDescription = {"Adobe PDF Files (*.pdf)", "XPS Document (*.xps)", "Comic Book (*.cbz)"};
 
     /**
      * Open a file chooser dialog box for PDF documents
@@ -41,6 +41,7 @@ public class FileChooser {
     public static File getPdfDocument(Component parent) {
 		JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);		
+		fc.addChoosableFileFilter(new XPSFileFilter(pdfDescription[2], pdfExtension[2]));
 		fc.addChoosableFileFilter(new XPSFileFilter(pdfDescription[1], pdfExtension[1]));
 		fc.addChoosableFileFilter(new PDFFileFilter(pdfDescription[0], pdfExtension[0]));
 		fc.setDialogTitle("Open a Document");

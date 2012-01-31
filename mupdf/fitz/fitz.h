@@ -961,7 +961,10 @@ void fz_write_pnm(fz_context *ctx, fz_pixmap *pixmap, char *filename);
 void fz_write_pam(fz_context *ctx, fz_pixmap *pixmap, char *filename, int savealpha);
 void fz_write_png(fz_context *ctx, fz_pixmap *pixmap, char *filename, int savealpha);
 
-fz_pixmap *fz_load_jpx_image(fz_context *ctx, unsigned char *data, int size, fz_colorspace *dcs);
+fz_pixmap *fz_load_jpx(fz_context *ctx, unsigned char *data, int size, fz_colorspace *cs);
+fz_pixmap *fz_load_jpeg(fz_context *doc, unsigned char *data, int size);
+fz_pixmap *fz_load_png(fz_context *doc, unsigned char *data, int size);
+fz_pixmap *fz_load_tiff(fz_context *doc, unsigned char *data, int size);
 
 /*
  * Bitmaps have 1 component per bit. Only used for creating halftoned versions
@@ -1585,7 +1588,6 @@ typedef struct fz_outline_s fz_outline;
 
 struct fz_outline_s
 {
-	fz_context *ctx;
 	char *title;
 	fz_link_dest dest;
 	fz_outline *next;
@@ -1594,6 +1596,6 @@ struct fz_outline_s
 
 void fz_debug_outline_xml(fz_outline *outline, int level);
 void fz_debug_outline(fz_outline *outline, int level);
-void fz_free_outline(fz_outline *outline);
+void fz_free_outline(fz_context *ctx, fz_outline *outline);
 
 #endif
