@@ -207,11 +207,7 @@ public class Page implements PageTypes {
 	 */
 	public PageLinks[] getLinks(PageRenderer renderer) {		
 		if (pageLinks == null) {
-			if (getDocument().getType() == Document.DOC_PDF) {
-				pageLinks = getDocument().getPageLinks(getPageNumber());
-			} else if (getDocument().getType() == Document.DOC_XPS) {
-				pageLinks = null;
-			}
+			pageLinks = getDocument().getPageLinks(getPageNumber());
 			if (pageLinks == null) {
 				pageLinks = new PageLinks[1];
 				pageLinks[0] = new PageLinks(0, 0, 0, 0, 0, "");

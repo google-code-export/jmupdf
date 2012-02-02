@@ -79,7 +79,10 @@ static fz_pixmap *jni_get_pixmap(jni_doc_handle *hdoc, int pagen, float zoom, in
 	fz_device *dev = NULL;
 
 	//  Set anti alias level
-	fz_set_aa_level(hdoc->ctx, hdoc->anti_alias_level);
+	if (fz_get_aa_level(hdoc->ctx) != hdoc->anti_alias_level)
+	{
+		fz_set_aa_level(hdoc->ctx, hdoc->anti_alias_level);
+	}
 
 	// Get page object
 	jni_get_doc_page(hdoc, pagen);

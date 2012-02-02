@@ -84,41 +84,25 @@ static void jni_load_xps_page(jni_doc_handle *hdoc, int pagen)
  */
 static void jni_load_xps_page_for_view(jni_doc_handle *hdoc, int pagen)
 {
-	jni_load_xps_page(hdoc, pagen);
-
-	if (!hdoc->xps_page)
-	{
-		return;
-	}
-
-	// If page_list already exists, then exit
-	if (hdoc->page_list)
-	{
-		return;
-	}
-
 	fz_device *dev = NULL;
 
 	fz_try(hdoc->ctx)
 	{
-		// Create display list
-		hdoc->page_list = fz_new_display_list(hdoc->ctx);
-		dev = fz_new_list_device(hdoc->ctx, hdoc->page_list);
-		hdoc->xps->dev = dev;
-	}
-	fz_catch(hdoc->ctx) {}
-
-	if (dev)
-	{
-		fz_try(hdoc->ctx)
+		jni_load_xps_page(hdoc, pagen);
+		if (!hdoc->page_list)
 		{
-			// Parse page object
-			xps_parse_fixed_page(hdoc->xps, fz_identity, hdoc->xps_page);
+			hdoc->page_list = fz_new_display_list(hdoc->ctx);
+			dev = fz_new_list_device(hdoc->ctx, hdoc->page_list);
+			xps_run_page(hdoc->xps, hdoc->xps_page, dev, fz_identity, NULL);
 		}
-		fz_catch(hdoc->ctx) {}
-
+	}
+	fz_always(hdoc->ctx)
+	{
 		fz_free_device(dev);
-		hdoc->xps->dev = NULL;
+	}
+	fz_catch(hdoc->ctx)
+	{
+		jni_free_page(hdoc);
 	}
 
 	return;
@@ -465,7 +449,18 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 
 	jni_get_doc_page(hdoc, pagen);
 
-	if(!hdoc->pdf_page)
+	fz_link *page_links = NULL;
+
+	if(hdoc->pdf_page)
+	{
+		page_links = hdoc->pdf_page->links;
+	}
+	else if(hdoc->xps_page)
+	{
+		page_links = hdoc->xps_page->links;
+	}
+
+	if (!page_links)
 	{
 		return NULL;
 	}
@@ -484,7 +479,8 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 	int totlinks = 0;
 	fz_link *link;
 
-	for (link = hdoc->pdf_page->links; link; link = link->next)
+
+	for (link = page_links; link; link = link->next)
 	{
 		if (link->dest.kind == FZ_LINK_URI || link->dest.kind == FZ_LINK_GOTO)
 		{
@@ -504,7 +500,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 			char *buf;
 			jobject new_page_links;
 			jstring text;
-			for (link = hdoc->pdf_page->links; link; link = link->next)
+			for (link = page_links; link; link = link->next)
 			{
 				seen = 0;
 				if (link->dest.kind == FZ_LINK_URI)
