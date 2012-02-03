@@ -29,6 +29,7 @@ struct jni_doc_handle_s {
 
 	fz_rect page_bbox;
 	fz_display_list *page_list;
+	fz_link *page_links;
 
 	int page_number;
 	int anti_alias_level;

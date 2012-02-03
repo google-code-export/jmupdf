@@ -35,6 +35,7 @@ jni_doc_handle *jni_new_doc_handle(int max_store)
 	hdoc->cbz_page = NULL;
 
 	hdoc->page_list = NULL;
+	hdoc->page_links = NULL;
 
 	return hdoc;
 }

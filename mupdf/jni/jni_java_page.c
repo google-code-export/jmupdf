@@ -19,6 +19,8 @@ static void jni_load_pdf_page(jni_doc_handle *hdoc, int pagen)
 		hdoc->pdf_page = pdf_load_page(hdoc->pdf, pagen-1);
 		hdoc->page_bbox = pdf_bound_page(hdoc->pdf, hdoc->pdf_page);
 		hdoc->page_number = pagen;
+		hdoc->page_links = hdoc->pdf_page->links;
+		hdoc->pdf_page->links = NULL;
 	}
 	fz_catch(hdoc->ctx)
 	{
@@ -94,6 +96,8 @@ static void jni_load_xps_page_for_view(jni_doc_handle *hdoc, int pagen)
 			hdoc->page_list = fz_new_display_list(hdoc->ctx);
 			dev = fz_new_list_device(hdoc->ctx, hdoc->page_list);
 			xps_run_page(hdoc->xps, hdoc->xps_page, dev, fz_identity, NULL);
+			hdoc->page_links = hdoc->xps_page->links;
+			hdoc->xps_page->links = NULL;
 		}
 	}
 	fz_always(hdoc->ctx)
@@ -186,13 +190,18 @@ void jni_get_doc_page(jni_doc_handle *hdoc, int pagen)
  */
 void jni_free_page(jni_doc_handle *hdoc)
 {
-	if (hdoc->xps_page)
-	{
-		xps_free_page(hdoc->xps, hdoc->xps_page);
-	}
 	if (hdoc->page_list)
 	{
 		fz_free_display_list(hdoc->ctx, hdoc->page_list);
+	}
+	if (hdoc->page_links)
+	{
+		fz_free_link(hdoc->ctx, hdoc->page_links);
+	}
+
+	if (hdoc->xps_page)
+	{
+		xps_free_page(hdoc->xps, hdoc->xps_page);
 	}
 	if (hdoc->pdf_page)
 	{
@@ -203,10 +212,11 @@ void jni_free_page(jni_doc_handle *hdoc)
 		cbz_free_page(hdoc->cbz, hdoc->cbz_page);
 	}
 
-	hdoc->page_list = NULL;
 	hdoc->pdf_page = NULL;
 	hdoc->xps_page = NULL;
 	hdoc->cbz_page = NULL;
+	hdoc->page_list = NULL;
+	hdoc->page_links = NULL;
 	hdoc->page_number = 0;
 
 	fz_flush_warnings(hdoc->ctx);
@@ -275,19 +285,7 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 	data[3] = 0;
 	data[4] = 0;
 
-	if (hdoc->pdf)
-	{
-		jni_load_pdf_page(hdoc, pagen);
-		data[4] = hdoc->pdf_page->rotate;
-	}
-	else if (hdoc->xps)
-	{
-		jni_load_xps_page(hdoc, pagen);
-	}
-	else if (hdoc->cbz)
-	{
-		jni_load_cbz_page(hdoc, pagen);
-	}
+	jni_get_doc_page(hdoc, pagen);
 
 	if(hdoc->pdf_page || hdoc->xps_page || hdoc->cbz_page)
 	{
@@ -295,6 +293,10 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 		data[1] = hdoc->page_bbox.y0;
 		data[2] = hdoc->page_bbox.x1;
 		data[3] = hdoc->page_bbox.y1;
+		if (hdoc->pdf)
+		{
+			data[4] = hdoc->pdf_page->rotate;
+		}
 	}
 
 	jni_end_array_critical(dataarray, data);
@@ -435,8 +437,6 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, j
 /**
  * Get Page Links
  *
- * TODO : Get page links for xps documents
- *
  */
 JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint pagen)
 {
@@ -449,18 +449,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 
 	jni_get_doc_page(hdoc, pagen);
 
-	fz_link *page_links = NULL;
-
-	if(hdoc->pdf_page)
-	{
-		page_links = hdoc->pdf_page->links;
-	}
-	else if(hdoc->xps_page)
-	{
-		page_links = hdoc->xps_page->links;
-	}
-
-	if (!page_links)
+	if (!hdoc->page_links)
 	{
 		return NULL;
 	}
@@ -480,7 +469,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 	fz_link *link;
 
 
-	for (link = page_links; link; link = link->next)
+	for (link = hdoc->page_links; link; link = link->next)
 	{
 		if (link->dest.kind == FZ_LINK_URI || link->dest.kind == FZ_LINK_GOTO)
 		{
@@ -500,7 +489,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, 
 			char *buf;
 			jobject new_page_links;
 			jstring text;
-			for (link = page_links; link; link = link->next)
+			for (link = hdoc->page_links; link; link = link->next)
 			{
 				seen = 0;
 				if (link->dest.kind == FZ_LINK_URI)

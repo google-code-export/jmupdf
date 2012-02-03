@@ -8,11 +8,6 @@ fz_matrix jni_get_view_ctm(jni_doc_handle *hdoc, float zoom, int rotate)
 	fz_matrix ctm = fz_identity;
 	float z = zoom;
 
-	if (hdoc->xps)
-	{
-		z = jni_to_72_dpi(zoom);
-	}
-
 	ctm = fz_scale(z, z);
 	ctm = fz_concat(ctm, fz_rotate(rotate));
 
@@ -30,37 +25,17 @@ static fz_rect jni_normalize_rect(jni_doc_handle *hdoc, float x0, float y0, floa
 	{
 		if (x0==0 && y0==0 && x1==0 && y1==0)
 		{
-			if(hdoc->xps_page)
-			{
-				rect.x0 = jni_to_96_dpi(hdoc->page_bbox.x0);
-				rect.y0 = jni_to_96_dpi(hdoc->page_bbox.y0);
-				rect.x1 = jni_to_96_dpi(hdoc->page_bbox.x1);
-				rect.y1 = jni_to_96_dpi(hdoc->page_bbox.y1);
-			}
-			else
-			{
-				rect.x0 = hdoc->page_bbox.x0;
-				rect.y0 = hdoc->page_bbox.y0;
-				rect.x1 = hdoc->page_bbox.x1;
-				rect.y1 = hdoc->page_bbox.y1;
-			}
+			rect.x0 = hdoc->page_bbox.x0;
+			rect.y0 = hdoc->page_bbox.y0;
+			rect.x1 = hdoc->page_bbox.x1;
+			rect.y1 = hdoc->page_bbox.y1;
 		}
 		else
 		{
-			if(hdoc->xps_page)
-			{
-				rect.x0 = MAX(jni_to_96_dpi(x0), jni_to_96_dpi(hdoc->page_bbox.x0));
-				rect.y0 = MAX(jni_to_96_dpi(y0), jni_to_96_dpi(hdoc->page_bbox.y0));
-				rect.x1 = MIN(jni_to_96_dpi(x1), jni_to_96_dpi(hdoc->page_bbox.x1));
-				rect.y1 = MIN(jni_to_96_dpi(y1), jni_to_96_dpi(hdoc->page_bbox.y1));
-			}
-			else
-			{
-				rect.x0 = MAX(x0, hdoc->page_bbox.x0);
-				rect.y0 = MAX(y0, hdoc->page_bbox.y0);
-				rect.x1 = MIN(x1, hdoc->page_bbox.x1);
-				rect.y1 = MIN(y1, hdoc->page_bbox.y1);
-			}
+			rect.x0 = MAX(x0, hdoc->page_bbox.x0);
+			rect.y0 = MAX(y0, hdoc->page_bbox.y0);
+			rect.x1 = MIN(x1, hdoc->page_bbox.x1);
+			rect.y1 = MIN(y1, hdoc->page_bbox.y1);
 		}
 	}
 	return rect;
