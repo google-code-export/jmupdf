@@ -184,7 +184,7 @@ pdf_load_image_imp(pdf_document *xref, fz_obj *rdb, fz_obj *dict, fz_stream *cst
 
 		if (cstm)
 		{
-			stm = pdf_open_inline_stream(cstm, xref, dict, stride * h);
+			stm = pdf_open_inline_stream(xref, dict, stride * h, cstm);
 		}
 		else
 		{
@@ -380,7 +380,7 @@ pdf_load_image(pdf_document *xref, fz_obj *dict)
 	pix = pdf_load_image_imp(xref, NULL, dict, NULL, 0);
 	/* RJW: "cannot load image (%d 0 R)", fz_to_num(dict) */
 
-	fz_store_item(ctx, dict, pix, fz_pixmap_size(pix));
+	fz_store_item(ctx, dict, pix, fz_pixmap_size(ctx, pix));
 
 	return pix;
 }

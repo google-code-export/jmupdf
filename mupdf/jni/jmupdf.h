@@ -13,29 +13,22 @@
 // Define JMuPdf internal version
 #define JMUPDF_VERSION "0.3.1-beta"
 
-// Document handle
-typedef struct jni_doc_handle_s jni_doc_handle;
-struct jni_doc_handle_s {
-	jlong handle;
+// Document Structure
+typedef struct jni_document_s jni_document;
+struct jni_document_s {
 	fz_context *ctx;
+	fz_document *doc;
 
-	pdf_document *pdf;
-	xps_document *xps;
-	cbz_document *cbz;
-
-	pdf_page *pdf_page;
-	xps_page *xps_page;
-	cbz_page *cbz_page;
-
-	fz_rect page_bbox;
+	fz_page *page;
 	fz_display_list *page_list;
-	fz_link *page_links;
+	fz_rect page_bbox;
 
 	int page_number;
 	int anti_alias_level;
+	int doc_type;
 };
 
-// Pointer conversions
+// Pointer conversions for x86 and x64
 #define jni_jlong_to_ptr(a) ((void *)(uintptr_t)(a))
 #define jni_ptr_to_jlong(a) ((jlong)(uintptr_t)(a))
 
@@ -45,6 +38,11 @@ static const int COLOR_ARGB = 2;
 static const int COLOR_GRAY_SCALE = 10;
 static const int COLOR_BLACK_WHITE = 12;
 static const int COLOR_BLACK_WHITE_DITHER = 121;
+
+// Document type constants
+static const int DOC_PDF = 0;
+static const int DOC_XPS = 1;
+static const int DOC_CBZ = 2;
 
 // Default DPI
 static const int DEFAULT_DPI = 72;
@@ -56,23 +54,21 @@ static const int DEFAULT_DPI = 72;
 #define jni_get_b(P) ((P & 0xff))
 
 // DPI conversion macros
-#define jni_to_96_dpi(P) (P*1.3334)
-#define jni_to_72_dpi(P) (P*.75)
+//#define jni_to_96_dpi(P) (P*1.3334)
+//#define jni_to_72_dpi(P) (P*.75)
 
 // Calculate resolution based on zoom factor
 #define jni_resolution(Z) (Z*DEFAULT_DPI)
 
-// jni_handles.c
-jni_doc_handle *jni_new_doc_handle(int);
-jni_doc_handle *jni_get_doc_handle(jlong);
-int jni_free_doc_handle(jlong);
+// jni_java_document.c
+jni_document *jni_get_document(jlong);
 
 // jni_java_page.c
-void jni_get_doc_page(jni_doc_handle*, int);
-void jni_free_page(jni_doc_handle*);
+void jni_get_page(jni_document*, int);
+void jni_free_page(jni_document*);
 
 // jni_java_pixmap.c
-fz_matrix jni_get_view_ctm(jni_doc_handle*, float, int);
+fz_matrix jni_get_view_ctm(jni_document*, float, int);
 int jni_pix_to_black_white(fz_context*, fz_pixmap*, int, unsigned char* );
 int jni_pix_to_binary(fz_context*, fz_pixmap*, int, unsigned char*);
 

@@ -16,6 +16,7 @@ import com.jmupdf.exceptions.DocSecurityException;
  *
  */
 public class PdfDocument extends Document {
+	private static final int DOC_TYPE = DOC_PDF;
 	private PdfInformation pdfInformation;
 	private PdfEncrypt pdfEncrypt;
 	
@@ -28,7 +29,7 @@ public class PdfDocument extends Document {
 	 * @throws DocSecurityException
 	 */
 	public PdfDocument(String document, String password, int maxStore) throws DocException, DocSecurityException {
-		open(document, password, DOC_PDF, maxStore);
+		open(document, password, DOC_TYPE, maxStore);
 		validate();
 	}
 
@@ -73,7 +74,7 @@ public class PdfDocument extends Document {
 	 * @throws DocSecurityException
 	 */
 	public PdfDocument(byte[] document, String password, int maxStore) throws DocException, DocSecurityException {
-		open(document, password, DOC_PDF, maxStore);
+		open(document, password, DOC_TYPE, maxStore);
 		validate();
 	}
 

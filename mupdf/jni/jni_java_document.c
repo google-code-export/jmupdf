@@ -1,15 +1,70 @@
 #include "jmupdf.h"
 
-// Document type constants
-static const int DOC_PDF = 0;
-static const int DOC_XPS = 1;
-static const int DOC_CBZ = 2;
+/**
+ * Create a new document
+ */
+static jni_document *jni_new_document(int max_store)
+{
+	fz_context *ctx = fz_new_context(NULL, max_store);
+
+	if (!ctx)
+	{
+		return NULL;
+	}
+
+	jni_document *hdoc = fz_malloc_no_throw(ctx, sizeof(jni_document));
+
+	if (!hdoc)
+	{
+		fz_free_context(ctx);
+		return NULL;
+	}
+
+	hdoc->ctx = ctx;
+	hdoc->doc = NULL;
+	hdoc->page = NULL;
+	hdoc->page_list = NULL;
+	hdoc->page_number = 0;
+
+	hdoc->anti_alias_level = fz_get_aa_level(hdoc->ctx);
+
+	return hdoc;
+}
 
 /**
- * Open a PDF document
- *
+ * Free document resources
  */
-static int jni_open_pdf(jni_doc_handle *hdoc, const char *file, char *password)
+static void jni_free_document(jni_document *hdoc)
+{
+	if (!hdoc)
+	{
+		return;
+	}
+
+	fz_context *ctx = hdoc->ctx;
+
+	if (!ctx)
+	{
+		return;
+	}
+
+	jni_free_page(hdoc);
+
+	if (hdoc->doc)
+	{
+		fz_close_document(hdoc->doc);
+	}
+
+	fz_free(ctx, hdoc);
+	fz_free_context(ctx);
+
+	return;
+}
+
+/**
+ * Open a document
+ */
+static int jni_open_document(jni_document *hdoc, const char *file, char *password)
 {
 	fz_stream *stm = NULL;
 	int rc = 0;
@@ -17,7 +72,18 @@ static int jni_open_pdf(jni_doc_handle *hdoc, const char *file, char *password)
 	fz_try(hdoc->ctx)
 	{
 		stm = fz_open_file(hdoc->ctx, file);
-		hdoc->pdf = pdf_open_document_with_stream(stm);
+		if (hdoc->doc_type == DOC_PDF)
+		{
+			hdoc->doc = (fz_document*)pdf_open_document_with_stream(stm);
+		}
+		else if (hdoc->doc_type == DOC_XPS)
+		{
+			hdoc->doc = (fz_document*)xps_open_document_with_stream(stm);
+		}
+		else if (hdoc->doc_type == DOC_CBZ)
+		{
+			hdoc->doc = (fz_document*)cbz_open_document_with_stream(stm);
+		}
 	}
 	fz_always(hdoc->ctx)
 	{
@@ -29,17 +95,17 @@ static int jni_open_pdf(jni_doc_handle *hdoc, const char *file, char *password)
 		{
 			rc = -1;
 		}
-		else if (!hdoc->pdf)
+		else if (!hdoc->doc)
 		{
 			rc = -2;
 		}
 	}
 
-	if (hdoc->pdf)
+	if (hdoc->doc)
 	{
-		if (pdf_needs_password(hdoc->pdf))
+		if (fz_needs_password(hdoc->doc))
 		{
-			if(!pdf_authenticate_password(hdoc->pdf, password))
+			if(!fz_authenticate_password(hdoc->doc, password))
 			{
 				rc = -3;
 			}
@@ -50,66 +116,12 @@ static int jni_open_pdf(jni_doc_handle *hdoc, const char *file, char *password)
 }
 
 /**
- * Open an XPS document
- *
- */
-static int jni_open_xps(jni_doc_handle *hdoc, const char *file)
-{
-	int rc = 0;
-
-	fz_try(hdoc->ctx)
-	{
-		hdoc->xps = xps_open_document(hdoc->ctx, (char*)file);
-	}
-	fz_catch(hdoc->ctx)
-	{
-		rc = -1;
-	}
-
-	return rc;
-}
-
-/**
- * Open a CBZ document
- *
- */
-static int jni_open_cbz(jni_doc_handle *hdoc, const char *file)
-{
-	fz_stream *stm = NULL;
-	int rc = 0;
-
-	fz_try(hdoc->ctx)
-	{
-		stm = fz_open_file(hdoc->ctx, file);
-		hdoc->cbz = cbz_open_document_with_stream(stm);
-	}
-	fz_always(hdoc->ctx)
-	{
-		fz_close(stm);
-	}
-	fz_catch(hdoc->ctx)
-	{
-		if (!stm)
-		{
-			rc = -1;
-		}
-		else if (!hdoc->cbz)
-		{
-			rc = -2;
-		}
-	}
-
-	return rc;
-}
-
-/**
  * Load outline to PdfOutline object structure
- *
  */
 static void jni_load_outline(JNIEnv *env, jclass cls, jobject obj,
 		                     jmethodID add_next, jmethodID add_child,
 		                     jmethodID set_page, jmethodID set_title,
-		                     jni_doc_handle *hdoc, fz_outline *outline)
+		                     jni_document *hdoc, fz_outline *outline)
 {
 	while (outline)
 	{
@@ -137,12 +149,19 @@ static void jni_load_outline(JNIEnv *env, jclass cls, jobject obj,
 }
 
 /**
- * Open a PDF document
- *
+ * Get document from pointer
+ */
+jni_document *jni_get_document(jlong handle)
+{
+	return (jni_document *)jni_jlong_to_ptr(handle);
+}
+
+/**
+ * Open a document
  */
 JNIEXPORT jlong JNICALL Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jstring document, jstring password, jint max_store)
 {
-	jni_doc_handle *hdoc = jni_new_doc_handle(max_store);
+	jni_document *hdoc = jni_new_document(max_store);
 
 	if (!hdoc)
 	{
@@ -153,56 +172,41 @@ JNIEXPORT jlong JNICALL Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jin
 	char *pass = (char*)jni_new_char(password);
 	int rc = 0;
 
-	if (type == DOC_PDF)
-	{
-		rc = jni_open_pdf(hdoc, file, pass);
-	}
-	else if (type == DOC_XPS)
-	{
-		rc = jni_open_xps(hdoc, file);
-	}
-	else if (type == DOC_CBZ)
-	{
-		rc = jni_open_cbz(hdoc, file);
-	}
-	else
-	{
-		rc = -1;
-	}
+	hdoc->doc_type = type;
+
+	rc = jni_open_document(hdoc, file, pass);
 
 	jni_free_char(document, file);
 	jni_free_char(password, pass);
 
 	if (rc != 0)
 	{
-		jni_free_doc_handle(hdoc->handle);
-		return -1;
+		jni_free_document(hdoc);
+		return rc;
 	}
 
-	return hdoc->handle;
+	return jni_ptr_to_jlong(hdoc);
 }
 
 /**
  * Close a document and free resources
- *
  */
-JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_close(JNIEnv *env, jclass obj, jlong handle)
+JNIEXPORT void JNICALL Java_com_jmupdf_JmuPdf_close(JNIEnv *env, jclass obj, jlong handle)
 {
-	return jni_free_doc_handle(handle);
+	jni_free_document(jni_get_document(handle));
 }
 
 /**
  * Get document version
- *
  */
 JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getVersion(JNIEnv *env, jclass obj, jlong handle)
 {
-	jni_doc_handle *hdoc = jni_get_doc_handle(handle);
+	jni_document *hdoc = jni_get_document(handle);
 	int v = 0;
 
-	if (hdoc->pdf)
+	if (hdoc->doc && hdoc->doc_type == DOC_PDF)
 	{
-		v = hdoc->pdf->version;
+		v = ((pdf_document*)hdoc->doc)->version;
 	}
 
 	return v;
@@ -210,11 +214,11 @@ JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getVersion(JNIEnv *env, jclass obj
 
 /**
  * Get an array that has the outline of the document
- *
  */
 JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass obj, jlong handle)
 {
-	jni_doc_handle *hdoc = jni_get_doc_handle(handle);
+	jni_document *hdoc = jni_get_document(handle);
+
 	if (!hdoc)
 	{
 		return NULL;
@@ -238,14 +242,7 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 
 	if(init > 0 && add_next > 0 && add_child > 0 && set_page > 0 && set_title > 0)
 	{
-		if(hdoc->pdf)
-		{
-			outline = pdf_load_outline(hdoc->pdf);
-		}
-		else if(hdoc->xps)
-		{
-			outline = xps_load_outline(hdoc->xps);
-		}
+		outline = fz_load_outline(hdoc->doc);
 		if (outline)
 		{
 			out = jni_new_outline_obj(cls, init);
@@ -260,6 +257,7 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 	{
 		jni_free_ref(cls);
 	}
+
 	if (outline)
 	{
 		fz_free_outline(hdoc->ctx, outline);
@@ -270,23 +268,22 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 
 /**
  * Get PDF information from dictionary.
- *
  */
 JNIEXPORT jstring JNICALL Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj, jlong handle, jstring key)
 {
-	jni_doc_handle *hdoc = jni_get_doc_handle(handle);
+	jni_document *hdoc = jni_get_document(handle);
 
 	if (!hdoc)
 	{
 		return NULL;
 	}
 
-	if (!hdoc->pdf)
+	if (!hdoc->doc)
 	{
 		return NULL;
 	}
 
-	fz_obj *info = fz_dict_gets(hdoc->pdf->trailer, "Info");
+	fz_obj *info = fz_dict_gets(((pdf_document*)hdoc->doc)->trailer, "Info");
 	char *text = NULL;
 
 	if (info)
@@ -307,19 +304,18 @@ JNIEXPORT jstring JNICALL Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj
 }
 
 /**
- * Get encryption information
- *
+ * Get PDF encryption information
  */
 JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, jclass obj, jlong handle)
 {
-	jni_doc_handle *hdoc = jni_get_doc_handle(handle);
+	jni_document *hdoc = jni_get_document(handle);
 
 	if (!hdoc)
 	{
 		return NULL;
 	}
 
-	if (!hdoc->pdf)
+	if (!hdoc->doc)
 	{
 		return NULL;
 	}
@@ -335,25 +331,25 @@ JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, j
 
 	jint *data = jni_start_array_critical(dataarray);
 
-	data[1]  = pdf_has_permission(hdoc->pdf, PDF_PERM_PRINT); 			// print
-	data[2]  = pdf_has_permission(hdoc->pdf, PDF_PERM_CHANGE); 			// modify
-	data[3]  = pdf_has_permission(hdoc->pdf, PDF_PERM_COPY);			// copy
-	data[4]  = pdf_has_permission(hdoc->pdf, PDF_PERM_NOTES);			// annotate
-	data[5]  = pdf_has_permission(hdoc->pdf, PDF_PERM_FILL_FORM);		// Fill form fields
-	data[6]  = pdf_has_permission(hdoc->pdf, PDF_PERM_ACCESSIBILITY);	// Extract text and graphics
-	data[7]  = pdf_has_permission(hdoc->pdf, PDF_PERM_ASSEMBLE);		// Document assembly
-	data[8]  = pdf_has_permission(hdoc->pdf, PDF_PERM_HIGH_RES_PRINT);	// Print quality
-	data[9]  = pdf_get_crypt_revision(hdoc->pdf);						// Revision
-	data[10] = pdf_get_crypt_length(hdoc->pdf);							// Length
+	data[1]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_PRINT); 			// print
+	data[2]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_CHANGE); 		// modify
+	data[3]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_COPY);			// copy
+	data[4]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_NOTES);			// annotate
+	data[5]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_FILL_FORM);		// Fill form fields
+	data[6]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_ACCESSIBILITY);	// Extract text and graphics
+	data[7]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_ASSEMBLE);		// Document assembly
+	data[8]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_HIGH_RES_PRINT);	// Print quality
+	data[9]  = pdf_get_crypt_revision(((pdf_document*)hdoc->doc));						// Revision
+	data[10] = pdf_get_crypt_length(((pdf_document*)hdoc->doc));						// Length
 
-	char *method = pdf_get_crypt_method(hdoc->pdf);						// Method
+	char *method = pdf_get_crypt_method(((pdf_document*)hdoc->doc));					// Method
 
 	if (strcmp(method, "RC4") == 0)  			data[11] = 1;
 	else if (strcmp(method, "AES") == 0)  		data[11] = 2;
 	else if (strcmp(method, "Unknown") == 0) 	data[11] = 3;
 	else 										data[11] = 0;
 
-	data[0] = data[11] > 0;												// Is encrypted
+	data[0] = data[11] > 0;																// Is encrypted
 
 	jni_end_array_critical(dataarray, data);
 

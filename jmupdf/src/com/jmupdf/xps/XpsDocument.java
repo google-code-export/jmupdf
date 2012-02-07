@@ -16,6 +16,7 @@ import com.jmupdf.exceptions.DocSecurityException;
  *
  */
 public class XpsDocument extends Document  {
+	private static final int DOC_TYPE = DOC_XPS; 
 	
 	/**
 	 * Create a new document object
@@ -25,7 +26,7 @@ public class XpsDocument extends Document  {
 	 * @throws DocSecurityException
 	 */
 	public XpsDocument(String document, int maxStore) throws DocException, DocSecurityException {
-		open(document, null, DOC_XPS, maxStore);
+		open(document, null, DOC_TYPE, maxStore);
 		validate();
 	}
 	
@@ -47,7 +48,7 @@ public class XpsDocument extends Document  {
 	 * @throws DocSecurityException
 	 */
 	public XpsDocument(byte[] document, int maxStore) throws DocException, DocSecurityException {
-		open(document, null, DOC_XPS, maxStore);
+		open(document, null, DOC_TYPE, maxStore);
 		validate();
 	}
 	

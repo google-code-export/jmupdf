@@ -122,7 +122,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 		{
 			fz_free_device(dev);
 			fz_free_display_list(ctx, list);
-			pdf_free_page(ctx, page);
+			pdf_free_page(doc, page);
 			fz_throw(ctx, "cannot draw page %d in file '%s'", pagenum, filename);
 		}
 		fz_free_device(dev);
@@ -136,7 +136,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 			dev = fz_new_trace_device(ctx);
 			printf("<page number=\"%d\">\n", pagenum);
 			if (list)
-				fz_execute_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
+				fz_run_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
 			else
 				pdf_run_page(doc, page, dev, fz_identity, NULL);
 			printf("</page>\n");
@@ -145,7 +145,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 		{
 			fz_free_device(dev);
 			fz_free_display_list(ctx, list);
-			pdf_free_page(ctx, page);
+			pdf_free_page(doc, page);
 			fz_rethrow(ctx);
 		}
 		fz_free_device(dev);
@@ -163,7 +163,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 			text = fz_new_text_span(ctx);
 			dev = fz_new_text_device(ctx, text);
 			if (list)
-				fz_execute_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
+				fz_run_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
 			else
 				pdf_run_page(doc, page, dev, fz_identity, NULL);
 			fz_free_device(dev);
@@ -180,7 +180,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 			fz_free_device(dev);
 			fz_free_text_span(ctx, text);
 			fz_free_display_list(ctx, list);
-			pdf_free_page(ctx, page);
+			pdf_free_page(doc, page);
 			fz_rethrow(ctx);
 		}
 		fz_free_text_span(ctx, text);
@@ -212,25 +212,25 @@ static void drawpage(pdf_document *doc, int pagenum)
 			pix = fz_new_pixmap_with_rect(ctx, colorspace, bbox);
 
 			if (savealpha)
-				fz_clear_pixmap(pix);
+				fz_clear_pixmap(ctx, pix);
 			else
-				fz_clear_pixmap_with_color(pix, 255);
+				fz_clear_pixmap_with_value(ctx, pix, 255);
 
 			dev = fz_new_draw_device(ctx, pix);
 			if (list)
-				fz_execute_display_list(list, dev, ctm, bbox, NULL);
+				fz_run_display_list(list, dev, ctm, bbox, NULL);
 			else
 				pdf_run_page(doc, page, dev, ctm, NULL);
 			fz_free_device(dev);
 			dev = NULL;
 
 			if (invert)
-				fz_invert_pixmap(pix);
+				fz_invert_pixmap(ctx, pix);
 			if (gamma_value != 1)
-				fz_gamma_pixmap(pix, gamma_value);
+				fz_gamma_pixmap(ctx, pix, gamma_value);
 
 			if (savealpha)
-				fz_unmultiply_pixmap(pix);
+				fz_unmultiply_pixmap(ctx, pix);
 
 			if (output)
 			{
@@ -273,7 +273,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 			fz_free_device(dev);
 			fz_drop_pixmap(ctx, pix);
 			fz_free_display_list(ctx, list);
-			pdf_free_page(ctx, page);
+			pdf_free_page(doc, page);
 			fz_rethrow(ctx);
 		}
 	}
@@ -281,7 +281,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 	if (list)
 		fz_free_display_list(ctx, list);
 
-	pdf_free_page(ctx, page);
+	pdf_free_page(doc, page);
 
 	if (showtime)
 	{
@@ -351,9 +351,9 @@ static void drawoutline(pdf_document *doc)
 {
 	fz_outline *outline = pdf_load_outline(doc);
 	if (showoutline > 1)
-		fz_debug_outline_xml(outline, 0);
+		fz_debug_outline_xml(doc->ctx, outline, 0);
 	else
-		fz_debug_outline(outline, 0);
+		fz_debug_outline(doc->ctx, outline, 0);
 	fz_free_outline(doc->ctx, outline);
 }
 

@@ -141,6 +141,13 @@ xps_add_link(xps_document *doc, fz_rect area, char *base_uri, char *target_uri)
 	}
 }
 
+fz_link *
+xps_load_links(xps_document *doc, xps_page *page)
+{
+	if (!page->links_resolved)
+		fz_warn(doc->ctx, "xps_load_links before page has been executed!");
+	return fz_keep_link(doc->ctx, page->links);
+}
 
 static void
 xps_add_fixed_page(xps_document *doc, char *name, int width, int height)
@@ -218,6 +225,7 @@ xps_free_fixed_pages(xps_document *doc)
 	{
 		xps_page *next = page->next;
 		xps_free_page(doc, page);
+		fz_drop_link(doc->ctx, page->links);
 		fz_free(doc->ctx, page->name);
 		fz_free(doc->ctx, page);
 		page = next;
@@ -456,6 +464,5 @@ xps_free_page(xps_document *doc, xps_page *page)
 	/* only free the XML contents */
 	if (page->root)
 		xml_free_element(doc->ctx, page->root);
-	fz_free_link(doc->ctx, page->links);
 	page->root = NULL;
 }

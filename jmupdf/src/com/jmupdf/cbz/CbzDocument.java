@@ -16,6 +16,7 @@ import com.jmupdf.exceptions.DocSecurityException;
  *
  */
 public class CbzDocument extends Document  {
+	private static final int DOC_TYPE = DOC_CBZ;
 	
 	/**
 	 * Create a new document object
@@ -25,7 +26,7 @@ public class CbzDocument extends Document  {
 	 * @throws DocSecurityException
 	 */
 	public CbzDocument(String document, int maxStore) throws DocException, DocSecurityException {
-		open(document, null, DOC_CBZ, maxStore);
+		open(document, null, DOC_TYPE, maxStore);
 		validate();
 	}
 	
@@ -47,7 +48,7 @@ public class CbzDocument extends Document  {
 	 * @throws DocSecurityException
 	 */
 	public CbzDocument(byte[] document, int maxStore) throws DocException, DocSecurityException {
-		open(document, null, DOC_CBZ, maxStore);
+		open(document, null, DOC_TYPE, maxStore);
 		validate();
 	}
 	

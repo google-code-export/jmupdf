@@ -94,9 +94,9 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	 * @throws DocException 
 	 */
 	public PrintServices(Document document) throws DocException {
-		if (document.getType() == Document.DOC_PDF) {
+		if (document.getDocumentType() == Document.DOC_PDF) {
 			this.document = ((PdfDocument)document).clone();		
-		} else if (document.getType() == Document.DOC_XPS) {
+		} else if (document.getDocumentType() == Document.DOC_XPS) {
 			this.document = ((XpsDocument)document).clone();
 		}
 		if(this.document == null) {

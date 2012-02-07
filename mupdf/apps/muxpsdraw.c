@@ -101,7 +101,7 @@ static void drawpage(xps_document *doc, int pagenum)
 		dev = fz_new_trace_device(doc->ctx);
 		printf("<page number=\"%d\">\n", pagenum);
 		if (list)
-			fz_execute_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
+			fz_run_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
 		else
 			xps_run_page(doc, page, dev, fz_identity, NULL);
 		printf("</page>\n");
@@ -113,7 +113,7 @@ static void drawpage(xps_document *doc, int pagenum)
 		fz_text_span *text = fz_new_text_span(doc->ctx);
 		dev = fz_new_text_device(doc->ctx, text);
 		if (list)
-			fz_execute_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
+			fz_run_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
 		else
 			xps_run_page(doc, page, dev, fz_identity, NULL);
 		fz_free_device(dev);
@@ -147,13 +147,13 @@ static void drawpage(xps_document *doc, int pagenum)
 		pix = fz_new_pixmap_with_rect(doc->ctx, colorspace, bbox);
 
 		if (savealpha)
-			fz_clear_pixmap(pix);
+			fz_clear_pixmap(doc->ctx, pix);
 		else
-			fz_clear_pixmap_with_color(pix, 255);
+			fz_clear_pixmap_with_value(doc->ctx, pix, 255);
 
 		dev = fz_new_draw_device(doc->ctx, pix);
 		if (list)
-			fz_execute_display_list(list, dev, ctm, bbox, NULL);
+			fz_run_display_list(list, dev, ctm, bbox, NULL);
 		else
 			xps_run_page(doc, page, dev, ctm, NULL);
 		fz_free_device(dev);
@@ -257,9 +257,9 @@ static void drawoutline(xps_document *doc)
 {
 	fz_outline *outline = xps_load_outline(doc);
 	if (showoutline > 1)
-		fz_debug_outline_xml(outline, 0);
+		fz_debug_outline_xml(doc->ctx, outline, 0);
 	else
-		fz_debug_outline(outline, 0);
+		fz_debug_outline(doc->ctx, outline, 0);
 	fz_free_outline(doc->ctx, outline);
 }
 

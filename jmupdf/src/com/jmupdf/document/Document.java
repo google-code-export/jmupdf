@@ -29,7 +29,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	private String password;
 	private long handle;
 	private int pageCount;		
-	private int type;
+	private int documentType;
 	private int antiAliasLevel;
 	private int maxStore;
 	private boolean isCached;		
@@ -46,7 +46,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	public void open(String document, String password, int type, int maxStore) throws DocException {
 		this.document = document;
 		this.password = password;
-		this.type = type;
+		this.documentType = type;
 		this.maxStore = maxStore << 20;
 		this.handle = 0;
 		this.pageCount = 0;
@@ -58,7 +58,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 			throw new DocException("Document " + document + " does not exist.");
 		}
 
-		this.handle = open(getType(), getDocumentName(), getPassWord(), getMaxStore());
+		this.handle = open(getDocumentType(), getDocumentName(), getPassWord(), getMaxStore());
 
 		if (getHandle() > 0) {
 			this.pageCount = getPageCount(getHandle());
@@ -122,8 +122,8 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * Get document type
 	 * @return
 	 */
-	public int getType() {
-		return type;
+	public int getDocumentType() {
+		return documentType;
 	}
 	
 	/**
@@ -268,7 +268,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Set default anti-alias level to be used when rendering pages
 	 * @param antiAliasLevel

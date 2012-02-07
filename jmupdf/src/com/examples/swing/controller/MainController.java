@@ -314,10 +314,10 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	 * Show document information
 	 */
 	private void showDocInfo() {
-		if (document.getType() == Document.DOC_PDF) { 
+		if (document.getDocumentType() == Document.DOC_PDF) { 
 			DocInfoView div = new DocInfoView((PdfDocument)document);
 			div.setVisible(true);
-		} else if (document.getType() == Document.DOC_XPS) {
+		} else if (document.getDocumentType() == Document.DOC_XPS) {
 
 		}
 	}
