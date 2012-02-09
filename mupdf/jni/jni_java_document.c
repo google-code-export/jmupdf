@@ -5,7 +5,7 @@
  */
 static jni_document *jni_new_document(int max_store)
 {
-	fz_context *ctx = fz_new_context(NULL, max_store);
+	fz_context *ctx = fz_new_context(NULL, NULL, max_store);
 
 	if (!ctx)
 	{
