@@ -169,11 +169,12 @@ int jni_pix_to_black_white(fz_context *ctx, fz_pixmap * pix, int dither, unsigne
 	unsigned char *ptrsrc = pixbuf;
 	unsigned char *ptrstr = pixbuf;
 	unsigned char *pixels = pix->samples;
+
 	float value, qerror;
 	int threshold = 128;
 	int stride, x, y;
 
-	// Create a gray scale image
+	// Create a packed gray scale image
 	for (x = 0; x < size; x++)
 	{
 		*srcbuf++ = jni_get_r(*pixels) |
@@ -255,7 +256,7 @@ int jni_pix_to_binary(fz_context *ctx, fz_pixmap * pix, int dither, unsigned cha
 	int bitcnt = 7;
 	int stride, x, y;
 
-	// Create a gray scale image
+	// Create a packed gray scale image
 	for (x = 0; x < size; x++)
 	{
 		*srcbuf++ = jni_get_r(*pixels) |
@@ -333,8 +334,10 @@ int jni_pix_to_binary(fz_context *ctx, fz_pixmap * pix, int dither, unsigned cha
 
 /**
  * Get an RGB, Gray or Binary pixels
+ * Returns an array of byte[] or int[]
  */
-JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint color, jfloat gamma, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
+JNIEXPORT jobject JNICALL
+Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint color, jfloat gamma, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
 {
 	jni_document *hdoc = jni_get_document(handle);
 
@@ -467,6 +470,133 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass o
 	{
 		return NULL;
 	}
+}
+
+/**
+ * Get an packed RGB, Gray or Binary pixels
+ * Returns a DirectByteBuffer
+ */
+JNIEXPORT jobject JNICALL
+Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint color, jfloat gamma, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
+{
+	jni_document *hdoc = jni_get_document(handle);
+
+	if (!hdoc)
+	{
+		return NULL;
+	}
+
+	fz_pixmap *pix = jni_get_pixmap(hdoc, pagen, zoom, rotate, color, gamma, x0, y0, x1, y1);
+
+	if (!pix)
+	{
+		return NULL;
+	}
+
+	// Create new array of either int's or bytes'.
+	// Binary data require pixels to be in byte[] array and
+	// RGB/Gray data require pixels to be in int[] array.
+	jobject pixarray;
+	int usebyte = (color == COLOR_BLACK_WHITE || color == COLOR_BLACK_WHITE_DITHER);
+	int size = pix->w * pix->h;
+	int memsize = usebyte ? (size*sizeof(jbyte)) : (size*sizeof(jint));
+
+	pixarray = fz_malloc_no_throw(hdoc->ctx, memsize);
+
+	if (!pixarray)
+	{
+		fz_drop_pixmap(hdoc->ctx, pix);
+		return NULL;
+	}
+
+	// Get a pointers to data
+	unsigned char *pixels = pix->samples;
+	jint *ptr_pixint = (jint*)pixarray;
+	jbyte *ptr_pixbyte = (jbyte*)pixarray;
+
+	int i = 0;
+	int rc = 0;
+
+	if (color == COLOR_ARGB)
+	{
+		for (i=0; i<size; i++)
+		{
+			*ptr_pixint++ = jni_get_a(pixels[3]) |
+							jni_get_r(pixels[0]) |
+							jni_get_g(pixels[1]) |
+							jni_get_b(pixels[2]);
+			pixels += pix->n;
+		}
+	}
+	else if (color == COLOR_RGB)
+	{
+		for (i=0; i<size; i++)
+		{
+			*ptr_pixint++ = jni_get_r(pixels[0]) |
+							jni_get_g(pixels[1]) |
+							jni_get_b(pixels[2]);
+			pixels += pix->n;
+		}
+	}
+	else if (color == COLOR_GRAY_SCALE)
+	{
+		for (i=0; i<size; i++)
+		{
+			*ptr_pixint++ = jni_get_r(pixels[0]) |
+							jni_get_g(pixels[0]) |
+							jni_get_b(pixels[0]);
+			pixels += pix->n;
+		}
+	}
+	else if (color == COLOR_BLACK_WHITE || color == COLOR_BLACK_WHITE_DITHER)
+	{
+		int dither = (color == COLOR_BLACK_WHITE_DITHER);
+		rc = jni_pix_to_black_white(hdoc->ctx, pix, dither, (unsigned char *)ptr_pixbyte);
+	}
+
+	if (rc == 0)
+	{
+		jint *ae = jni_start_array_critical(bbox);
+		if (ae)
+		{
+			ae[0] = 0;
+			ae[1] = 0;
+			ae[2] = ABS(pix->w);
+			ae[3] = ABS(pix->h);
+		}
+		jni_end_array_critical(bbox, ae);
+	}
+
+	// Cleanup
+	fz_drop_pixmap(hdoc->ctx, pix);
+
+	if (rc == 0)
+	{
+		return jni_new_buffer_direct(pixarray, memsize);
+	}
+	else
+	{
+		fz_free(hdoc->ctx, pixarray);
+		return NULL;
+	}
+}
+
+/**
+ * Free a ByteBuffer resource
+ */
+JNIEXPORT void JNICALL
+Java_com_jmupdf_JmuPdf_freeByteBuffer(JNIEnv *env, jclass obj, jlong handle, jobject buffer)
+{
+	jni_document *hdoc = jni_get_document(handle);
+
+	if (!hdoc)
+	{
+		return;
+	}
+
+	void *pixmap = jni_get_buffer_address(buffer);
+
+	fz_free(hdoc->ctx, pixmap);
 }
 
 /**

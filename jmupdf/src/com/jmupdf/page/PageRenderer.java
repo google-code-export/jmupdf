@@ -7,6 +7,8 @@ package com.jmupdf.page;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import javax.swing.JComponent;
 
@@ -31,7 +33,8 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	private PageRendererWorker worker;
 	
 	private JComponent component;
-	private BufferedImage image;
+	private BufferedImage image;	
+	private ByteBuffer buffer;
 	private Object pixels;
 	
 	private float zoom;
@@ -54,6 +57,8 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	private boolean isPageRendering;
 	
 	private static int default_resolution = 72;
+	
+	private boolean useDirectByteBuffer;
 	
 	/**
 	 * Create renderer instance with default values. 
@@ -85,6 +90,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 		this.rotate = rotate;
 		this.color = color;
 		this.gamma = 1f;
+		this.useDirectByteBuffer = true;
 		if (page == null) {
 			setCroppingArea(0, 0, 0, 0);
 		} else {
@@ -387,6 +393,24 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	}
 
 	/**
+	 * Returns true if pixel data is stored in a direct byte buffer. </br>
+	 * Returns false if pixel data is stored in a java primitive type array.
+	 * @return
+	 */
+	public boolean isDirectByteBuffer() {
+		return useDirectByteBuffer;
+	}
+	
+	/**
+	 * Set whether renderer should store data in native memory for direct access </br>
+	 * or use a java object instead managed by the JVM.
+	 * @param b
+	 */
+	public void setDirectByteBuffer(boolean b) {
+		this.useDirectByteBuffer = b;
+	}
+	
+	/**
 	 * Get buffered image
 	 * @return
 	 */
@@ -465,7 +489,6 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 
 			if (image != null) {
 				image.flush();
-				image = null;
 			}
 
 			// Zero rotate
@@ -473,21 +496,35 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 			
 			int[] bbox = new int[4];
 
-			// Get pixels
-			pixels = getPage().getDocument().getPagePixels(
-					 getPage().getPageNumber(), 
-					 getZoom(), 
-					 getNormalizedRotation(), 
-					 getColorType(),
-					 getGamma(),
-					 bbox, 
-					 c.getX0(), 
-					 c.getY0(), 
-					 c.getX1(), 
-					 c.getY1());
+			// Render page 
+			if (isDirectByteBuffer()) {
+				buffer = getPage().getDocument().getPageByteBuffer(
+						 getPage().getPageNumber(), 
+						 getZoom(), 
+						 getNormalizedRotation(), 
+						 getColorType(),
+						 getGamma(),
+						 bbox, 
+						 c.getX0(), 
+						 c.getY0(), 
+						 c.getX1(), 
+						 c.getY1());
+			} else {
+				pixels = getPage().getDocument().getPagePixels(
+						 getPage().getPageNumber(), 
+						 getZoom(), 
+						 getNormalizedRotation(), 
+						 getColorType(),
+						 getGamma(),
+						 bbox, 
+						 c.getX0(), 
+						 c.getY0(), 
+						 c.getX1(), 
+						 c.getY1());
+			}
 			
 			// Create buffered image
-			if (pixels != null) {
+			if (bbox != null) {
 				this.x = bbox[0];
 				this.y = bbox[1];
 				this.w = bbox[2];
@@ -497,17 +534,18 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 				this.x1 = x+w;
 				this.y1 = y+h;
 				this.resolution = getZoom() * default_resolution;
-				createBufferedImage(pixels);
+				createBufferedImage();
 				if (image != null) {
 					isPageRendered = true;
 				}
 			}
 
 		} catch (Exception e) {
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 	    	image = null;
     		System.gc();
-		} finally {			
+		} finally {
 			isPageRendering = false;			
 			if (component != null) {				
 				synchronized (component) {
@@ -530,6 +568,9 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 		}
 		if (pixels != null) {
 			pixels = null;
+		}
+		if (buffer != null) {
+			buffer = null;
 		}
 		if (worker != null) {
 			worker.shutdown();
@@ -564,7 +605,27 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * Create a buffered image
 	 * @param pixels
 	 */
-	private void createBufferedImage(Object pixels) {
+	private void createBufferedImage() {
+
+		// Get pixel data from buffer
+		try {
+			if (buffer != null) {
+				if (getColorType() == IMAGE_TYPE_BINARY || 
+					getColorType() == IMAGE_TYPE_BINARY_DITHER) {
+					pixels = new byte[buffer.order(ByteOrder.nativeOrder()).capacity()];
+					buffer.order(ByteOrder.nativeOrder()).get((byte[])pixels);
+				} else {
+					pixels = new int[buffer.order(ByteOrder.nativeOrder()).asIntBuffer().capacity()];
+					buffer.order(ByteOrder.nativeOrder()).asIntBuffer().get((int[])pixels);
+				}
+			}	
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			getPage().getDocument().freeByteBuffer(buffer);
+		}
+		
+		// Create image buffer
 		if (getColorType() == IMAGE_TYPE_BINARY || 
 			getColorType() == IMAGE_TYPE_BINARY_DITHER) {
 			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_BYTE_BINARY);
@@ -573,10 +634,13 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 		} else {
 			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		}
+		
+		// Set data to image
 	    if (image != null) {
 	    	WritableRaster raster = image.getRaster();
 	    	raster.setDataElements(getX(), getY(), getWidth(), getHeight(), pixels);
 	    }
+	    
 	}
 	
 	/**
@@ -597,5 +661,5 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
     protected static void log(String text) {
     	System.out.println(text);
     }
-    
+
 }

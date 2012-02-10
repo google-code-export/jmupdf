@@ -6,6 +6,8 @@
 
 package com.jmupdf;
 
+import java.nio.ByteBuffer;
+
 import com.jmupdf.document.Outline;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.page.PageText;
@@ -48,9 +50,13 @@ public abstract class JmuPdf {
 	/*
 	 * Rendering Functions 
 	 */
+	protected native synchronized Object getPixMap(long handle, int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1);
+	protected native synchronized ByteBuffer getByteBuffer(long handle, int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1);
+	protected native synchronized void freeByteBuffer(long handle, ByteBuffer buffer);
+	
 	protected native synchronized int getAntiAliasLevel(long handle);
 	protected native synchronized int setAntiAliasLevel(long handle, int antiAliasLevel);
-	protected native synchronized Object getPixMap(long handle, int page, float zoom, int rotate, int color, float gamma,  int[] bbox, float x0, float y0, float x1, float y1);
+	
 	protected native synchronized int writePbm(long handle, int page, float zoom, float gamma, String file);
 	protected native synchronized int writePnm(long handle, int page, float zoom, int color, float gamma, String file);
 	protected native synchronized int writePam(long handle, int page, float zoom, int color, float gamma, String file);

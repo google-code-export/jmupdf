@@ -8,6 +8,7 @@ package com.jmupdf.document;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import com.jmupdf.JmuPdf;
 import com.jmupdf.exceptions.DocException;
@@ -267,6 +268,42 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 			return getPixMap(handle, page, zoom, rotate, color, gamma, bbox, x0, y0, x1, y1);
 		}
 		return null;
+	}
+	
+	/**
+	 * Get a page as a byte buffer
+	 * @param page
+	 * @param zoom
+	 * @param rotate
+	 * @param color
+	 * @param gamma
+	 * @param bbox
+	 * @param x0
+	 * @param y0
+	 * @param x1
+	 * @param y1
+	 * @return
+	 */
+	public ByteBuffer getPageByteBuffer(int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1) {
+		if (handle > 0) {
+			return getByteBuffer(handle, page, zoom, rotate, color, gamma, bbox, x0, y0, x1, y1);
+		}
+		return null;
+	}
+	
+	/**
+	 * Free a byte buffer resource
+	 * @param buffer
+	 */
+	public void freeByteBuffer(ByteBuffer buffer) {
+		if (handle > 0) {
+			if (buffer != null) {
+				if (buffer.isDirect()) {
+					buffer.clear();
+					freeByteBuffer(handle, buffer);
+				}
+			}
+		}
 	}
 	
 	/**

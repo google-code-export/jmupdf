@@ -54,10 +54,10 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	private float zoom = 1f;
 	private int antiAliasLevel = 8;
 	private float gammaLevel = 1f;
-	private int color = Document.IMAGE_TYPE_RGB;
+	private int color = Document.IMAGE_TYPE_ARGB;
 	private boolean isOpened = false;
 	private boolean isZooming = false;
-	private int maxStore = 5; 
+	private int maxStore = 60; 
 	
 	/**
 	 * Main controller
@@ -194,7 +194,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 		
 		else if (source.equals(view.getComboColor())) { 
 			if (view.getComboColor().getSelectedIndex() == 0) {
-				color = Document.IMAGE_TYPE_RGB;
+				color = Document.IMAGE_TYPE_ARGB;
 			} else if (view.getComboColor().getSelectedIndex() == 1) {
 				color = Document.IMAGE_TYPE_GRAY;
 			} else if (view.getComboColor().getSelectedIndex() == 2) {

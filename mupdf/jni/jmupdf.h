@@ -91,6 +91,11 @@ int jni_write_bmp(fz_context*, fz_pixmap*, const char*, float, int);
 #define jni_set_object_array_el(array, idx, obj) (*env)->SetObjectArrayElement(env, array, idx, obj);
 #define jni_free_ref(cls) (*env)->DeleteLocalRef(env, cls);
 
+// JNI ByteBuffer
+#define jni_new_buffer_direct(mem, len) (*env)->NewDirectByteBuffer(env, mem, len)
+#define jni_get_buffer_address(buf) (*env)->GetDirectBufferAddress(env, buf)
+#define jni_get_buffer_capacity(buf) (*env)->GetDirectBufferCatpacity(env, buf)
+
 // Outline class and methods: Strong Typing
 #define jni_new_outline_class() (*env)->FindClass(env, "com/jmupdf/document/Outline");
 #define jni_new_outline_obj(cls, method) (*env)->NewObject(env, cls, method);
