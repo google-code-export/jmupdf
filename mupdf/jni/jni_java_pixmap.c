@@ -133,10 +133,11 @@ static fz_pixmap *jni_get_pixmap(jni_document *hdoc, int pagen, float zoom, int 
 		{
 			fz_gamma_pixmap(hdoc->ctx, pix, gamma);
 		}
-		if (color == COLOR_ARGB)
-		{
+		//if (color == COLOR_ARGB || color == COLOR_RGB)
+		//{
+		//TODO: Add premultiply flag to control this.
 			fz_unmultiply_pixmap(hdoc->ctx, pix);
-		}
+		//}
 	}
 	fz_always(hdoc->ctx)
 	{

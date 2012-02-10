@@ -543,7 +543,10 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
-	    	image = null;
+			if (image != null) {
+				image.flush();
+				image = null;	
+			}
     		System.gc();
 		} finally {
 			isPageRendering = false;			
@@ -602,47 +605,75 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	}
 
 	/**
-	 * Create a buffered image
+	 * Create a buffered image from packed pixel data
 	 * @param pixels
 	 */
 	private void createBufferedImage() {
-
-		// Get pixel data from buffer
+		
+		boolean isBinary = (getColorType() == IMAGE_TYPE_BINARY || 
+				            getColorType() == IMAGE_TYPE_BINARY_DITHER);
+		
 		try {
+			
+			// Get pixel data from buffer
 			if (buffer != null) {
-				if (getColorType() == IMAGE_TYPE_BINARY || 
-					getColorType() == IMAGE_TYPE_BINARY_DITHER) {
+				if (isBinary) {
 					pixels = new byte[buffer.order(ByteOrder.nativeOrder()).capacity()];
 					buffer.order(ByteOrder.nativeOrder()).get((byte[])pixels);
 				} else {
 					pixels = new int[buffer.order(ByteOrder.nativeOrder()).asIntBuffer().capacity()];
 					buffer.order(ByteOrder.nativeOrder()).asIntBuffer().get((int[])pixels);
 				}
-			}	
+			}
+			
+			// Create image buffer
+			image = new BufferedImage(getWidth(), getHeight(), getBufferedImageType());
+
+			// Set data to image
+		    if (image != null) {
+		    	WritableRaster raster = image.getRaster();
+		    	raster.setDataElements(getX(), getY(), getWidth(), getHeight(), pixels);
+		    }
+		    
 		} catch (Exception e) {
 			e.printStackTrace();
+		} catch (OutOfMemoryError e) {
+			if (image != null) {
+				image.flush();
+				image = null;	
+			}
+    		System.gc();
 		} finally {
 			getPage().getDocument().freeByteBuffer(buffer);
 		}
-		
-		// Create image buffer
-		if (getColorType() == IMAGE_TYPE_BINARY || 
-			getColorType() == IMAGE_TYPE_BINARY_DITHER) {
-			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_BYTE_BINARY);
-		} else if (getColorType() == IMAGE_TYPE_ARGB) {
-			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
-		} else {
-			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-		}
-		
-		// Set data to image
-	    if (image != null) {
-	    	WritableRaster raster = image.getRaster();
-	    	raster.setDataElements(getX(), getY(), getWidth(), getHeight(), pixels);
-	    }
 	    
 	}
-	
+
+	/**
+	 * Get buffered image type
+	 * @return
+	 */
+	private int getBufferedImageType() {
+		int type;
+		switch (getColorType()) {
+			case IMAGE_TYPE_BINARY:
+			case IMAGE_TYPE_BINARY_DITHER:
+				type = BufferedImage.TYPE_BYTE_BINARY;
+				break;
+			case IMAGE_TYPE_ARGB:
+				type = BufferedImage.TYPE_INT_ARGB;
+				break;
+			case IMAGE_TYPE_RGB:
+			case IMAGE_TYPE_GRAY:
+				type = BufferedImage.TYPE_INT_RGB;
+				break;
+			default:
+				type = BufferedImage.TYPE_INT_RGB;
+				break;
+		}
+		return type;
+	}
+
 	/**
 	 * Get a page renderer worker
 	 * @return
