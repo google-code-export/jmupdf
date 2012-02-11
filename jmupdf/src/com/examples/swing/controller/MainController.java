@@ -194,11 +194,15 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 		
 		else if (source.equals(view.getComboColor())) { 
 			if (view.getComboColor().getSelectedIndex() == 0) {
-				color = Document.IMAGE_TYPE_ARGB;
+				color = Document.IMAGE_TYPE_RGB;
 			} else if (view.getComboColor().getSelectedIndex() == 1) {
-				color = Document.IMAGE_TYPE_GRAY;
+				color = Document.IMAGE_TYPE_ARGB;
 			} else if (view.getComboColor().getSelectedIndex() == 2) {
-				color = Document.IMAGE_TYPE_BINARY;
+				color = Document.IMAGE_TYPE_ARGB_PRE;
+			} else if (view.getComboColor().getSelectedIndex() == 3) {
+				color = Document.IMAGE_TYPE_GRAY;
+			} else if (view.getComboColor().getSelectedIndex() == 4) {
+				color = Document.IMAGE_TYPE_BINARY;				
 			} else {
 				color = Document.IMAGE_TYPE_BINARY_DITHER;
 			}

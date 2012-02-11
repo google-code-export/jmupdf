@@ -610,14 +610,15 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 */
 	private void createBufferedImage() {
 		
-		boolean isBinary = (getColorType() == IMAGE_TYPE_BINARY || 
-				            getColorType() == IMAGE_TYPE_BINARY_DITHER);
+		boolean isByte = (getColorType() == IMAGE_TYPE_BINARY || 
+				          getColorType() == IMAGE_TYPE_BINARY_DITHER ||
+				          getColorType() == IMAGE_TYPE_GRAY);
 		
 		try {
 			
 			// Get pixel data from buffer
 			if (buffer != null) {
-				if (isBinary) {
+				if (isByte) {
 					pixels = new byte[buffer.order(ByteOrder.nativeOrder()).capacity()];
 					buffer.order(ByteOrder.nativeOrder()).get((byte[])pixels);
 				} else {
@@ -660,13 +661,18 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 			case IMAGE_TYPE_BINARY_DITHER:
 				type = BufferedImage.TYPE_BYTE_BINARY;
 				break;
+			case IMAGE_TYPE_GRAY:
+				type = BufferedImage.TYPE_BYTE_GRAY;
+				break;
+			case IMAGE_TYPE_RGB:
+				type = BufferedImage.TYPE_INT_RGB;
+				break;
 			case IMAGE_TYPE_ARGB:
 				type = BufferedImage.TYPE_INT_ARGB;
 				break;
-			case IMAGE_TYPE_RGB:
-			case IMAGE_TYPE_GRAY:
-				type = BufferedImage.TYPE_INT_RGB;
-				break;
+			case IMAGE_TYPE_ARGB_PRE:
+				type = BufferedImage.TYPE_INT_ARGB_PRE;
+				break;				
 			default:
 				type = BufferedImage.TYPE_INT_RGB;
 				break;

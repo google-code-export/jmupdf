@@ -159,7 +159,8 @@ jni_document *jni_get_document(jlong handle)
 /**
  * Open a document
  */
-JNIEXPORT jlong JNICALL Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jstring document, jstring password, jint max_store)
+JNIEXPORT jlong JNICALL
+Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jstring document, jstring password, jint max_store)
 {
 	jni_document *hdoc = jni_new_document(max_store);
 
@@ -191,7 +192,8 @@ JNIEXPORT jlong JNICALL Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jin
 /**
  * Close a document and free resources
  */
-JNIEXPORT void JNICALL Java_com_jmupdf_JmuPdf_close(JNIEnv *env, jclass obj, jlong handle)
+JNIEXPORT void JNICALL
+Java_com_jmupdf_JmuPdf_close(JNIEnv *env, jclass obj, jlong handle)
 {
 	jni_free_document(jni_get_document(handle));
 }
@@ -199,7 +201,8 @@ JNIEXPORT void JNICALL Java_com_jmupdf_JmuPdf_close(JNIEnv *env, jclass obj, jlo
 /**
  * Get document version
  */
-JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getVersion(JNIEnv *env, jclass obj, jlong handle)
+JNIEXPORT jint JNICALL
+Java_com_jmupdf_JmuPdf_getVersion(JNIEnv *env, jclass obj, jlong handle)
 {
 	jni_document *hdoc = jni_get_document(handle);
 	int v = 0;
@@ -215,7 +218,8 @@ JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getVersion(JNIEnv *env, jclass obj
 /**
  * Get an array that has the outline of the document
  */
-JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass obj, jlong handle)
+JNIEXPORT jobject JNICALL
+Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass obj, jlong handle)
 {
 	jni_document *hdoc = jni_get_document(handle);
 
@@ -269,7 +273,8 @@ JNIEXPORT jobject JNICALL Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass 
 /**
  * Get PDF information from dictionary.
  */
-JNIEXPORT jstring JNICALL Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj, jlong handle, jstring key)
+JNIEXPORT jstring JNICALL
+Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj, jlong handle, jstring key)
 {
 	jni_document *hdoc = jni_get_document(handle);
 
@@ -306,7 +311,8 @@ JNIEXPORT jstring JNICALL Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj
 /**
  * Get PDF encryption information
  */
-JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, jclass obj, jlong handle)
+JNIEXPORT jintArray JNICALL
+Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, jclass obj, jlong handle)
 {
 	jni_document *hdoc = jni_get_document(handle);
 
@@ -329,7 +335,7 @@ JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, j
 		return NULL;
 	}
 
-	jint *data = jni_start_array_critical(dataarray);
+	jint *data = jni_get_int_array(dataarray);
 
 	data[1]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_PRINT); 			// print
 	data[2]  = pdf_has_permission(((pdf_document*)hdoc->doc), PDF_PERM_CHANGE); 		// modify
@@ -351,7 +357,7 @@ JNIEXPORT jintArray JNICALL Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, j
 
 	data[0] = data[11] > 0;																// Is encrypted
 
-	jni_end_array_critical(dataarray, data);
+	jni_release_int_array(dataarray, data);
 
 	return dataarray;
 }

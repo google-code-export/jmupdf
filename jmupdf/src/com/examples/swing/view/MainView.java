@@ -94,7 +94,7 @@ public class MainView {
     
     private PageView pageView;
 
-    private final String[] colors = {"Full Color", "Gray Scale", "Black & White", "Black & White w/Dither"};
+    private final String[] colors = {"RGB", "ARGB", "ARGB_PRE", "Gray Scale", "Black & White", "Black & White w/Dither"};
     private final String[] rotate = {"Auto", "90 CW", "90 CCW", "180"};
     private final String[] zoomLevels = {"5", "10", "25", "50", "75", "100", "125", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "1200", "2400", "4800", "6400"};
     private final String[] antiAliasLevels = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};

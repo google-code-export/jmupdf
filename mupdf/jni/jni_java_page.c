@@ -138,7 +138,8 @@ void jni_free_page(jni_document *hdoc)
 /**
  * Get page count
  */
-JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getPageCount(JNIEnv *env, jclass obj, jlong handle)
+JNIEXPORT jint JNICALL
+Java_com_jmupdf_JmuPdf_getPageCount(JNIEnv *env, jclass obj, jlong handle)
 {
 	jni_document *hdoc = jni_get_document(handle);
 
@@ -161,7 +162,8 @@ JNIEXPORT jint JNICALL Java_com_jmupdf_JmuPdf_getPageCount(JNIEnv *env, jclass o
 /**
  * Get page dimensions
  */
-JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle, jint pagen)
+JNIEXPORT jfloatArray JNICALL
+Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle, jint pagen)
 {
 	jni_document *hdoc = jni_get_document(handle);
 
@@ -184,7 +186,7 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 		return NULL;
 	}
 
-	jfloat *data = jni_start_array_critical(dataarray);
+	jfloat *data = jni_get_float_array(dataarray);
 
 	data[0] = hdoc->page_bbox.x0;
 	data[1] = hdoc->page_bbox.y0;
@@ -196,7 +198,7 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 		data[4] = ((pdf_page*)hdoc->page)->rotate;
 	}
 
-	jni_end_array_critical(dataarray, data);
+	jni_release_float_array(dataarray, data);
 
 	return dataarray;
 }
@@ -204,7 +206,8 @@ JNIEXPORT jfloatArray JNICALL Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclas
 /**
  * Get Page Text
  */
-JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint x0, jint y0, jint x1, jint y1)
+JNIEXPORT jobjectArray JNICALL
+Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint x0, jint y0, jint x1, jint y1)
 {
 	jni_document *hdoc = jni_get_document(handle);
 
@@ -268,7 +271,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, j
 						if (seen == 0)
 						{
 							txtarr = jni_new_int_array(span->len);
-							txtptr = jni_start_array_critical(txtarr);
+							txtptr = jni_get_int_array(txtarr);
 							seen = 1;
 						}
 						txtptr[p++] = span->text[i].c;
@@ -276,7 +279,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, j
 				}
 				if (seen == 1)
 				{
-					jni_end_array_critical(txtarr, txtptr);
+					jni_release_int_array(txtarr, txtptr);
 					new_page = jni_new_page_text_obj(
 						               cls, init,
 						               span->text[0].bbox.x0, span->text[0].bbox.y0,
@@ -296,7 +299,8 @@ JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, j
 /**
  * Get Page Links
  */
-JNIEXPORT jobjectArray JNICALL Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint pagen)
+JNIEXPORT jobjectArray JNICALL
+Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint pagen)
 {
 	jni_document *hdoc = jni_get_document(handle);
 

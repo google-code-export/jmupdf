@@ -33,11 +33,12 @@ struct jni_document_s {
 #define jni_ptr_to_jlong(a) ((jlong)(uintptr_t)(a))
 
 // Color constants
-static const int COLOR_RGB = 1;
-static const int COLOR_ARGB = 2;
-static const int COLOR_GRAY_SCALE = 10;
-static const int COLOR_BLACK_WHITE = 12;
-static const int COLOR_BLACK_WHITE_DITHER = 121;
+static int const COLOR_RGB = 1;
+static int const COLOR_ARGB = 2;
+static int const COLOR_ARGB_PRE = 3;
+static int const COLOR_GRAY_SCALE = 10;
+static int const COLOR_BLACK_WHITE = 12;
+static int const COLOR_BLACK_WHITE_DITHER = 121;
 
 // Document type constants
 static const int DOC_PDF = 0;
@@ -78,16 +79,27 @@ int jni_write_tif(fz_context*, fz_pixmap*, const char*, float, int, int, int, in
 int jni_write_jpg(fz_context*, fz_pixmap*, const char*, float, int, int);
 int jni_write_bmp(fz_context*, fz_pixmap*, const char*, float, int);
 
-// JNI Strong Typing
+// JNI String
 #define jni_new_char(str) (*env)->GetStringUTFChars(env, str, 0);
 #define jni_free_char(str, chars) (*env)->ReleaseStringUTFChars(env, str, chars);
+
+// JNI Get/ReleaseXXXArrayElements()
+#define jni_get_int_array(array) (*env)->GetIntArrayElements(env, array, 0);
+#define jni_release_int_array(array, elem) (*env)->ReleaseIntArrayElements(env, array, elem, 0);
+#define jni_get_float_array(array) (*env)->GetFloatArrayElements(env, array, 0);
+#define jni_release_float_array(array, elem) (*env)->ReleaseFloatArrayElements(env, array, elem, 0);
+
+// JNI GET/ReleasePrimitiveArrayCritical() <== Not good for GC!!
 #define jni_start_array_critical(array) (*env)->GetPrimitiveArrayCritical(env, array, 0);
 #define jni_end_array_critical(array, carray) (*env)->ReleasePrimitiveArrayCritical(env, array, carray, 0);
-#define jni_new_string(chars) (*env)->NewStringUTF(env, chars);
+
+// JNI NewXXXArray()
 #define jni_new_byte_array(size) (*env)->NewByteArray(env, size);
 #define jni_new_int_array(size) (*env)->NewIntArray(env, size);
 #define jni_new_float_array(size) (*env)->NewFloatArray(env, size);
 #define jni_new_object_array(size, cls) (*env)->NewObjectArray(env, size, cls, NULL);
+#define jni_new_string(chars) (*env)->NewStringUTF(env, chars);
+
 #define jni_set_object_array_el(array, idx, obj) (*env)->SetObjectArrayElement(env, array, idx, obj);
 #define jni_free_ref(cls) (*env)->DeleteLocalRef(env, cls);
 
