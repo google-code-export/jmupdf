@@ -97,7 +97,7 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 			if (link != null) {
 				if (link.getType() == PageLinks.LINK_URL) {
 					BareBonesBrowserLaunch.openURL(link.getDestination());
-				} else if (link.getType() == PageLinks.LINK_GOTO_PAGE) {
+				} else if (link.getType() == PageLinks.LINK_GOTO) {
 					view.getPageNumber().setValue(Integer.valueOf(link.getDestination())+1);
 				}
 				link = null;

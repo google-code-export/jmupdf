@@ -1,6 +1,29 @@
 #include "jmupdf.h"
 
 /**
+ * Convert jChar array to character array.
+ * This should help with unicode issues.
+ */
+static char * jni_jchar_to_char(JNIEnv *env, jni_document *hdoc, jcharArray ca)
+{
+	jchar *jc = (*env)->GetCharArrayElements(env, ca, 0);
+	jsize s = (*env)->GetArrayLength(env, ca);
+	int i = 0;
+
+	char * buf = fz_malloc_no_throw(hdoc->ctx, s);
+	char buf2[1];
+
+	for (i=0; i<s; i++) {
+		sprintf(buf2, "%c", jc[i]);
+		buf[i] = buf2[0];
+	}
+
+	(*env)->ReleaseCharArrayElements(env, ca, jc, 0);
+
+	return buf;
+}
+
+/**
  * Create a new document
  */
 static jni_document *jni_new_document(int max_store)
@@ -165,34 +188,68 @@ jni_document *jni_get_document(jlong handle)
  * Open a document
  */
 JNIEXPORT jlong JNICALL
-Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jstring document, jstring password, jint max_store)
+Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jcharArray document, jcharArray password, jint max_store)
 {
-	jni_document *hdoc = jni_new_document(max_store);
+    jni_document *hdoc = jni_new_document(max_store);
 
-	if (!hdoc)
-	{
-		return -1;
-	}
+    if (!hdoc)
+    {
+            return -1;
+    }
 
-	const char *file = jni_new_char(document);
-	char *pass = (char*)jni_new_char(password);
-	int rc = 0;
+    char * file = jni_jchar_to_char(env, hdoc, document);
+    char * pass = jni_jchar_to_char(env, hdoc, password);
 
-	hdoc->doc_type = type;
+    int rc = 0;
 
-	rc = jni_open_document(hdoc, file, pass);
+    hdoc->doc_type = type;
 
-	jni_free_char(document, file);
-	jni_free_char(password, pass);
+    rc = jni_open_document(hdoc, (const char*)file, pass);
 
-	if (rc != 0)
-	{
-		jni_free_document(hdoc);
-		return rc;
-	}
+    if (rc != 0)
+    {
+            jni_free_document(hdoc);
+            return rc;
+    }
 
-	return jni_ptr_to_jlong(hdoc);
+    fz_free(hdoc->ctx, file);
+    fz_free(hdoc->ctx, pass);
+
+    return jni_ptr_to_jlong(hdoc);
 }
+
+///**
+// * Open a document
+// */
+//JNIEXPORT jlong JNICALL
+//Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jstring document, jstring password, jint max_store)
+//{
+//    jni_document *hdoc = jni_new_document(max_store);
+//
+//    if (!hdoc)
+//    {
+//            return -1;
+//    }
+//
+//    const char *file = jni_new_char(document);
+//    char *pass = (char*)jni_new_char(password);
+//    int rc = 0;
+//
+//    hdoc->doc_type = type;
+//
+//    rc = jni_open_document(hdoc, file, pass);
+//
+//    jni_free_char(document, file);
+//    jni_free_char(password, pass);
+//
+//    if (rc != 0)
+//    {
+//            jni_free_document(hdoc);
+//            return rc;
+//    }
+//
+//    return jni_ptr_to_jlong(hdoc);
+//}
 
 /**
  * Close a document and free resources

@@ -362,21 +362,38 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint 
 			for (link = page_links; link; link = link->next)
 			{
 				seen = 0;
-				if (link->dest.kind == FZ_LINK_URI)
-				{
-					seen = 1;
-					type = 1;
-					buf = link->dest.ld.uri.uri;
-				}
-				else if (link->dest.kind == FZ_LINK_GOTO)
-				{
-					seen = 1;
-					type = 0;
-					buf = fz_malloc_no_throw(hdoc->ctx, 1);
-					if (buf)
-					{
-						sprintf(buf, "%d", link->dest.ld.gotor.page);
-					}
+				switch (link->dest.kind) {
+					case FZ_LINK_GOTO:
+						buf = fz_malloc_no_throw(hdoc->ctx, 1);
+						if (buf)
+						{
+							seen = 1;
+							type = 1;
+							sprintf(buf, "%d", link->dest.ld.gotor.page);
+						}
+						break;
+					case FZ_LINK_URI:
+						seen = 1;
+						type = 2;
+						buf = link->dest.ld.uri.uri;
+						break;
+					case FZ_LINK_LAUNCH:
+						seen = 1;
+						type = 3;
+						buf = link->dest.ld.launch.file_spec;
+						break;
+					case FZ_LINK_NAMED:
+						seen = 1;
+						type = 4;
+						buf = link->dest.ld.named.named;
+						break;
+					case FZ_LINK_GOTOR:
+						seen = 1;
+						type = 5;
+						buf = link->dest.ld.gotor.file_spec;
+						break;
+					default:
+						break;
 				}
 				if (seen == 1)
 				{
@@ -386,7 +403,7 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint 
 							link->rect.x0, link->rect.y0,
 							link->rect.x1, link->rect.y1, type, text);
 					jni_set_object_array_el(page_links_arr, e++, new_page_links);
-					if (type == 0)
+					if (type == 1)
 					{
 						fz_free(hdoc->ctx, buf);
 					}

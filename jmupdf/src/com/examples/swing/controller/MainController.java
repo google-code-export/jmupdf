@@ -276,6 +276,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 						break;
 					}
 				} catch (DocException e1) {
+					e1.printStackTrace();
 					break;
 				} catch (DocSecurityException e1) {
 					pass = JOptionPane.showInputDialog(null, "Document requires authentication:");
