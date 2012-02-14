@@ -24,7 +24,7 @@ public class Cropping {
 			/*
 			 * Open document
 			 */
-			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf\\pdf_docs\\itextinaction.pdf", "");
+			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_tests\\test05.pdf", "");
 
 			/*
 			 * Get page object
@@ -34,8 +34,9 @@ public class Cropping {
 			/*
 			 * Get rendering object
 			 */
-			PageRenderer render = new PageRenderer(page, 1f, Page.PAGE_ROTATE_AUTO, PageRenderer.IMAGE_TYPE_RGB);
-			render.setCroppingArea(378f, 601f, 507f, 638f);
+			PageRenderer render = new PageRenderer(page, 1f, Page.PAGE_ROTATE_90_CW, PageRenderer.IMAGE_TYPE_RGB);
+			render.setCroppingArea(40f,500f,218f,564f);
+			//512,575,752,563
 			//78.0, 287.0, 146.0, 306.0
 			//146.0, 289.0, 474.0, 305.0
 			render.render(true);

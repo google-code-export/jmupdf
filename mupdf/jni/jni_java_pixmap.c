@@ -15,6 +15,19 @@ fz_matrix jni_get_view_ctm(jni_document *hdoc, float zoom, int rotate)
 }
 
 /**
+ * Determine if alpha value should be saved based on color type
+ */
+static int jni_save_alpha(int color)
+{
+	if (color == COLOR_ARGB ||
+		color == COLOR_ARGB_PRE)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+/**
  * Normalize rectangle bounds
  */
 static fz_rect jni_normalize_rect(jni_document *hdoc, float x0, float y0, float x1, float y1)
@@ -88,6 +101,9 @@ static fz_pixmap *jni_get_pixmap(jni_document *hdoc, int pagen, float zoom, int 
 		case 3:   //COLOR_ARGB_PRE:
 			colorspace = fz_device_rgb;
 			break;
+		case 4:   //COLOR_BGR:
+			colorspace = fz_device_bgr;
+			break;
 		case 10:  //COLOR_GRAY_SCALE:
 		case 12:  //COLOR_BLACK_WHITE:
 		case 121: //COLOR_BLACK_WHITE_DITHER:
@@ -126,6 +142,7 @@ static fz_pixmap *jni_get_pixmap(jni_document *hdoc, int pagen, float zoom, int 
 			fz_clear_pixmap(hdoc->ctx, pix);
 			break;
 		case 1:   //COLOR_RGB:
+		case 4:   //COLOR_BGR:
 		case 10:  //COLOR_GRAY_SCALE:
 		case 12:  //COLOR_BLACK_WHITE:
 		case 121: //COLOR_BLACK_WHITE_DITHER:
@@ -193,9 +210,9 @@ int jni_pix_to_black_white(fz_context *ctx, fz_pixmap * pix, int dither, unsigne
 	// Create a packed gray scale image
 	for (x = 0; x < size; x++)
 	{
-		*srcbuf++ = jni_get_r(*pixels) |
-				    jni_get_g(*pixels) |
-				    jni_get_b(*pixels);
+		*srcbuf++ = jni_get_rgb_r(*pixels) |
+				    jni_get_rgb_g(*pixels) |
+				    jni_get_rgb_b(*pixels);
 		pixels += pix->n;
 	}
 
@@ -275,9 +292,9 @@ int jni_pix_to_binary(fz_context *ctx, fz_pixmap * pix, int dither, unsigned cha
 	// Create a packed gray scale image
 	for (x = 0; x < size; x++)
 	{
-		*srcbuf++ = jni_get_r(*pixels) |
-				    jni_get_g(*pixels) |
-				    jni_get_b(*pixels);
+		*srcbuf++ = jni_get_rgb_r(*pixels) |
+				    jni_get_rgb_g(*pixels) |
+				    jni_get_rgb_b(*pixels);
 		pixels += pix->n;
 	}
 
@@ -415,14 +432,14 @@ Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pag
 	int i = 0;
 	int rc = 0;
 
-	if (color == COLOR_ARGB  || color == COLOR_ARGB_PRE)
+	if (color == COLOR_ARGB || color == COLOR_ARGB_PRE)
 	{
 		for (i=0; i<size; i++)
 		{
-			*ptr_pixint++ = jni_get_a(pixels[3]) |
-							jni_get_r(pixels[0]) |
-							jni_get_g(pixels[1]) |
-							jni_get_b(pixels[2]);
+			*ptr_pixint++ = jni_get_rgb_a(pixels[3]) |
+							jni_get_rgb_r(pixels[0]) |
+							jni_get_rgb_g(pixels[1]) |
+							jni_get_rgb_b(pixels[2]);
 			pixels += pix->n;
 		}
 	}
@@ -430,9 +447,19 @@ Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pag
 	{
 		for (i=0; i<size; i++)
 		{
-			*ptr_pixint++ = jni_get_r(pixels[0]) |
-							jni_get_g(pixels[1]) |
-							jni_get_b(pixels[2]);
+			*ptr_pixint++ = jni_get_rgb_r(pixels[0]) |
+							jni_get_rgb_g(pixels[1]) |
+							jni_get_rgb_b(pixels[2]);
+			pixels += pix->n;
+		}
+	}
+	else if (color == COLOR_BGR)
+	{
+		for (i=0; i<size; i++)
+		{
+			*ptr_pixint++ = jni_get_bgr_b(pixels[0]) |
+							jni_get_bgr_g(pixels[1]) |
+							jni_get_bgr_r(pixels[2]);
 			pixels += pix->n;
 		}
 	}
@@ -440,9 +467,9 @@ Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pag
 	{
 		for (i=0; i<size; i++)
 		{
-			*ptr_pixbyte++ = jni_get_r(pixels[0]) |
-						 	 jni_get_g(pixels[0]) |
-							 jni_get_b(pixels[0]);
+			*ptr_pixbyte++ = jni_get_rgb_r(pixels[0]) |
+						 	 jni_get_rgb_g(pixels[0]) |
+							 jni_get_rgb_b(pixels[0]);
 			pixels += pix->n;
 		}
 	}
@@ -537,10 +564,10 @@ Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jint
 	{
 		for (i=0; i<size; i++)
 		{
-			*ptr_pixint++ = jni_get_a(pixels[3]) |
-							jni_get_r(pixels[0]) |
-							jni_get_g(pixels[1]) |
-							jni_get_b(pixels[2]);
+			*ptr_pixint++ = jni_get_rgb_a(pixels[3]) |
+							jni_get_rgb_r(pixels[0]) |
+							jni_get_rgb_g(pixels[1]) |
+							jni_get_rgb_b(pixels[2]);
 			pixels += pix->n;
 		}
 	}
@@ -548,9 +575,19 @@ Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jint
 	{
 		for (i=0; i<size; i++)
 		{
-			*ptr_pixint++ = jni_get_r(pixels[0]) |
-							jni_get_g(pixels[1]) |
-							jni_get_b(pixels[2]);
+			*ptr_pixint++ = jni_get_rgb_r(pixels[0]) |
+							jni_get_rgb_g(pixels[1]) |
+							jni_get_rgb_b(pixels[2]);
+			pixels += pix->n;
+		}
+	}
+	else if (color == COLOR_BGR)
+	{
+		for (i=0; i<size; i++)
+		{
+			*ptr_pixint++ = jni_get_bgr_b(pixels[0]) |
+							jni_get_bgr_g(pixels[1]) |
+							jni_get_bgr_r(pixels[2]);
 			pixels += pix->n;
 		}
 	}
@@ -558,9 +595,9 @@ Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jint
 	{
 		for (i=0; i<size; i++)
 		{
-			*ptr_pixbyte++ = jni_get_r(pixels[0]) |
-						 	 jni_get_g(pixels[0]) |
-							 jni_get_b(pixels[0]);
+			*ptr_pixbyte++ = jni_get_rgb_r(pixels[0]) |
+						 	 jni_get_rgb_g(pixels[0]) |
+							 jni_get_rgb_b(pixels[0]);
 			pixels += pix->n;
 		}
 	}
@@ -633,8 +670,7 @@ Java_com_jmupdf_JmuPdf_setAntiAliasLevel(JNIEnv *env, jclass obj, jlong handle, 
 		hdoc->anti_alias_level = anti_alias_level;
 		if (hdoc->ctx->glyph_cache)
 		{
-			fz_free_glyph_cache_context(hdoc->ctx);
-			hdoc->ctx->glyph_cache = NULL;
+			fz_drop_glyph_cache_context(hdoc->ctx);
 		}
 	}
 
@@ -671,7 +707,7 @@ Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint page
 	}
 
 	const char *file = jni_new_char(out);
-	int rc = jni_write_png(hdoc->ctx, pix, file, (color==COLOR_ARGB), zoom);
+	int rc = jni_write_png(hdoc->ctx, pix, file, jni_save_alpha(color), zoom);
 	jni_free_char(out, file);
 
 	fz_drop_pixmap(hdoc->ctx, pix);
@@ -798,7 +834,7 @@ Java_com_jmupdf_JmuPdf_writePam(JNIEnv *env, jclass obj, jlong handle, jint page
 
 	fz_try(hdoc->ctx)
 	{
-		fz_write_pam(hdoc->ctx, pix, (char*)file, (color==COLOR_ARGB));
+		fz_write_pam(hdoc->ctx, pix, (char*)file, jni_save_alpha(color));
 		rc = 0;
 	}
 	fz_catch(hdoc->ctx) {}

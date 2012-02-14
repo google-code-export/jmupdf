@@ -50,6 +50,11 @@ static void jni_free_document(jni_document *hdoc)
 
 	jni_free_page(hdoc);
 
+	if (hdoc->ctx->glyph_cache)
+	{
+		fz_drop_glyph_cache_context(hdoc->ctx);
+	}
+
 	if (hdoc->doc)
 	{
 		fz_close_document(hdoc->doc);

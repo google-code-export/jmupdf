@@ -45,6 +45,17 @@ public class PageRect implements PageTypes {
 	}
 
 	/**
+	 * Cartesian or Java2D representation of a rectangle.
+	 * @param x
+	 * @param y
+	 * @param w
+	 * @param h
+	 */
+	public PageRect(int x, int y, int w, int h) {
+		setRect(x, y, w, h);
+	}
+	
+	/**
 	 * Set rectangle 
 	 * @param x0
 	 * @param y0
@@ -57,6 +68,17 @@ public class PageRect implements PageTypes {
 		this.p2x = x1;
 		this.p2y = y1;
 		normalizeCoordinates(p1x, p1y, p2x, p2y);
+	}
+
+	/**
+	 * Set rectangle
+	 * @param x
+	 * @param y
+	 * @param w
+	 * @param h
+	 */
+	public void setRect(int x, int y, int w, int h) {
+		setRect((float)x, (float)y, (float)x+w, (float)y+h);
 	}
 	
 	/**
@@ -134,11 +156,11 @@ public class PageRect implements PageTypes {
     
     /**
      * Rotate rectangle 
-     * @param mediabox
+     * @param boundBox
      * @param rotation
      * @return rotated rectangle
      */
-    public PageRect rotate(PageRect mediabox, int rotation) {
+    public PageRect rotate(PageRect boundBox, int rotation) {
     	
     	// Normalize rotation
     	rotation = rotation % 360;
@@ -155,11 +177,11 @@ public class PageRect implements PageTypes {
 		float rad = (float)Math.toRadians(rotation);
 		
         // Get center point of rotation
-		float cx = (mediabox.getX() + mediabox.getWidth())/2;
-		float cy = (mediabox.getY() + mediabox.getHeight())/2;
+		float cx = (boundBox.getX() + boundBox.getWidth())/2;
+		float cy = (boundBox.getY() + boundBox.getHeight())/2;
 
         // Get new rotated media-box points
-		float[] r1 = rotate(mediabox, rad, cx, cy);
+		float[] r1 = rotate(boundBox, rad, cx, cy);
         float p_mbx1 = r1[0];
         float p_mby1 = r1[1];
         float p_mbx2 = r1[2];
@@ -207,6 +229,34 @@ public class PageRect implements PageTypes {
         y1 = y0 + p_h;
         
         return new PageRect(x0, y0, x1, y1);   
+    }
+
+    /**
+     * Get new coordinates by rotating backwards from current rotation</br>  
+     * @param boundBox: Original bounding box usually from getPage().getBoundBox()
+     * @param currRotation
+     * @return
+     */
+    public PageRect rotateBack(PageRect boundBox, int currRotation) {
+    	if (currRotation == PAGE_ROTATE_NONE || currRotation == PAGE_ROTATE_360) {
+    		return new PageRect(getX0(), getY0(), getX1(), getY1());
+    	}
+    	PageRect b = boundBox.rotate(boundBox, currRotation);
+    	PageRect c = new PageRect(getX0(), getY0(), getX1(), getY1());
+    	return c.rotate(b, -currRotation);
+    }
+    
+    /**
+     * Get new coordinates by rotating from "fromRotation" to "toRotation"  
+     * @param boundBox: Original bounding box from getPage().getBoundBox()
+     * @param fromRotation
+     * @param toRotation
+     * @return
+     */
+    public PageRect rotateTo(PageRect boundBox, int fromRotation, int toRotation) {
+    	PageRect b = boundBox.rotate(boundBox, fromRotation);
+    	PageRect c = new PageRect(getX0(), getY0(), getX1(), getY1());
+    	return c.rotate(b, -(fromRotation-toRotation));
     }
     
     /**

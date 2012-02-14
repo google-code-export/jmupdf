@@ -31,8 +31,8 @@ public class TileCache {
 		PageRenderer pr = new PageRenderer(page, zoom, rotate, color);
 		
 		// Rotate page as we want to display it
-		PageRect m = page.getMediaBox().scale(zoom);
-		m = m.rotate(m, pr.getNormalizedRotation());
+		PageRect m = page.getBoundBox().scale(zoom);
+		//m = m.rotate(m, pr.getNormalizedRotation());
 
 		// Calculate tiles based on rotation
 		int w = (int)(m.getWidth());

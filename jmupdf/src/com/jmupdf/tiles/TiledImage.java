@@ -8,8 +8,8 @@ package com.jmupdf.tiles;
 import java.awt.image.BufferedImage;
 
 import com.jmupdf.page.Page;
+import com.jmupdf.page.PagePixels;
 import com.jmupdf.page.PageRect;
-import com.jmupdf.page.PageRenderer;
 
 /**
  * TiledImage
@@ -20,7 +20,7 @@ import com.jmupdf.page.PageRenderer;
  *
  */
 public class TiledImage {
-	private PageRenderer renderer;
+	private PagePixels pagePixels;
 	private int tilex;
 	private int tiley;
 	private int x;
@@ -36,16 +36,16 @@ public class TiledImage {
 	 * @param tiley
 	 * @param tilew
 	 * @param tileh
-	 * @param renderer
+	 * @param pagePixels
 	 */
-	public TiledImage(int tilex, int tiley, int tilew, int tileh, PageRenderer renderer) {
+	public TiledImage(PagePixels pagePixels, int tilex, int tiley, int tilew, int tileh) {
 		this.tilex = tilex;
 		this.tiley = tiley;
 		this.w = tilew;
 		this.h = tileh;
 		this.x = tilex*(tilew);
-		this.y = tiley*(tileh);
-		this.renderer = renderer;
+		this.y = tiley*(tileh);		
+		this.pagePixels = (PagePixels)pagePixels.clone();
 		normalize();
 	}
 
@@ -54,43 +54,18 @@ public class TiledImage {
 	 * @return
 	 */
 	public BufferedImage getImage() {
-		return getRenderer().getImage();
-	}
-
-	/**
-	 * Determine if image is already rendered
-	 * @return
-	 */
-	public boolean isTileRendered() {
-		if (getRenderer() == null) {
-			return false;
-		} 
-		return getRenderer().isPageRendered();
-	}
-	
-	/**
-	 * Determine if image is rendering
-	 * @return
-	 */
-	public boolean isTileRendering() {
-		if (getRenderer() == null) {
-			return false;
-		} 
-		return getRenderer().isPageRendering();
+		return getPagePixels().getImage();
 	}
 	
 	/**
 	 * Render tile image
 	 */
 	public void render() {
-		if (!getRenderer().isPageRendered() && !getRenderer().isPageRendering()) {
-			getRenderer().setCroppingArea(
-					 this.rx/getRenderer().getZoom(), 
-					 this.ry/getRenderer().getZoom(), 
-					(this.rx+this.rw)/getRenderer().getZoom(), 
-					(this.ry+this.rh)/getRenderer().getZoom());
-			getRenderer().render(true);
-		}
+		getPagePixels().drawPage(
+				 this.rx/getPagePixels().getZoom(), 
+				 this.ry/getPagePixels().getZoom(), 
+				(this.rx+this.rw)/getPagePixels().getZoom(), 
+				(this.ry+this.rh)/getPagePixels().getZoom());
 	}
 
 	/**
@@ -145,8 +120,8 @@ public class TiledImage {
 	 * Dispose of resources
 	 */
 	public void dispose() {
-		if (getRenderer() != null) {
-			getRenderer().needsRendering();
+		if (getPagePixels() != null) {
+			getPagePixels().dispose();
 		}
 	}
 
@@ -155,22 +130,21 @@ public class TiledImage {
 	 */
 	private void normalize() {
 		
-		// Rotate mediabox to actual rotation
-		PageRect m = getPage().getMediaBox().scale(getRenderer().getZoom());
-		m = m.rotate(m, getRenderer().getNormalizedRotation());
+		// Rotate bound box to actual rotation
+		PageRect bb = getPage().getBoundBox().scale(getPagePixels().getZoom());
+		PageRect rb = bb.rotate(bb, getPagePixels().getRotation());
 
 		// Adjust width of tile
-		int x1 = m.getWidth();
-		int y1 = m.getHeight();
+		int x1 = rb.getWidth();
+		int y1 = rb.getHeight();
 		int x2 = getX() + getWidth();
 		int y2 = getY() + getHeight();
 		this.w = Math.min(x1, x2) - getX();
 		this.h = Math.min(y1, y2) - getY();
 
 		// Rotate to default page rotation
-		PageRect r = new PageRect(getX(), getY(), getX()+getWidth(), getY()+getHeight());
-		r = r.rotate(m, -(getRenderer().getNormalizedRotation()-getPage().getRotation()));
-		m = m.rotate(m, -(getRenderer().getNormalizedRotation()-getPage().getRotation()));
+		PageRect r = new PageRect(getX(), getY(), getWidth(), getHeight());
+		r = r.rotateTo(bb, getPagePixels().getRotation(), getPage().getRotation());
 
 		// Assign new rendering coordinates
 		this.rx = r.getX();
@@ -184,15 +158,15 @@ public class TiledImage {
 	 * @return
 	 */
 	private Page getPage() {
-		return getRenderer().getPage();
+		return getPagePixels().getPage();
 	}
 	
 	/**
 	 * Get page renderer
 	 * @return
 	 */
-	private PageRenderer getRenderer() {
-		return renderer;
+	private PagePixels getPagePixels() {
+		return pagePixels;
 	}
 	
     /**

@@ -15,7 +15,7 @@ build   := release
 prefix  := build
 OUT 	:= $(prefix)/$(build)
 BIT     := "" 
-verbose := ""
+verbose := "Y"
 
 #
 # --- Set bit value when using TDM-GCC 

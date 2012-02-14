@@ -16,14 +16,11 @@ import com.jmupdf.interfaces.PageTypes;
  */
 public class Page implements PageTypes {
 	private Document document;
-	private PageRect mediabox;
+	private PageRect origBoundBox;
+	private PageRect normBoundBox;
 	private PageLinks[] pageLinks;
-	private int pn;
-	private int px;
-	private int py;
-	private int pw;
-	private int ph;
-	private int pr;		
+	private int pageNumber;
+	private int pageRotate;		
 
 	/**
 	 * Create a new page object
@@ -42,7 +39,7 @@ public class Page implements PageTypes {
 	 */
 	public Page(Document doc, float[] pageInfo, int page) {
 		this.document = doc;
-		this.pn = page;
+		this.pageNumber = page;
 		loadPageInfo(pageInfo);
 	}
 	
@@ -51,16 +48,16 @@ public class Page implements PageTypes {
 	 * @return
 	 */
 	public int getPageNumber() {
-		return pn;
+		return pageNumber;
 	}
 
 	/**
-	 * Get page media box. This is the page's original
-	 * Cartesian coordinates without rotation.
+	 * Get page bound box. This is the page's original
+	 * coordinates without rotation.
 	 * @return
 	 */
-	public PageRect getMediaBox() {
-		return mediabox;
+	public PageRect getBoundBox() {
+		return origBoundBox;
 	}
 
 	/**
@@ -68,7 +65,7 @@ public class Page implements PageTypes {
 	 * @return
 	 */
 	public int getX() {
-		return px;
+		return normBoundBox.getX();
 	}
 	
 	/**
@@ -76,7 +73,7 @@ public class Page implements PageTypes {
 	 * @return
 	 */
 	public int getY() {
-		return py;
+		return normBoundBox.getY();
 	}
 	
 	/**
@@ -84,7 +81,7 @@ public class Page implements PageTypes {
 	 * @return
 	 */
 	public int getWidth() {
-		return pw;
+		return normBoundBox.getWidth();
 	}
 
 	/**
@@ -92,7 +89,7 @@ public class Page implements PageTypes {
 	 * @return
 	 */
 	public int getHeight() {
-		return ph;
+		return normBoundBox.getHeight();
 	}
 
 	/**
@@ -101,7 +98,7 @@ public class Page implements PageTypes {
 	 * @return
 	 */
 	public int getRotation() {
-		return pr;
+		return pageRotate;
 	}
 
 	/**
@@ -123,17 +120,17 @@ public class Page implements PageTypes {
 	/**
 	 * Get text from page. </br>
 	 * Optionally pass in a PageRenderer object to determine how to extract text. </br>
-	 * @param renderer : can be null
+	 * @param pagePixels : can be null
 	 * @param x
 	 * @param y
 	 * @param w
 	 * @param h
 	 * @return
 	 */
-	public String getText(PageRenderer renderer, int x, int y, int w, int h) {
+	public String getText(PagePixels pagePixels, int x, int y, int w, int h) {
 		String text = "";
 
-		PageText[] pdfTextSpan = getTextSpan(renderer, x, y, w, h);
+		PageText[] pdfTextSpan = getTextSpan(pagePixels, x, y, w, h);
 		
 		if (pdfTextSpan == null) {
 			return text;
@@ -164,62 +161,56 @@ public class Page implements PageTypes {
 	
 	/**
 	 * Get TextSpan Array Object. </br>
-	 * Optionally pass in a PageRenderer object to determine how to extract text. </br>
-	 * @param renderer : can be null
+	 * Optionally pass in a PagePixel object to determine how to extract text. </br>
+	 * @param pagePixels : can be null
 	 * @param x
 	 * @param y
 	 * @param w
 	 * @param h
 	 * @return
 	 */
-	public PageText[] getTextSpan(PageRenderer renderer, int x, int y, int w, int h) {
+	public PageText[] getTextSpan(PagePixels pagePixels, int x, int y, int w, int h) {
 
 		// If no rendering object available then use defaults
-		if (renderer == null) {
+		if (pagePixels == null) {
 			return getDocument().getPageText(getPageNumber(), 1f, getRotation(),  x, y, x+w, y+h);
 		}
 		
 		// Get rotation
-		int rotate = renderer.getNormalizedRotation();
+		int rotate = pagePixels.getRotation();
 
-		// Rotate mediabox to current rotation
-		PageRect m = getMediaBox().scale(renderer.getZoom());
+		// Rotate bound box to current rotation
+		PageRect m = getBoundBox().scale(pagePixels.getZoom());
 		m = m.rotate(m, rotate);
 
 		// Rotate to default page rotation
-		PageRect r = new PageRect(x, y, x+w, y+h);		
+		PageRect r = new PageRect(x, y, w, h);		
 		r = r.rotate(m, -(rotate-getRotation()));
-
-		// Set new coordinates
-		x = r.getX();
-		y = r.getY();
-		w = r.getWidth();
-		h = r.getHeight();
-
-		return getDocument().getPageText(getPageNumber(), renderer.getZoom(), getRotation(), x, y, x+w, y+h);
+		
+		return getDocument().getPageText(getPageNumber(), pagePixels.getZoom(), getRotation(), (int)r.getX0(), (int)r.getY0(), (int)r.getX1(), (int)r.getY1());
 	}
 
 	/**
 	 * Get PageLinks Array Object </br>
-	 * Optionally pass in a PageRenderer object to determine how to extract links. </br>
-	 * @param renderer : can be null
+	 * Optionally pass in a PagePixel object to determine how to extract links. </br>
+	 * @param pagePixels : can be null
 	 * @return
 	 */
-	public PageLinks[] getLinks(PageRenderer renderer) {		
+	public PageLinks[] getLinks(PagePixels pagePixels) {
 		if (pageLinks == null) {
 			pageLinks = getDocument().getPageLinks(getPageNumber());
 			if (pageLinks == null) {
 				pageLinks = new PageLinks[1];
 				pageLinks[0] = new PageLinks(0, 0, 0, 0, 0, "");
 			} else {
-				if (renderer != null) {
-					int rotate = renderer.getNormalizedRotation();
+				if (pagePixels != null) {
+					int rotate = pagePixels.getRotation();
 					PageRect rect = new PageRect();
 					for (int i=0; i<pageLinks.length; i++) {						
 						rect.setRect(pageLinks[i].getX0(), pageLinks[i].getY0(), 
 									 pageLinks[i].getX1(), pageLinks[i].getY1());
-						rect = rect.rotate(getMediaBox(), rotate);
-						rect = rect.scale(renderer.getZoom());
+						rect = rect.rotate(getBoundBox(), rotate);
+						rect = rect.scale(pagePixels.getZoom());
 						pageLinks[i].setX0(rect.getX0());
 						pageLinks[i].setY0(rect.getY0());
 						pageLinks[i].setX1(rect.getX1());
@@ -237,39 +228,20 @@ public class Page implements PageTypes {
 	 * @param pageInfo
 	 */
 	private void loadPageInfo(float[] pageInfo) {
-
-		// Set default values
-		px = 0;
-		py = 0;
-		pw = 0;
-		ph = 0;
-		pr = 0;
-
 		if (pageInfo != null) {
+			// Save original bound box coordinates without rotation 
+			origBoundBox = new PageRect(pageInfo[0], pageInfo[1], pageInfo[2], pageInfo[3]);
 
-			// Save original media box coordinates without rotation 
-			mediabox = new PageRect(pageInfo[0], pageInfo[1], pageInfo[2], pageInfo[3]);
-
-			// Set page coordinates
-			px = mediabox.getX();
-			py = mediabox.getY();
-			pw = mediabox.getWidth();
-			ph = mediabox.getHeight();
-			
 			// Set default page rotation
-			pr = (int)pageInfo[4];
+			pageRotate = (int)pageInfo[4];
 
 			// Normalize initial page rotation
-			if (pr == PAGE_ROTATE_90_CW || pr == PAGE_ROTATE_270)  {
-				PageRect r = mediabox.rotate(mediabox, pr);
-				px = r.getX();
-				py = r.getY();
-				pw = r.getWidth();
-				ph = r.getHeight();
+			if (pageRotate == PAGE_ROTATE_90_CW || pageRotate == PAGE_ROTATE_270)  {
+				normBoundBox = origBoundBox.rotate(origBoundBox, pageRotate);
+			} else {
+				normBoundBox = origBoundBox.rotate(origBoundBox, 0);
 			}
-		
 		}
-
 	}
 
 }

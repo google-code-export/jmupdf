@@ -25,14 +25,14 @@ public class Tiling {
 		try {
 
 			// Open document
-			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf\\pdf_docs\\itextinaction.pdf", 10);
+			PdfDocument pdfDoc = new PdfDocument("E:\\tmp\\itextinaction.pdf", 10);
 
 			// Get page object
-			Page page = pdfDoc.getPage(1);
+			Page page = pdfDoc.getPage(12);
 
 			// setup zoom, rotation, color, and tile info
-			float zoom = 6f;
-			int rotate = Page.PAGE_ROTATE_AUTO;
+			float zoom = 3f;
+			int rotate = Page.PAGE_ROTATE_90_CW;
 			int color = PageRenderer.IMAGE_TYPE_RGB;
 			int tilew = 512;
 			int tileh = 512;
@@ -43,7 +43,7 @@ public class Tiling {
 			// Loop through tiles and save
 			for (TiledImage t : c.getTiles()) {	
 				t.render();
-				ImageIO.write(t.getImage(), "PNG", new File("e:\\tmp\\test1_" + t.getTileY() + "_" + t.getTileX() + ".png"));
+				ImageIO.write(t.getImage(), "PNG", new File("e:\\tmp\\img\\test1_" + t.getTileY() + "_" + t.getTileX() + ".png"));
 				t.dispose();
 			}
 

@@ -6,6 +6,9 @@
 package com.jmupdf.page;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import javax.swing.JComponent;
 
@@ -24,20 +27,33 @@ import com.jmupdf.interfaces.ImageTypes;
  * @author Pedro J Rivera
  *
  */
-public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
+public class CopyOfPageRenderer implements Runnable, ImageTypes, DocumentTypes {
+	private Page page;
 	private PageRect boundBox;
-	private PagePixels pagePixels;
 	private PageRendererWorker worker;
+	
 	private JComponent component;
+	private BufferedImage image;	
+	private ByteBuffer buffer;
+	private Object pixels;
+	
+	private float zoom;
+	private float resolution;
+	private int rotate;
+	private int color;
+	private float gamma;
+
 	private boolean isPageRendered;
 	private boolean isPageRendering;
+	
+	private static int default_resolution = 72;
 	
 	private boolean useDirectByteBuffer;
 	
 	/**
 	 * Create renderer instance with default values. 
 	 */
-	public PageRenderer() {
+	public CopyOfPageRenderer() {
 		this(null, 1f, Page.PAGE_ROTATE_AUTO, IMAGE_TYPE_RGB);
 	}
 	
@@ -47,7 +63,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param rotate
 	 * @param color
 	 */
-	public PageRenderer(float zoom, int rotate, int color) {
+	public CopyOfPageRenderer(float zoom, int rotate, int color) {
 		this(null, zoom, rotate, color);
 	}
 
@@ -58,14 +74,19 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param rotate
 	 * @param color
 	 */
-	public PageRenderer(Page page, float zoom, int rotate, int color) {
+	public CopyOfPageRenderer(Page page, float zoom, int rotate, int color) {
+		this.page = page;
+		this.zoom = zoom;
+		this.rotate = rotate;
+		this.color = color;
+		this.gamma = 1f;
 		this.useDirectByteBuffer = true;
 		this.boundBox = new PageRect();
-		setPage(page);
-		setZoom(zoom);
-		setRotation(rotate);
-		setColorType(color);
-		setGamma(1f);
+		if (page == null) {
+			setCroppingArea(0, 0, 0, 0);
+		} else {
+			setCroppingArea(page.getX(), page.getY(), page.getWidth(), page.getHeight());
+		}
 	}
 
 	/**
@@ -89,11 +110,9 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param y1
 	 */
 	public void setCroppingArea(float x0, float y0, float x1, float y1) {
-		if (!isPageRendering()) {
-			this.boundBox.setRect(x0, y0, x1, y1);
-			this.isPageRendering = false;
-			needsRendering();
-		}
+		this.boundBox.setRect(x0, y0, x1, y1);
+		this.isPageRendering = false;
+		needsRendering();
 	}
 
 	/**
@@ -103,9 +122,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param component : Can be null
 	 */
 	public void setComponent(JComponent component) {
-		if (!isPageRendering()) {
-			this.component = component;
-		}
+		this.component = component;
 	}
 	
 	/**
@@ -179,13 +196,39 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
     public float getY1() {
     	return boundBox.getY1();
     }
+    
+	/**
+	 * Get normalized rotation. </br>
+	 * This will return whatever rotation is being requested 
+	 * plus any default page rotations stored in the page.
+	 * @return rotation
+	 */
+	public int getNormalizedRotation() {
+		int rotate = getRotation();			
+		
+		if (rotate == Page.PAGE_ROTATE_AUTO) {
+			rotate = getPage().getRotation();
+		} else {
+			if (rotate != Page.PAGE_ROTATE_NONE) {
+				rotate += getPage().getRotation();
+			}
+		}
+	    
+		rotate = rotate % 360;
+	    
+		if (rotate < 0) { 
+	    	rotate = rotate + 360;
+		}
+		
+		return rotate;
+	}
 
 	/**
 	 * Get image rotation.
 	 * @return
 	 */
 	public int getRotation() {
-		return getPagePixels().getRotate();
+		return rotate;
 	}
 	
 	/**
@@ -193,10 +236,11 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param rotate
 	 */
 	public void setRotation(int rotate) {
-		if (!isPageRendering()) {
-			getPagePixels().setRotate(rotate);
-			needsRendering();
+		if (getRotation() == rotate) {
+			return;
 		}
+		this.rotate = rotate;
+		needsRendering();
 	}
 
 	/**
@@ -204,7 +248,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @return
 	 */
 	public float getZoom() {
-		return getPagePixels().getZoom();
+		return zoom;
 	}
 
 	/**
@@ -212,18 +256,19 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param zoom
 	 */
 	public void setZoom(float zoom) {
-		if (!isPageRendering()) {
-			getPagePixels().setZoom(zoom);
-			needsRendering();
+		if (getZoom() == zoom) {
+			return;
 		}
+		this.zoom = zoom;
+		needsRendering();
 	}
 
 	/**
 	 * Get color type
 	 * @return
 	 */
-	public int getColorType() {		
-		return getPagePixels().getColor();
+	public int getColorType() {
+		return color;
 	}
 
 	/**
@@ -231,10 +276,11 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param color
 	 */
 	public void setColorType(int color) {
-		if (!isPageRendering()) {
-			getPagePixels().setColor(color);
-			needsRendering();
+		if (getColorType() == color) {
+			return;
 		}
+		this.color = color;
+		needsRendering();
 	}
 	
 	/**
@@ -242,7 +288,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @return
 	 */
 	public float getGamma() {
-		return getPagePixels().getGamma();
+		return gamma;
 	}
 
 	/**
@@ -254,10 +300,14 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param gamma
 	 */
 	public void setGamma(float gamma) {
-		if (!isPageRendering()) {
-			getPagePixels().setGamma(gamma);
-			needsRendering();
+		if (getGamma() == gamma) {
+			return;
 		}
+		if (gamma <= 0) {
+			gamma = 1f;
+		}
+		this.gamma = gamma;
+		needsRendering();
 	}
 
 	/**
@@ -276,10 +326,11 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param level
 	 */
 	public void setAntiAliasLevel(int level) {
-		if (!isPageRendering()) {
-			getPage().getDocument().setAntiAliasLevel(level);
-			needsRendering();
+		if (getAntiAliasLevel() == level) {
+			return;
 		}
+		getPage().getDocument().setAntiAliasLevel(level);
+		needsRendering();
 	}
 
 	/**
@@ -287,7 +338,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @return
 	 */
 	public float getResolution() {
-		return getPagePixels().getResolution();
+		return resolution;
 	}
 
 	/**
@@ -295,7 +346,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @return
 	 */
 	public Page getPage() {
-		return getPagePixels().getPage();
+		return page;
 	}
 
 	/**
@@ -303,15 +354,15 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param page
 	 */
 	public void setPage(Page page) {
-		if (!isPageRendering()) {
-			setPagePixels(page);
-			if (page == null) {
-				setCroppingArea(0, 0, 0, 0);
-			} else {
-				setCroppingArea(page.getX(), page.getY(), page.getWidth(), page.getHeight());
-			}
-			needsRendering();
+		if (getPage() != null && 
+			getPage().getPageNumber() == page.getPageNumber() &&
+			getPage().getDocument().getHandle() == page.getDocument().getHandle() &&
+			getPage() == page) {
+			return;
 		}
+		this.page = page;
+		needsRendering();
+		setCroppingArea(page.getX(), page.getY(), page.getWidth(), page.getHeight());
 	}
 
 	/**
@@ -329,9 +380,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param b
 	 */
 	public void setDirectByteBuffer(boolean b) {
-		if (!isPageRendering()) {
-			this.useDirectByteBuffer = b;
-		}
+		this.useDirectByteBuffer = b;
 	}
 	
 	/**
@@ -343,32 +392,9 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 			isPageRendering()) {
 			return null;
 		}
-		return getPagePixels().getImage();
+		return image;
 	}
 
-	/**
-	 * Get page pixels object
-	 * @return
-	 */
-	public PagePixels getPagePixels() {
-		return pagePixels;
-	}
-	
-	/**
-	 * Set page pixels object
-	 */
-	public void setPagePixels(Page page) {
-		if (!isPageRendering()) {
-			if (pagePixels != null) {
-				pagePixels.dispose();
-			}
-			if (page != null) {
-				pagePixels = new PagePixels(page);
-			}
-			needsRendering();
-		}
-	}
-	
 	/**
 	 * Determine if page is fully rendered
 	 * @return
@@ -409,12 +435,13 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param wait
 	 */
 	public void render(boolean wait) {
-		if (!isPageRendering()) {
-			if (wait) {
-				run();
-			} else {
-				getWorker().renderPage(this);
-			}
+		if (getPage() == null || isPageRendering()) {
+			return;
+		}
+		if (wait) {
+			run();
+		} else {
+			getWorker().renderPage(this);
 		}
 	}
 
@@ -424,7 +451,8 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	public void run() {
 		try {
 
-			if (isPageRendering() || 
+			if (getPage() == null ||
+				isPageRendering() || 
 				isPageRendered()) {
 				return;
 			}
@@ -432,21 +460,66 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 			isPageRendering = true;
 			needsRendering();			
 
-			getPagePixels().setUseDirectByteBuffer(isDirectByteBuffer());
-			getPagePixels().drawPage(getX0(), getY0(), getX1(), getY1());
-			boundBox.setRect(getPagePixels().getX0(), getPagePixels().getY0(), getPagePixels().getX1(), getPagePixels().getY1());
+			if (image != null) {
+				image.flush();
+			}
+
+			// Zero rotate
+			PageRect c = boundBox.rotateBack(getPage().getBoundBox(), getPage().getRotation());
+					
+			int[] bbox = new int[4];
+
+			// Render page 
+			if (isDirectByteBuffer()) {
+				buffer = getPage().getDocument().getPageByteBuffer(
+						 getPage().getPageNumber(), 
+						 getZoom(), 
+						 getNormalizedRotation(), 
+						 getColorType(),
+						 getGamma(),
+						 bbox, 
+						 c.getX0(), 
+						 c.getY0(), 
+						 c.getX1(), 
+						 c.getY1());
+			} else {
+				pixels = getPage().getDocument().getPagePixels(
+						 getPage().getPageNumber(), 
+						 getZoom(), 
+						 getNormalizedRotation(), 
+						 getColorType(),
+						 getGamma(),
+						 bbox, 
+						 c.getX0(), 
+						 c.getY0(), 
+						 c.getX1(), 
+						 c.getY1());
+			}
 			
+			// Create buffered image
+			if (bbox != null) {
+				this.boundBox.setRect(bbox[0], bbox[1], bbox[2], bbox[3]);
+				this.resolution = getZoom() * default_resolution;
+				createBufferedImage();
+				if (image != null) {
+					isPageRendered = true;
+				}
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
+			if (image != null) {
+				image.flush();
+				image = null;	
+			}
     		System.gc();
 		} finally {
-			isPageRendering = false;
-			isPageRendered = true;
-			if (getComponent() != null) {				
+			isPageRendering = false;			
+			if (component != null) {				
 				synchronized (component) {
-					getComponent().notify();
-					getComponent().repaint();
+					component.notify();
+					component.repaint();
 				}
 			}
 		}
@@ -458,16 +531,101 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * Rendering object is reusable. 
 	 */
 	public void dispose() {
+		if (image != null) {
+			image.flush();
+			image = null;
+		}
+		if (pixels != null) {
+			pixels = null;
+		}
+		if (buffer != null) {
+			buffer = null;
+		}
 		if (worker != null) {
 			worker.shutdown();
 			worker = null;
 		}
-		if (pagePixels != null) {
-			pagePixels.dispose();
-			pagePixels = null;
-		}
 		isPageRendering = false;
 		needsRendering();
+	}
+
+	/**
+	 * Create a buffered image from packed pixel data
+	 * @param pixels
+	 */
+	private void createBufferedImage() {
+		
+		boolean isByte = (getColorType() == IMAGE_TYPE_BINARY || 
+				          getColorType() == IMAGE_TYPE_BINARY_DITHER ||
+				          getColorType() == IMAGE_TYPE_GRAY);
+		
+		try {
+			
+			// Get pixel data from buffer
+			if (buffer != null) {
+				if (isByte) {
+					pixels = new byte[buffer.order(ByteOrder.nativeOrder()).capacity()];
+					buffer.order(ByteOrder.nativeOrder()).get((byte[])pixels);
+				} else {
+					pixels = new int[buffer.order(ByteOrder.nativeOrder()).asIntBuffer().capacity()];
+					buffer.order(ByteOrder.nativeOrder()).asIntBuffer().get((int[])pixels);
+				}
+			}
+			
+			// Create image buffer
+			image = new BufferedImage(getWidth(), getHeight(), getBufferedImageType());
+
+			// Set data to image
+		    if (image != null) {
+		    	WritableRaster raster = image.getRaster();
+		    	raster.setDataElements(getX(), getY(), getWidth(), getHeight(), pixels);
+		    }
+		    
+		} catch (Exception e) {
+			e.printStackTrace();
+		} catch (OutOfMemoryError e) {
+			if (image != null) {
+				image.flush();
+				image = null;	
+			}
+    		System.gc();
+		} finally {
+			getPage().getDocument().freeByteBuffer(buffer);
+		}
+	    
+	}
+
+	/**
+	 * Get buffered image type
+	 * @return
+	 */
+	private int getBufferedImageType() {
+		int type;
+		switch (getColorType()) {
+			case IMAGE_TYPE_BINARY:
+			case IMAGE_TYPE_BINARY_DITHER:
+				type = BufferedImage.TYPE_BYTE_BINARY;
+				break;
+			case IMAGE_TYPE_GRAY:
+				type = BufferedImage.TYPE_BYTE_GRAY;
+				break;
+			case IMAGE_TYPE_RGB:
+				type = BufferedImage.TYPE_INT_RGB;
+				break;
+			case IMAGE_TYPE_ARGB:
+				type = BufferedImage.TYPE_INT_ARGB;
+				break;
+			case IMAGE_TYPE_ARGB_PRE:
+				type = BufferedImage.TYPE_INT_ARGB_PRE;
+				break;
+			case IMAGE_TYPE_BGR:
+				type = BufferedImage.TYPE_INT_BGR;
+				break;
+			default:
+				type = BufferedImage.TYPE_INT_RGB;
+				break;
+		}
+		return type;
 	}
 
 	/**

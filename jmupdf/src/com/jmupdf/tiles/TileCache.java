@@ -8,8 +8,8 @@ package com.jmupdf.tiles;
 import java.util.ArrayList;
 
 import com.jmupdf.page.Page;
+import com.jmupdf.page.PagePixels;
 import com.jmupdf.page.PageRect;
-import com.jmupdf.page.PageRenderer;
 
 /**
  * TileCache 
@@ -23,7 +23,6 @@ public class TileCache {
 	private int tilew;
 	private int tileh;
 	private ArrayList<TiledImage> tiles = new ArrayList<TiledImage>();
-	private PageRenderer renderer;
 	
 	/**
 	 * TileCache Class
@@ -37,11 +36,15 @@ public class TileCache {
 	public TileCache(Page page, int color, int rotate, float zoom, int tilew, int tileh) {
 		this.tilew = tilew;
 		this.tileh = tileh;
-		this.renderer = new PageRenderer(page, zoom, rotate, color);
+		
+		PagePixels pagePixels = new PagePixels(page);
+		pagePixels.setZoom(zoom);
+		pagePixels.setRotate(rotate);
+		pagePixels.setColor(color);
 		
 		// Rotate page as we want to display it
-		PageRect m = page.getMediaBox().scale(zoom);
-		m = m.rotate(m, renderer.getNormalizedRotation());
+		PageRect m = page.getBoundBox().scale(zoom);
+		m = m.rotate(m, pagePixels.getRotation());
 
 		// Calculate tiles based on rotation
 		int w = m.getWidth();
@@ -61,9 +64,11 @@ public class TileCache {
 		// Images are not rendered here. I am just establishing tile data.
 		for (int y=0; y<tilesy; y++) {
 			for (int x=0; x<tilesx; x++) {
-				tiles.add(new TiledImage(x, y, tilew, tileh, renderer));				
+				tiles.add(new TiledImage(pagePixels, x, y, tilew, tileh));				
 			}
 		}
+		
+		pagePixels.dispose();
 		
 	}
 
@@ -75,14 +80,6 @@ public class TileCache {
 		return tiles;
 	}
 
-	/**
-	 * Get renderer
-	 * @return
-	 */
-	public PageRenderer getRenderer() {
-		return renderer;
-	}
-	
 	/**
 	 * Get image width
 	 * @return
@@ -108,9 +105,6 @@ public class TileCache {
 		}
 		tiles.removeAll(tiles);
 		tiles = null;
-		if (renderer != null) {
-			renderer.dispose();
-		}
 	}
 
     /**

@@ -54,7 +54,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	private float zoom = 1f;
 	private int antiAliasLevel = 8;
 	private float gammaLevel = 1f;
-	private int color = Document.IMAGE_TYPE_ARGB;
+	private int color; // = Document.IMAGE_TYPE_ARGB;
 	private boolean isOpened = false;
 	private boolean isZooming = false;
 	private int maxStore = 60; 
@@ -200,8 +200,10 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 			} else if (view.getComboColor().getSelectedIndex() == 2) {
 				color = Document.IMAGE_TYPE_ARGB_PRE;
 			} else if (view.getComboColor().getSelectedIndex() == 3) {
-				color = Document.IMAGE_TYPE_GRAY;
+				color = Document.IMAGE_TYPE_BGR;
 			} else if (view.getComboColor().getSelectedIndex() == 4) {
+				color = Document.IMAGE_TYPE_GRAY;
+			} else if (view.getComboColor().getSelectedIndex() == 5) {
 				color = Document.IMAGE_TYPE_BINARY;				
 			} else {
 				color = Document.IMAGE_TYPE_BINARY_DITHER;

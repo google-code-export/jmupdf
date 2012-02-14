@@ -471,8 +471,9 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 */
 	public boolean saveAsPng(int page, String file, float zoom, int color, float gamma) {
 		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB  || 
-				color == IMAGE_TYPE_ARGB || 
+			if (color == IMAGE_TYPE_RGB  	 || 
+				color == IMAGE_TYPE_ARGB 	 ||
+				color == IMAGE_TYPE_ARGB_PRE ||
 				color == IMAGE_TYPE_GRAY) {
 				return writePng(handle, page, zoom, color, gamma, file) == 0;
 			}
@@ -504,8 +505,9 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 */
 	public boolean saveAsPam(int page, String file, float zoom, int color, float gamma) {
 		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB  || 
-				color == IMAGE_TYPE_ARGB || 
+			if (color == IMAGE_TYPE_RGB  	 || 
+				color == IMAGE_TYPE_ARGB 	 || 
+				color == IMAGE_TYPE_ARGB_PRE ||
 				color == IMAGE_TYPE_GRAY) {
 				return writePam(handle, page, zoom, color, gamma, file) == 0;
 			}
@@ -553,10 +555,11 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	public boolean saveAsTif(int page, String file, float zoom, int color, float gamma, int compression, int mode, int quality) {
 		if (handle > 0) {
 			
-			if (!(color == IMAGE_TYPE_RGB    || 
-				  color == IMAGE_TYPE_ARGB   || 
-				  color == IMAGE_TYPE_GRAY   ||
-				  color == IMAGE_TYPE_BINARY || 
+			if (!(color == IMAGE_TYPE_RGB      || 
+				  color == IMAGE_TYPE_ARGB     ||
+				  color == IMAGE_TYPE_ARGB_PRE ||
+				  color == IMAGE_TYPE_GRAY     ||
+				  color == IMAGE_TYPE_BINARY   || 
 				  color == IMAGE_TYPE_BINARY_DITHER)) {
 				log("Invalid color type specified.");
 				return false;
@@ -576,8 +579,9 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 					log("When using CCITT compression, color must be type binary");
 					return false;
 				}
-				if (color == IMAGE_TYPE_ARGB) {
-					log("When using CCITT compression, color cannot be IMAGE_TYPE_ARGB");
+				if (color == IMAGE_TYPE_ARGB || 
+					color == IMAGE_TYPE_ARGB_PRE) {
+					log("When using CCITT compression, color cannot be type of ARGB");
 					return false;
 				}
 			}

@@ -62,8 +62,8 @@ public class TiledImage {
 			this.renderer = new PageRenderer(page, zoom, rotate, color);
 			
 			// Rotate mediabox to actual rotation
-			PageRect m = page.getMediaBox().scale(zoom);
-			m = m.rotate(m, renderer.getNormalizedRotation());
+			PageRect m = page.getBoundBox().scale(zoom);
+			//m = m.rotate(m, renderer.getNormalizedRotation());
 
 			// Adjust width of tile
 			int x1 = (int)(m.getWidth());
@@ -75,8 +75,8 @@ public class TiledImage {
 
 			// Rotate to default page rotation
 			PageRect r = new PageRect(getX(), getY(), getX()+getWidth(), getY()+getHeight());
-			r = r.rotate(m, -(this.renderer.getNormalizedRotation()-page.getRotation()));
-			m = m.rotate(m, -(this.renderer.getNormalizedRotation()-page.getRotation()));
+			//r = r.rotate(m, -(this.renderer.getNormalizedRotation()-page.getRotation()));
+			//m = m.rotate(m, -(this.renderer.getNormalizedRotation()-page.getRotation()));
 
 			// Assign new rendering coordinates
 			this.rx = (int)r.getX();

@@ -33,12 +33,13 @@ struct jni_document_s {
 #define jni_ptr_to_jlong(a) ((jlong)(uintptr_t)(a))
 
 // Color constants
-static int const COLOR_RGB = 1;
-static int const COLOR_ARGB = 2;
-static int const COLOR_ARGB_PRE = 3;
-static int const COLOR_GRAY_SCALE = 10;
-static int const COLOR_BLACK_WHITE = 12;
-static int const COLOR_BLACK_WHITE_DITHER = 121;
+static const int COLOR_RGB = 1;
+static const int COLOR_ARGB = 2;
+static const int COLOR_ARGB_PRE = 3;
+static const int COLOR_BGR = 4;
+static const int COLOR_GRAY_SCALE = 10;
+static const int COLOR_BLACK_WHITE = 12;
+static const int COLOR_BLACK_WHITE_DITHER = 121;
 
 // Document type constants
 static const int DOC_PDF = 0;
@@ -48,11 +49,16 @@ static const int DOC_CBZ = 2;
 // Default DPI
 static const int DEFAULT_DPI = 72;
 
-// ARGB macros
-#define jni_get_a(P) ((P & 0xff) << 24)
-#define jni_get_r(P) ((P & 0xff) << 16)
-#define jni_get_g(P) ((P & 0xff) <<  8)
-#define jni_get_b(P) ((P & 0xff))
+// RGB macros
+#define jni_get_rgb_a(P) ((P & 0xff) << 24)
+#define jni_get_rgb_r(P) ((P & 0xff) << 16)
+#define jni_get_rgb_g(P) ((P & 0xff) <<  8)
+#define jni_get_rgb_b(P) ((P & 0xff))
+
+// BGR macros
+#define jni_get_bgr_b(P) ((P & 0xff) << 16)
+#define jni_get_bgr_g(P) ((P & 0xff) <<  8)
+#define jni_get_bgr_r(P) ((P & 0xff))
 
 // DPI conversion macros
 //#define jni_to_96_dpi(P) (P*1.3334)

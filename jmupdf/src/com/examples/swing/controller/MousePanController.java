@@ -221,7 +221,7 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 	 * @param e
 	 */
 	private void processLinks(MouseEvent e) {
-		PageLinks[] links = pageView.getPage().getLinks(pageView.getRenderer());
+		PageLinks[] links = pageView.getPage().getLinks(pageView.getRenderer().getPagePixels());
 		
 		if (links == null || links.length == 0) {
 			return;
@@ -273,30 +273,35 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 		int y = Math.min(p1.y, p2.y);
 		int w = Math.max(p1.x, p2.x) - x;
 		int h = Math.max(p1.y, p2.y) - y;
-		
+log("pc:" + x + "," + y + "," + (x+w) + "," + (y+h));		
 		// Create clip board object
 		Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
 
 		if (copyAsImage) {
-			int rotate = pageView.getRenderer().getNormalizedRotation();
+//			int rotate = pageView.getRenderer().getNormalizedRotation();
 			float zoom = pageView.getRenderer().getZoom();
-			float gamma = pageView.getRenderer().getGamma();
-			int aa = pageView.getRenderer().getAntiAliasLevel();
+//			float gamma = pageView.getRenderer().getGamma();
+//			int aa = pageView.getRenderer().getAntiAliasLevel();
 			
-			// Rotate mediabox to current rotation
-			PageRect mb = pageView.getPage().getMediaBox().rotate(pageView.getPage().getMediaBox(), rotate);
+//			// Rotate mediabox to current rotation
+//			PageRect mb = pageView.getPage().getBoundBox().rotate(pageView.getPage().getBoundBox(), rotate);
+//
+//			// Rotate to default page rotation
+//			PageRect rect = new PageRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);
+//			rect = rect.rotate(mb, -(rotate-pageView.getPage().getRotation()));
 
-			// Rotate to default page rotation
 			PageRect rect = new PageRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);
-			rect = rect.rotate(mb, -(rotate-pageView.getPage().getRotation()));
+			rect = rect.rotateTo(
+					pageView.getPage().getBoundBox(), 
+					pageView.getRenderer().getPagePixels().getRotation(), 
+					pageView.getPage().getRotation());
 
-			rotate = pageView.getRenderer().getRotation();
 
 			// Render region
-			PageRenderer r = new PageRenderer(pageView.getPage(), zoom, rotate, pageView.getRenderer().getColorType());
+			PageRenderer r = new PageRenderer(pageView.getPage(), zoom, pageView.getRenderer().getRotation(), pageView.getRenderer().getColorType());
 			r.setCroppingArea(rect.getX0(), rect.getY0(), rect.getX1(), rect.getY1());
-			r.setGamma(gamma);
-			r.setAntiAliasLevel(aa);
+			r.setGamma(pageView.getRenderer().getGamma());
+			r.setAntiAliasLevel(pageView.getRenderer().getAntiAliasLevel());
 			r.render(true);			
 
 			// Copy to clip board
@@ -304,7 +309,8 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 			cb.setContents(is, null);
 			r.dispose();
 		} else {
-			String text = pageView.getPage().getText(pageView.getRenderer(), x, y, w, h);
+			//log("cor: " + x + "," + y + "," +  w + "," +  h);
+			String text = pageView.getPage().getText(pageView.getRenderer().getPagePixels(), x, y, w, h);
 			StringSelection ss = new StringSelection(text);
 			cb.setContents(ss, null);
 		}

@@ -1,5 +1,5 @@
 /*
- * pdfdraw -- command line tool for drawing pdf documents
+ * mudraw -- command line tool for drawing pdf/xps/cbz documents
  */
 
 #include "fitz.h"
@@ -38,7 +38,7 @@ static struct {
 static void usage(void)
 {
 	fprintf(stderr,
-		"usage: pdfdraw [options] input.pdf [pages]\n"
+		"usage: mudraw [options] input [pages]\n"
 		"\t-o -\toutput filename (%%d for page number)\n"
 		"\t\tsupported formats: pgm, ppm, pam, png, pbm\n"
 		"\t-p -\tpassword\n"
@@ -84,13 +84,12 @@ static int isrange(char *s)
 	return 1;
 }
 
-static void drawpage(pdf_document *doc, int pagenum)
+static void drawpage(fz_context *ctx, fz_document *doc, int pagenum)
 {
-	pdf_page *page;
+	fz_page *page;
 	fz_display_list *list = NULL;
 	fz_device *dev = NULL;
 	int start;
-	fz_context *ctx = doc->ctx;
 
 	fz_var(list);
 	fz_var(dev);
@@ -102,7 +101,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 
 	fz_try(ctx)
 	{
-		page = pdf_load_page(doc, pagenum - 1);
+		page = fz_load_page(doc, pagenum - 1);
 	}
 	fz_catch(ctx)
 	{
@@ -115,13 +114,13 @@ static void drawpage(pdf_document *doc, int pagenum)
 		{
 			list = fz_new_display_list(ctx);
 			dev = fz_new_list_device(ctx, list);
-			pdf_run_page(doc, page, dev, fz_identity, NULL);
+			fz_run_page(doc, page, dev, fz_identity, NULL);
 		}
 		fz_catch(ctx)
 		{
 			fz_free_device(dev);
 			fz_free_display_list(ctx, list);
-			pdf_free_page(doc, page);
+			fz_free_page(doc, page);
 			fz_throw(ctx, "cannot draw page %d in file '%s'", pagenum, filename);
 		}
 		fz_free_device(dev);
@@ -137,14 +136,14 @@ static void drawpage(pdf_document *doc, int pagenum)
 			if (list)
 				fz_run_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
 			else
-				pdf_run_page(doc, page, dev, fz_identity, NULL);
+				fz_run_page(doc, page, dev, fz_identity, NULL);
 			printf("</page>\n");
 		}
 		fz_catch(ctx)
 		{
 			fz_free_device(dev);
 			fz_free_display_list(ctx, list);
-			pdf_free_page(doc, page);
+			fz_free_page(doc, page);
 			fz_rethrow(ctx);
 		}
 		fz_free_device(dev);
@@ -164,7 +163,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 			if (list)
 				fz_run_display_list(list, dev, fz_identity, fz_infinite_bbox, NULL);
 			else
-				pdf_run_page(doc, page, dev, fz_identity, NULL);
+				fz_run_page(doc, page, dev, fz_identity, NULL);
 			fz_free_device(dev);
 			dev = NULL;
 			printf("[Page %d]\n", pagenum);
@@ -179,7 +178,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 			fz_free_device(dev);
 			fz_free_text_span(ctx, text);
 			fz_free_display_list(ctx, list);
-			pdf_free_page(doc, page);
+			fz_free_page(doc, page);
 			fz_rethrow(ctx);
 		}
 		fz_free_text_span(ctx, text);
@@ -198,7 +197,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 
 		fz_var(pix);
 
-		bounds = pdf_bound_page(doc, page);
+		bounds = fz_bound_page(doc, page);
 		zoom = resolution / 72;
 		ctm = fz_scale(zoom, zoom);
 		ctm = fz_concat(ctm, fz_rotate(rotation));
@@ -219,7 +218,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 			if (list)
 				fz_run_display_list(list, dev, ctm, bbox, NULL);
 			else
-				pdf_run_page(doc, page, dev, ctm, NULL);
+				fz_run_page(doc, page, dev, ctm, NULL);
 			fz_free_device(dev);
 			dev = NULL;
 
@@ -272,7 +271,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 			fz_free_device(dev);
 			fz_drop_pixmap(ctx, pix);
 			fz_free_display_list(ctx, list);
-			pdf_free_page(doc, page);
+			fz_free_page(doc, page);
 			fz_rethrow(ctx);
 		}
 	}
@@ -280,7 +279,7 @@ static void drawpage(pdf_document *doc, int pagenum)
 	if (list)
 		fz_free_display_list(ctx, list);
 
-	pdf_free_page(doc, page);
+	fz_free_page(doc, page);
 
 	if (showtime)
 	{
@@ -309,18 +308,19 @@ static void drawpage(pdf_document *doc, int pagenum)
 	fz_flush_warnings(ctx);
 }
 
-static void drawrange(pdf_document *doc, char *range)
+static void drawrange(fz_context *ctx, fz_document *doc, char *range)
 {
-	int page, spage, epage;
+	int page, spage, epage, final;
 	char *spec, *dash;
 
+	final = fz_count_pages(doc);
 	spec = fz_strsep(&range, ",");
 	while (spec)
 	{
 		dash = strchr(spec, '-');
 
 		if (dash == spec)
-			spage = epage = pdf_count_pages(doc);
+			spage = epage = final;
 		else
 			spage = epage = atoi(spec);
 
@@ -329,42 +329,42 @@ static void drawrange(pdf_document *doc, char *range)
 			if (strlen(dash) > 1)
 				epage = atoi(dash + 1);
 			else
-				epage = pdf_count_pages(doc);
+				epage = final;
 		}
 
-		spage = CLAMP(spage, 1, pdf_count_pages(doc));
-		epage = CLAMP(epage, 1, pdf_count_pages(doc));
+		spage = CLAMP(spage, 1, final);
+		epage = CLAMP(epage, 1, final);
 
 		if (spage < epage)
 			for (page = spage; page <= epage; page++)
-				drawpage(doc, page);
+				drawpage(ctx, doc, page);
 		else
 			for (page = spage; page >= epage; page--)
-				drawpage(doc, page);
+				drawpage(ctx, doc, page);
 
 		spec = fz_strsep(&range, ",");
 	}
 }
 
-static void drawoutline(pdf_document *doc)
+static void drawoutline(fz_context *ctx, fz_document *doc)
 {
-	fz_outline *outline = pdf_load_outline(doc);
+	fz_outline *outline = fz_load_outline(doc);
 	if (showoutline > 1)
-		fz_debug_outline_xml(doc->ctx, outline, 0);
+		fz_debug_outline_xml(ctx, outline, 0);
 	else
-		fz_debug_outline(doc->ctx, outline, 0);
-	fz_free_outline(doc->ctx, outline);
+		fz_debug_outline(ctx, outline, 0);
+	fz_free_outline(ctx, outline);
 }
 
 #ifdef MUPDF_COMBINED_EXE
-int pdfdraw_main(int argc, char **argv)
+int draw_main(int argc, char **argv)
 #else
 int main(int argc, char **argv)
 #endif
 {
 	char *password = "";
 	int grayscale = 0;
-	pdf_document *doc = NULL;
+	fz_document *doc = NULL;
 	int c;
 	fz_context *ctx;
 
@@ -439,41 +439,41 @@ int main(int argc, char **argv)
 
 			fz_try(ctx)
 			{
-				doc = pdf_open_document(ctx, filename);
+				doc = fz_open_document(ctx, filename);
 			}
 			fz_catch(ctx)
 			{
 				fz_throw(ctx, "cannot open document: %s", filename);
 			}
 
-			if (pdf_needs_password(doc))
-				if (!pdf_authenticate_password(doc, password))
+			if (fz_needs_password(doc))
+				if (!fz_authenticate_password(doc, password))
 					fz_throw(ctx, "cannot authenticate password: %s", filename);
 
 			if (showxml)
 				printf("<document name=\"%s\">\n", filename);
 
 			if (showoutline)
-				drawoutline(doc);
+				drawoutline(ctx, doc);
 
 			if (showtext || showxml || showtime || showmd5 || output)
 			{
 				if (fz_optind == argc || !isrange(argv[fz_optind]))
-					drawrange(doc, "1-");
+					drawrange(ctx, doc, "1-");
 				if (fz_optind < argc && isrange(argv[fz_optind]))
-					drawrange(doc, argv[fz_optind++]);
+					drawrange(ctx, doc, argv[fz_optind++]);
 			}
 
 			if (showxml)
 				printf("</document>\n");
 
-			pdf_close_document(doc);
+			fz_close_document(doc);
 			doc = NULL;
 		}
 	}
 	fz_catch(ctx)
 	{
-		pdf_close_document(doc);
+		fz_close_document(doc);
 	}
 
 	if (showtime)
