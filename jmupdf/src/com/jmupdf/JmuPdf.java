@@ -57,13 +57,13 @@ public abstract class JmuPdf {
 	protected native synchronized int getAntiAliasLevel(long handle);
 	protected native synchronized int setAntiAliasLevel(long handle, int antiAliasLevel);
 	
-	protected native synchronized int writePbm(long handle, int page, float zoom, float gamma, String file);
-	protected native synchronized int writePnm(long handle, int page, float zoom, int color, float gamma, String file);
-	protected native synchronized int writePam(long handle, int page, float zoom, int color, float gamma, String file);
-	protected native synchronized int writePng(long handle, int page, float zoom, int color, float gamma, String file);
-	protected native synchronized int writeTif(long handle, int page, float zoom, int color, float gamma, String file, int compression, int mode, int quality);
-	protected native synchronized int writeJPeg(long handle, int page, float zoom, int color, float gamma, String file, int quality);
-	protected native synchronized int writeBmp(long handle, int page, float zoom, int color, float gamma, String file);
+	protected native synchronized int writePbm(long handle, int page, float zoom, float gamma, byte[] file);
+	protected native synchronized int writePnm(long handle, int page, float zoom, int color, float gamma, byte[] file);
+	protected native synchronized int writePam(long handle, int page, float zoom, int color, float gamma, byte[] file);
+	protected native synchronized int writePng(long handle, int page, float zoom, int color, float gamma, byte[] file);
+	protected native synchronized int writeTif(long handle, int page, float zoom, int color, float gamma, byte[] file, int compression, int mode, int quality);
+	protected native synchronized int writeJPeg(long handle, int page, float zoom, int color, float gamma, byte[] file, int quality);
+	protected native synchronized int writeBmp(long handle, int page, float zoom, int color, float gamma, byte[] file);
 	
 	/**
 	 * Get library version

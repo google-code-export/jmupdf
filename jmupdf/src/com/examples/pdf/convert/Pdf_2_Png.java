@@ -25,7 +25,7 @@ public class Pdf_2_Png {
 			 */
 			pdfDoc.saveAsPng(
 					1,									// Page number
-					"e:\\tmp\\test1-RGB.png",				// PNG file
+					"e:\\tmp\\Lösung.png",				// PNG file
 					2f,									// Zoom	
 					PdfDocument.IMAGE_TYPE_RGB);		// Color space. Only RGB, ARGB & Gray.
 

@@ -342,7 +342,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 */
 	public boolean saveAsPbm(int page, String file, float zoom, float gamma) {
 		if (handle > 0) {
-			return writePbm(handle, page, zoom, gamma, file) == 0;
+			return writePbm(handle, page, zoom, gamma, file.getBytes()) == 0;
 		}
 		return false;
 	}
@@ -372,7 +372,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 		if (handle > 0) {
 			if (color == IMAGE_TYPE_RGB || 
 				color == IMAGE_TYPE_GRAY) {
-				return writePnm(handle, page, zoom, color, gamma, file) == 0;
+				return writePnm(handle, page, zoom, color, gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -408,7 +408,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 				if (!(quality >= 0 && quality <= 100)) {
 					quality = 75;
 				}
-				return writeJPeg(handle, page, zoom, color, gamma, file, quality) == 0;
+				return writeJPeg(handle, page, zoom, color, gamma, file.getBytes(), quality) == 0;
 			}
 		}
 		return false;
@@ -442,7 +442,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 				color == IMAGE_TYPE_GRAY   ||
 				color == IMAGE_TYPE_BINARY ||
 				color == IMAGE_TYPE_BINARY_DITHER) {
-				return writeBmp(handle, page, zoom, color, gamma, file) == 0;
+				return writeBmp(handle, page, zoom, color, gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -475,7 +475,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 				color == IMAGE_TYPE_ARGB 	 ||
 				color == IMAGE_TYPE_ARGB_PRE ||
 				color == IMAGE_TYPE_GRAY) {
-				return writePng(handle, page, zoom, color, gamma, file) == 0;
+				return writePng(handle, page, zoom, color, gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -509,7 +509,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 				color == IMAGE_TYPE_ARGB 	 || 
 				color == IMAGE_TYPE_ARGB_PRE ||
 				color == IMAGE_TYPE_GRAY) {
-				return writePam(handle, page, zoom, color, gamma, file) == 0;
+				return writePam(handle, page, zoom, color, gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -598,7 +598,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 				}
 			}
 
-			return writeTif(handle, page, zoom, color, gamma, file, compression, mode, quality) == 0;
+			return writeTif(handle, page, zoom, color, gamma, file.getBytes(), compression, mode, quality) == 0;
 		}
 
 		return false;

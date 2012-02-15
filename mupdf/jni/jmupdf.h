@@ -75,6 +75,7 @@ void jni_get_page(jni_document*, int);
 void jni_free_page(jni_document*);
 
 // jni_java_pixmap.c
+char * jni_jbyte_to_char(JNIEnv*, jni_document*, jbyteArray);
 fz_matrix jni_get_view_ctm(jni_document*, float, int);
 int jni_pix_to_black_white(fz_context*, fz_pixmap*, int, unsigned char* );
 int jni_pix_to_binary(fz_context*, fz_pixmap*, int, unsigned char*);
