@@ -32,7 +32,7 @@ public abstract class JmuPdf {
 	/*
 	 * PDF/XPS Common Functions 
 	 */
-	protected native synchronized long open(int type, char[] pdf, char[] password, int maxStore);
+	protected native synchronized long open(int type, byte[] pdf, byte[] password, int maxStore);
 	protected native synchronized void close(long handle);
 	protected native synchronized int getVersion(long handle);
 	protected native synchronized int getPageCount(long handle);

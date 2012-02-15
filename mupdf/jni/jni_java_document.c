@@ -4,21 +4,21 @@
  * Convert ushort array to char array.
  * Properly convert unicode values to char array.
  */
-static char * jni_jchar_to_char(JNIEnv *env, jni_document *hdoc, jcharArray ca)
+static char * jni_jchar_to_char(JNIEnv *env, jni_document *hdoc, jbyteArray ba)
 {
-	jchar *jc = jni_get_char_array(ca);
-	jsize len = jni_get_array_len(ca);
+	jbyte *jb = jni_get_byte_array(ba);
+	jsize len = jni_get_array_len(ba);
 
 	char * buf = fz_malloc_no_throw(hdoc->ctx, len + 1);
 	int i = 0;
 
 	for (i = 0; i < len; i++) {
-		buf[i] = jc[i];
+		buf[i] = jb[i];
 	}
 
 	buf[len] = '\0';
 
-	jni_release_char_array(ca, jc);
+	jni_release_byte_array(ba, jb);
 
 	return buf;
 }
@@ -188,7 +188,7 @@ jni_document *jni_get_document(jlong handle)
  * Open a document
  */
 JNIEXPORT jlong JNICALL
-Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jcharArray document, jcharArray password, jint max_store)
+Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jbyteArray document, jbyteArray password, jint max_store)
 {
     jni_document *hdoc = jni_new_document(max_store);
 

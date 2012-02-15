@@ -59,7 +59,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 			throw new DocException("Document " + document + " does not exist.");
 		}
 
-		this.handle = open(getDocumentType(), getDocumentName().toCharArray(), getPassWord().toCharArray(), getMaxStore());
+		this.handle = open(getDocumentType(), getDocumentName().getBytes(), getPassWord().getBytes(), getMaxStore());
 
 		if (getHandle() > 0) {
 			this.pageCount = getPageCount(getHandle());
