@@ -1,24 +1,24 @@
 #include "jmupdf.h"
 
 /**
- * Convert jChar array to character array.
- * This should help with unicode issues.
+ * Convert ushort array to char array.
+ * Properly convert unicode values to char array.
  */
 static char * jni_jchar_to_char(JNIEnv *env, jni_document *hdoc, jcharArray ca)
 {
-	jchar *jc = (*env)->GetCharArrayElements(env, ca, 0);
-	jsize s = (*env)->GetArrayLength(env, ca);
+	jchar *jc = jni_get_char_array(ca);
+	jsize len = jni_get_array_len(ca);
+
+	char * buf = fz_malloc_no_throw(hdoc->ctx, len + 1);
 	int i = 0;
 
-	char * buf = fz_malloc_no_throw(hdoc->ctx, s);
-	char buf2[1];
-
-	for (i=0; i<s; i++) {
-		sprintf(buf2, "%c", jc[i]);
-		buf[i] = buf2[0];
+	for (i = 0; i < len; i++) {
+		buf[i] = jc[i];
 	}
 
-	(*env)->ReleaseCharArrayElements(env, ca, jc, 0);
+	buf[len] = '\0';
+
+	jni_release_char_array(ca, jc);
 
 	return buf;
 }
@@ -217,39 +217,6 @@ Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jcharArray docum
 
     return jni_ptr_to_jlong(hdoc);
 }
-
-///**
-// * Open a document
-// */
-//JNIEXPORT jlong JNICALL
-//Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jstring document, jstring password, jint max_store)
-//{
-//    jni_document *hdoc = jni_new_document(max_store);
-//
-//    if (!hdoc)
-//    {
-//            return -1;
-//    }
-//
-//    const char *file = jni_new_char(document);
-//    char *pass = (char*)jni_new_char(password);
-//    int rc = 0;
-//
-//    hdoc->doc_type = type;
-//
-//    rc = jni_open_document(hdoc, file, pass);
-//
-//    jni_free_char(document, file);
-//    jni_free_char(password, pass);
-//
-//    if (rc != 0)
-//    {
-//            jni_free_document(hdoc);
-//            return rc;
-//    }
-//
-//    return jni_ptr_to_jlong(hdoc);
-//}
 
 /**
  * Close a document and free resources

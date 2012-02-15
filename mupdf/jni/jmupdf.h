@@ -94,6 +94,9 @@ int jni_write_bmp(fz_context*, fz_pixmap*, const char*, float, int);
 #define jni_release_int_array(array, elem) (*env)->ReleaseIntArrayElements(env, array, elem, 0);
 #define jni_get_float_array(array) (*env)->GetFloatArrayElements(env, array, 0);
 #define jni_release_float_array(array, elem) (*env)->ReleaseFloatArrayElements(env, array, elem, 0);
+#define jni_get_char_array(array) (*env)->GetCharArrayElements(env, array, 0);
+#define jni_release_char_array(array, elem) (*env)->ReleaseCharArrayElements(env, array, elem, 0);
+#define jni_get_array_len(array) (*env)->GetArrayLength(env, array);
 
 // JNI GET/ReleasePrimitiveArrayCritical() <== Not good for GC!!
 #define jni_start_array_critical(array) (*env)->GetPrimitiveArrayCritical(env, array, 0);
