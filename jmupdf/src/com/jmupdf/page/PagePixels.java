@@ -412,11 +412,8 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 					 c.getY1());
 		}
 		
-		if (bbox != null) {
-			getBoundBox().setRect(bbox[0], bbox[1], bbox[2], bbox[3]);			
-		}
-		
 		if (buffer != null || pixels != null) {
+			getBoundBox().setRect(bbox[0], bbox[1], bbox[2], bbox[3]);			
 			setDirty(false);
 		} else {
 			System.gc();

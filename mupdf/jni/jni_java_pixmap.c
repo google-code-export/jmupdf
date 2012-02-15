@@ -207,6 +207,87 @@ static fz_pixmap *jni_get_pixmap(jni_document *hdoc, int pagen, float zoom, int 
 }
 
 /**
+ * Get a new direct byte buffer that wraps packed pixel data
+ */
+static jobject jni_get_packed_pixels(JNIEnv *env, jni_document *hdoc, fz_pixmap *pix, jint color)
+{
+	int usebyte = (color == COLOR_BLACK_WHITE || color == COLOR_BLACK_WHITE_DITHER || color == COLOR_GRAY_SCALE);
+	int size = pix->w * pix->h;
+	int memsize = usebyte ? (size*sizeof(jbyte)) : (size*sizeof(jint));
+
+	jobject pixarray = fz_malloc_no_throw(hdoc->ctx, memsize);
+
+	if (!pixarray)
+	{
+		return NULL;
+	}
+
+	jint *ptr_pixint = (jint*)pixarray;
+	jbyte *ptr_pixbyte = (jbyte*)pixarray;
+	unsigned char *pixels = pix->samples;
+	int i = 0;
+	int rc = 0;
+	int dither = (color == COLOR_BLACK_WHITE_DITHER);
+
+	// Set color space
+	switch (color)
+	{
+		case 1:   //COLOR_RGB:
+			for (i=0; i<size; i++)
+			{
+				*ptr_pixint++ = jni_get_rgb_r(pixels[0]) |
+								jni_get_rgb_g(pixels[1]) |
+								jni_get_rgb_b(pixels[2]);
+				pixels += pix->n;
+			}
+			break;
+		case 2:   //COLOR_ARGB:
+		case 3:   //COLOR_ARGB_PRE:
+			for (i=0; i<size; i++)
+			{
+				*ptr_pixint++ = jni_get_rgb_a(pixels[3]) |
+								jni_get_rgb_r(pixels[0]) |
+								jni_get_rgb_g(pixels[1]) |
+								jni_get_rgb_b(pixels[2]);
+				pixels += pix->n;
+			}
+			break;
+		case 4:   //COLOR_BGR:
+			for (i=0; i<size; i++)
+			{
+				*ptr_pixint++ = jni_get_bgr_b(pixels[0]) |
+								jni_get_bgr_g(pixels[1]) |
+								jni_get_bgr_r(pixels[2]);
+				pixels += pix->n;
+			}
+			break;
+		case 10:  //COLOR_GRAY_SCALE:
+			for (i=0; i<size; i++)
+			{
+				*ptr_pixbyte++ = jni_get_rgb_r(pixels[0]) |
+							 	 jni_get_rgb_g(pixels[0]) |
+								 jni_get_rgb_b(pixels[0]);
+				pixels += pix->n;
+			}
+			break;
+		case 12:  //COLOR_BLACK_WHITE:
+		case 121: //COLOR_BLACK_WHITE_DITHER:
+			rc = jni_pix_to_black_white(hdoc->ctx, pix, dither, (unsigned char *)ptr_pixbyte);
+			break;
+		default:
+			break;
+	}
+
+	if (rc != 0)
+	{
+		fz_free(hdoc->ctx, pixarray);
+		return NULL;
+	}
+
+	return jni_new_buffer_direct(pixarray, memsize);
+}
+
+/**
  * Convert pixels to black and white image
  * with optional dithering.
  */
@@ -560,13 +641,7 @@ Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jint
 		return NULL;
 	}
 
-	// Create new array of either int's or bytes'.
-	jobject pixarray;
-	int usebyte = (color == COLOR_BLACK_WHITE || color == COLOR_BLACK_WHITE_DITHER || color == COLOR_GRAY_SCALE);
-	int size = pix->w * pix->h;
-	int memsize = usebyte ? (size*sizeof(jbyte)) : (size*sizeof(jint));
-
-	pixarray = fz_malloc_no_throw(hdoc->ctx, memsize);
+	jobject pixarray = jni_get_packed_pixels(env, hdoc, pix, color);
 
 	if (!pixarray)
 	{
@@ -574,86 +649,20 @@ Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jint
 		return NULL;
 	}
 
-	// Get a pointers to data
-	unsigned char *pixels = pix->samples;
-	jint *ptr_pixint = (jint*)pixarray;
-	jbyte *ptr_pixbyte = (jbyte*)pixarray;
+	jint *ae = jni_get_int_array(bbox);
 
-	int i = 0;
-	int rc = 0;
-
-	if (color == COLOR_ARGB || color == COLOR_ARGB_PRE)
+	if (ae)
 	{
-		for (i=0; i<size; i++)
-		{
-			*ptr_pixint++ = jni_get_rgb_a(pixels[3]) |
-							jni_get_rgb_r(pixels[0]) |
-							jni_get_rgb_g(pixels[1]) |
-							jni_get_rgb_b(pixels[2]);
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_RGB)
-	{
-		for (i=0; i<size; i++)
-		{
-			*ptr_pixint++ = jni_get_rgb_r(pixels[0]) |
-							jni_get_rgb_g(pixels[1]) |
-							jni_get_rgb_b(pixels[2]);
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_BGR)
-	{
-		for (i=0; i<size; i++)
-		{
-			*ptr_pixint++ = jni_get_bgr_b(pixels[0]) |
-							jni_get_bgr_g(pixels[1]) |
-							jni_get_bgr_r(pixels[2]);
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_GRAY_SCALE)
-	{
-		for (i=0; i<size; i++)
-		{
-			*ptr_pixbyte++ = jni_get_rgb_r(pixels[0]) |
-						 	 jni_get_rgb_g(pixels[0]) |
-							 jni_get_rgb_b(pixels[0]);
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_BLACK_WHITE || color == COLOR_BLACK_WHITE_DITHER)
-	{
-		int dither = (color == COLOR_BLACK_WHITE_DITHER);
-		rc = jni_pix_to_black_white(hdoc->ctx, pix, dither, (unsigned char *)ptr_pixbyte);
+		ae[0] = 0;
+		ae[1] = 0;
+		ae[2] = ABS(pix->w);
+		ae[3] = ABS(pix->h);
 	}
 
-	if (rc == 0)
-	{
-		jint *ae = jni_get_int_array(bbox);
-		if (ae)
-		{
-			ae[0] = 0;
-			ae[1] = 0;
-			ae[2] = ABS(pix->w);
-			ae[3] = ABS(pix->h);
-		}
-		jni_release_int_array(bbox, ae);
-	}
-
-	// Cleanup
+	jni_release_int_array(bbox, ae);
 	fz_drop_pixmap(hdoc->ctx, pix);
 
-	if (rc == 0)
-	{
-		return jni_new_buffer_direct(pixarray, memsize);
-	}
-	else
-	{
-		fz_free(hdoc->ctx, pixarray);
-		return NULL;
-	}
+	return pixarray;
 }
 
 /**
