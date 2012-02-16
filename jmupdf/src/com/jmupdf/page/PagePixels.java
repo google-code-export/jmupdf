@@ -361,7 +361,7 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 		}
 		
 		getBoundBox().setRect(x0, y0, x1, y1);
-		PageRect c = getBoundBox().rotateBack(getPage().getBoundBox(), getPage().getRotation());
+		PageRect c = getBoundBox().rotate(getPage().getBoundBox(), getPage().getRotation(), 0);
 		
 		int[] bbox = new int[4];
 		

@@ -230,30 +230,16 @@ public class PageRect implements PageTypes {
         
         return new PageRect(x0, y0, x1, y1);   
     }
-
-    /**
-     * Get new coordinates by rotating backwards from current rotation</br>  
-     * @param boundBox: Original bounding box usually from getPage().getBoundBox()
-     * @param currRotation
-     * @return
-     */
-    public PageRect rotateBack(PageRect boundBox, int currRotation) {
-    	if (currRotation == PAGE_ROTATE_NONE || currRotation == PAGE_ROTATE_360) {
-    		return new PageRect(getX0(), getY0(), getX1(), getY1());
-    	}
-    	PageRect b = boundBox.rotate(boundBox, currRotation);
-    	PageRect c = new PageRect(getX0(), getY0(), getX1(), getY1());
-    	return c.rotate(b, -currRotation);
-    }
     
     /**
-     * Get new coordinates by rotating from "fromRotation" to "toRotation"  
-     * @param boundBox: Original bounding box from getPage().getBoundBox()
+     * Rotate rectangle </br>
+     * Get new coordinates by rotating current coordinates from "fromRotation" to "toRotation"  
+     * @param boundBox : Original bounding box from getPage().getBoundBox()
      * @param fromRotation
      * @param toRotation
      * @return
      */
-    public PageRect rotateTo(PageRect boundBox, int fromRotation, int toRotation) {
+    public PageRect rotate(PageRect boundBox, int fromRotation, int toRotation) {
     	PageRect b = boundBox.rotate(boundBox, fromRotation);
     	PageRect c = new PageRect(getX0(), getY0(), getX1(), getY1());
     	return c.rotate(b, -(fromRotation-toRotation));

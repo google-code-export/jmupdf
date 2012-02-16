@@ -40,8 +40,8 @@ import com.examples.swing.util.ImageSelection;
 import com.examples.swing.view.MainView;
 import com.examples.swing.view.PageView;
 import com.jmupdf.page.PageLinks;
+import com.jmupdf.page.PagePixels;
 import com.jmupdf.page.PageRect;
-import com.jmupdf.page.PageRenderer;
 
 /**
  * Mouse Panning Controller for View Port
@@ -273,36 +273,26 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 		int y = Math.min(p1.y, p2.y);
 		int w = Math.max(p1.x, p2.x) - x;
 		int h = Math.max(p1.y, p2.y) - y;
-log("pc:" + x + "," + y + "," + (x+w) + "," + (y+h));		
+		
 		// Create clip board object
 		Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
 
 		if (copyAsImage) {
-//			int rotate = pageView.getRenderer().getNormalizedRotation();
 			float zoom = pageView.getRenderer().getZoom();
-//			float gamma = pageView.getRenderer().getGamma();
-//			int aa = pageView.getRenderer().getAntiAliasLevel();
-			
-//			// Rotate mediabox to current rotation
-//			PageRect mb = pageView.getPage().getBoundBox().rotate(pageView.getPage().getBoundBox(), rotate);
-//
-//			// Rotate to default page rotation
-//			PageRect rect = new PageRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);
-//			rect = rect.rotate(mb, -(rotate-pageView.getPage().getRotation()));
-
 			PageRect rect = new PageRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);
-			rect = rect.rotateTo(
+			rect = rect.rotate(
 					pageView.getPage().getBoundBox(), 
 					pageView.getRenderer().getPagePixels().getRotation(), 
 					pageView.getPage().getRotation());
 
-
 			// Render region
-			PageRenderer r = new PageRenderer(pageView.getPage(), zoom, pageView.getRenderer().getRotation(), pageView.getRenderer().getColorType());
-			r.setCroppingArea(rect.getX0(), rect.getY0(), rect.getX1(), rect.getY1());
-			r.setGamma(pageView.getRenderer().getGamma());
+			PagePixels r = new PagePixels(pageView.getPage());
 			r.setAntiAliasLevel(pageView.getRenderer().getAntiAliasLevel());
-			r.render(true);			
+			r.setGamma(pageView.getRenderer().getGamma());
+			r.setColor(pageView.getRenderer().getColorType());
+			r.setRotate(pageView.getRenderer().getRotation());			
+			r.setZoom(zoom);
+			r.drawPage(rect.getX0(), rect.getY0(), rect.getX1(), rect.getY1());
 
 			// Copy to clip board
 			ImageSelection is = new ImageSelection(r.getImage());			

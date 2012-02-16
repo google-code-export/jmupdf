@@ -144,7 +144,7 @@ public class TiledImage {
 
 		// Rotate to default page rotation
 		PageRect r = new PageRect(getX(), getY(), getWidth(), getHeight());
-		r = r.rotateTo(bb, getPagePixels().getRotation(), getPage().getRotation());
+		r = r.rotate(bb, getPagePixels().getRotation(), getPage().getRotation());
 
 		// Assign new rendering coordinates
 		this.rx = r.getX();
