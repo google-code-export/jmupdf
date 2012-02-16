@@ -13,6 +13,30 @@
 // Define JMuPdf internal version
 #define JMUPDF_VERSION "0.3.1-beta"
 
+// Pointer conversions for x86 and x64
+#define jni_jlong_to_ptr(a) ((void *)(uintptr_t)(a))
+#define jni_ptr_to_jlong(a) ((jlong)(uintptr_t)(a))
+
+// Color types
+typedef enum jni_color_types
+{
+	COLOR_RGB = 1,
+	COLOR_ARGB = 2,
+	COLOR_ARGB_PRE = 3,
+	COLOR_BGR = 4,
+	COLOR_GRAY_SCALE = 10,
+	COLOR_BLACK_WHITE = 12,
+	COLOR_BLACK_WHITE_DITHER = 121
+} jni_color_type;
+
+// Document types
+typedef enum jni_doc_types
+{
+	DOC_PDF = 0,
+	DOC_XPS = 1,
+	DOC_CBZ = 2
+} jni_doc_type;
+
 // Document Structure
 typedef struct jni_document_s jni_document;
 struct jni_document_s {
@@ -25,26 +49,8 @@ struct jni_document_s {
 
 	int page_number;
 	int anti_alias_level;
-	int doc_type;
+	jni_doc_type doc_type;
 };
-
-// Pointer conversions for x86 and x64
-#define jni_jlong_to_ptr(a) ((void *)(uintptr_t)(a))
-#define jni_ptr_to_jlong(a) ((jlong)(uintptr_t)(a))
-
-// Color constants
-static const int COLOR_RGB = 1;
-static const int COLOR_ARGB = 2;
-static const int COLOR_ARGB_PRE = 3;
-static const int COLOR_BGR = 4;
-static const int COLOR_GRAY_SCALE = 10;
-static const int COLOR_BLACK_WHITE = 12;
-static const int COLOR_BLACK_WHITE_DITHER = 121;
-
-// Document type constants
-static const int DOC_PDF = 0;
-static const int DOC_XPS = 1;
-static const int DOC_CBZ = 2;
 
 // Default DPI
 static const int DEFAULT_DPI = 72;
@@ -59,10 +65,6 @@ static const int DEFAULT_DPI = 72;
 #define jni_get_bgr_b(P) ((P & 0xff) << 16)
 #define jni_get_bgr_g(P) ((P & 0xff) <<  8)
 #define jni_get_bgr_r(P) ((P & 0xff))
-
-// DPI conversion macros
-//#define jni_to_96_dpi(P) (P*1.3334)
-//#define jni_to_72_dpi(P) (P*.75)
 
 // Calculate resolution based on zoom factor
 #define jni_resolution(Z) (Z*DEFAULT_DPI)

@@ -3,7 +3,7 @@
 /**
  * Create a new document
  */
-static jni_document *jni_new_document(int max_store)
+static jni_document *jni_new_document(int max_store, jni_doc_type type)
 {
 	fz_context *ctx = fz_new_context(NULL, NULL, max_store);
 
@@ -25,6 +25,7 @@ static jni_document *jni_new_document(int max_store)
 	hdoc->page = NULL;
 	hdoc->page_list = NULL;
 	hdoc->page_number = 0;
+	hdoc->doc_type = type;
 
 	hdoc->anti_alias_level = fz_get_aa_level(hdoc->ctx);
 
@@ -167,7 +168,7 @@ jni_document *jni_get_document(jlong handle)
 JNIEXPORT jlong JNICALL
 Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jbyteArray document, jbyteArray password, jint max_store)
 {
-    jni_document *hdoc = jni_new_document(max_store);
+    jni_document *hdoc = jni_new_document(max_store, type);
 
     if (!hdoc)
     {
@@ -178,8 +179,6 @@ Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jbyteArray docum
     char * pass = jni_jbyte_to_char(env, hdoc, password);
 
     int rc = 0;
-
-    hdoc->doc_type = type;
 
     rc = jni_open_document(hdoc, (const char*)file, pass);
 

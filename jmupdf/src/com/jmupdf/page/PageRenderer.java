@@ -32,8 +32,6 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	private boolean isPageRendered;
 	private boolean isPageRendering;
 	
-	private boolean useDirectByteBuffer;
-	
 	/**
 	 * Create renderer instance with default values. 
 	 */
@@ -59,7 +57,6 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param color
 	 */
 	public PageRenderer(Page page, float zoom, int rotate, int color) {
-		this.useDirectByteBuffer = true;
 		this.boundBox = new PageRect();
 		setPage(page);
 		setZoom(zoom);
@@ -313,26 +310,6 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 			needsRendering();
 		}
 	}
-
-	/**
-	 * Returns true if pixel data is stored in a direct byte buffer. </br>
-	 * Returns false if pixel data is stored in a java primitive type array.
-	 * @return
-	 */
-	public boolean isDirectByteBuffer() {
-		return useDirectByteBuffer;
-	}
-	
-	/**
-	 * Set whether renderer should store data in native memory for direct access </br>
-	 * or use a java object instead managed by the JVM.
-	 * @param b
-	 */
-	public void setDirectByteBuffer(boolean b) {
-		if (!isPageRendering()) {
-			this.useDirectByteBuffer = b;
-		}
-	}
 	
 	/**
 	 * Get buffered image
@@ -432,7 +409,6 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 			isPageRendering = true;
 			needsRendering();			
 
-			getPagePixels().setUseDirectByteBuffer(isDirectByteBuffer());
 			getPagePixels().drawPage(getX0(), getY0(), getX1(), getY1());
 			boundBox.setRect(getPagePixels().getX0(), getPagePixels().getY0(), getPagePixels().getX1(), getPagePixels().getY1());
 			

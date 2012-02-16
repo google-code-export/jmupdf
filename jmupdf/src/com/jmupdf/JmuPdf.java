@@ -50,7 +50,6 @@ public abstract class JmuPdf {
 	/*
 	 * Rendering Functions 
 	 */
-	protected native synchronized Object getPixMap(long handle, int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1);
 	protected native synchronized ByteBuffer getByteBuffer(long handle, int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1);
 	protected native synchronized void freeByteBuffer(long handle, ByteBuffer buffer);
 	

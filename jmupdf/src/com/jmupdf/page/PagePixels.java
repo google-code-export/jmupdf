@@ -29,7 +29,6 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 	private int rotate;
 	private int rotation;
 	private int color;
-	private boolean useDirectByteBuffer;
 	private boolean isDirty;
 	private static int default_resolution = 72;
 	
@@ -44,7 +43,6 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 		this.rotate = 0;
 		this.resolution = default_resolution;
 		this.color = IMAGE_TYPE_RGB; 
-		this.useDirectByteBuffer = true;
 		this.pixels = null;
 		this.image = null;
 		setRotation();
@@ -312,25 +310,6 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 	}
 	
 	/**
-	 * Returns true if pixel data is stored in a direct byte buffer. </br>
-	 * Returns false if pixel data is stored in a java primitive type array.
-	 * @return
-	 */
-	public boolean isUseDirectByteBuffer() {
-		return useDirectByteBuffer;
-	}
-	
-	/**
-	 * Set whether renderer should store data in native memory for direct access </br>
-	 * or use a java object instead managed by the JVM. </br>
-	 * Default value is true.
-	 * @param b
-	 */
-	public void setUseDirectByteBuffer(boolean b) {
-		useDirectByteBuffer = b;
-	}
-
-	/**
 	 * Get buffered image
 	 * @return
 	 */
@@ -386,32 +365,18 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 		
 		int[] bbox = new int[4];
 		
-		if (isUseDirectByteBuffer()) {
-			buffer = getPage().getDocument().getPageByteBuffer(
-					 getPage().getPageNumber(), 
-					 getZoom(), 
-					 getRotation(), 
-					 getColor(),
-					 getGamma(),
-					 bbox, 
-					 c.getX0(), 
-					 c.getY0(), 
-					 c.getX1(), 
-					 c.getY1());
-		} else {
-			pixels = getPage().getDocument().getPagePixels(
-					 getPage().getPageNumber(), 
-					 getZoom(), 
-					 getRotation(), 
-					 getColor(),
-					 getGamma(),
-					 bbox, 
-					 c.getX0(), 
-					 c.getY0(), 
-					 c.getX1(), 
-					 c.getY1());
-		}
-		
+		buffer = getPage().getDocument().getPageByteBuffer(
+				 getPage().getPageNumber(), 
+				 getZoom(), 
+				 getRotation(), 
+				 getColor(),
+				 getGamma(),
+				 bbox, 
+				 c.getX0(), 
+				 c.getY0(), 
+				 c.getX1(), 
+				 c.getY1());
+
 		if (buffer != null || pixels != null) {
 			getBoundBox().setRect(bbox[0], bbox[1], bbox[2], bbox[3]);			
 			setDirty(false);
@@ -500,7 +465,6 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 		p.setGamma(getGamma());
 		p.setRotate(getRotate());
 		p.setZoom(getZoom());
-		p.setUseDirectByteBuffer(isUseDirectByteBuffer());
 		return p;
 	}
 

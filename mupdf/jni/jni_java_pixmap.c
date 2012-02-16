@@ -50,11 +50,39 @@ static int jni_save_alpha(int color)
 }
 
 /**
+ * Get color space
+ */
+static fz_colorspace * jni_get_color_space(int color)
+{
+	fz_colorspace *colorspace;
+	switch (color)
+	{
+		case COLOR_RGB:
+		case COLOR_ARGB:
+		case COLOR_ARGB_PRE:
+			colorspace = fz_device_rgb;
+			break;
+		case COLOR_BGR:
+			colorspace = fz_device_bgr;
+			break;
+		case COLOR_GRAY_SCALE:
+		case COLOR_BLACK_WHITE:
+		case COLOR_BLACK_WHITE_DITHER:
+			colorspace = fz_device_gray;
+			break;
+		default:
+			colorspace = fz_device_rgb;
+			break;
+	}
+	return colorspace;
+}
+
+/**
  * Normalize rectangle bounds
  */
 static fz_rect jni_normalize_rect(jni_document *hdoc, float x0, float y0, float x1, float y1)
 {
-	fz_rect rect;
+	fz_rect rect = fz_empty_rect;
 	if (hdoc->page)
 	{
 		if (x0==0 && y0==0 && x1==0 && y1==0)
@@ -87,9 +115,6 @@ static fz_pixmap *jni_get_pixmap(jni_document *hdoc, int pagen, float zoom, int 
 		return NULL;
 	}
 
-	fz_matrix ctm;
-	fz_bbox bbox;
-	fz_colorspace *colorspace;
 	fz_pixmap *pix = NULL;
 	fz_device *dev = NULL;
 
@@ -110,36 +135,15 @@ static fz_pixmap *jni_get_pixmap(jni_document *hdoc, int pagen, float zoom, int 
 	}
 
 	// Get Current Transformation Matrix
-	ctm = jni_get_view_ctm(hdoc, zoom, rotate);
+	fz_matrix ctm = jni_get_view_ctm(hdoc, zoom, rotate);
 
 	// Create new bounding box for page
-	bbox = fz_round_rect(fz_transform_rect(ctm, jni_normalize_rect(hdoc, x0, y0, x1, y1)));
-
-	// Set color space
-	switch (color)
-	{
-		case 1:   //COLOR_RGB:
-		case 2:   //COLOR_ARGB:
-		case 3:   //COLOR_ARGB_PRE:
-			colorspace = fz_device_rgb;
-			break;
-		case 4:   //COLOR_BGR:
-			colorspace = fz_device_bgr;
-			break;
-		case 10:  //COLOR_GRAY_SCALE:
-		case 12:  //COLOR_BLACK_WHITE:
-		case 121: //COLOR_BLACK_WHITE_DITHER:
-			colorspace = fz_device_gray;
-			break;
-		default:
-			colorspace = fz_device_rgb;
-			break;
-	}
+	fz_bbox bbox = fz_round_rect(fz_transform_rect(ctm, jni_normalize_rect(hdoc, x0, y0, x1, y1)));
 
 	// Try to get pixel buffer
 	fz_try(hdoc->ctx)
 	{
-		pix = fz_new_pixmap_with_rect(hdoc->ctx, colorspace, bbox);
+		pix = fz_new_pixmap_with_rect(hdoc->ctx, jni_get_color_space(color), bbox);
 	}
 	fz_catch(hdoc->ctx)
 	{
@@ -157,22 +161,13 @@ static fz_pixmap *jni_get_pixmap(jni_document *hdoc, int pagen, float zoom, int 
 	}
 
 	// Set background color
-	switch (color)
+	if (jni_save_alpha(color))
 	{
-		case 2:   //COLOR_ARGB:
-		case 3:   //COLOR_ARGB_PRE:
-			fz_clear_pixmap(hdoc->ctx, pix);
-			break;
-		case 1:   //COLOR_RGB:
-		case 4:   //COLOR_BGR:
-		case 10:  //COLOR_GRAY_SCALE:
-		case 12:  //COLOR_BLACK_WHITE:
-		case 121: //COLOR_BLACK_WHITE_DITHER:
-			fz_clear_pixmap_with_value(hdoc->ctx, pix, 255);
-			break;
-		default:
-			fz_clear_pixmap_with_value(hdoc->ctx, pix, 255);
-			break;
+		fz_clear_pixmap(hdoc->ctx, pix);
+	}
+	else
+	{
+		fz_clear_pixmap_with_value(hdoc->ctx, pix, 255);
 	}
 
 	// Render image
@@ -232,7 +227,7 @@ static jobject jni_get_packed_pixels(JNIEnv *env, jni_document *hdoc, fz_pixmap 
 	// Set color space
 	switch (color)
 	{
-		case 1:   //COLOR_RGB:
+		case COLOR_RGB:
 			for (i=0; i<size; i++)
 			{
 				*ptr_pixint++ = jni_get_rgb_r(pixels[0]) |
@@ -241,8 +236,8 @@ static jobject jni_get_packed_pixels(JNIEnv *env, jni_document *hdoc, fz_pixmap 
 				pixels += pix->n;
 			}
 			break;
-		case 2:   //COLOR_ARGB:
-		case 3:   //COLOR_ARGB_PRE:
+		case COLOR_ARGB:
+		case COLOR_ARGB_PRE:
 			for (i=0; i<size; i++)
 			{
 				*ptr_pixint++ = jni_get_rgb_a(pixels[3]) |
@@ -252,7 +247,7 @@ static jobject jni_get_packed_pixels(JNIEnv *env, jni_document *hdoc, fz_pixmap 
 				pixels += pix->n;
 			}
 			break;
-		case 4:   //COLOR_BGR:
+		case COLOR_BGR:
 			for (i=0; i<size; i++)
 			{
 				*ptr_pixint++ = jni_get_bgr_b(pixels[0]) |
@@ -261,7 +256,7 @@ static jobject jni_get_packed_pixels(JNIEnv *env, jni_document *hdoc, fz_pixmap 
 				pixels += pix->n;
 			}
 			break;
-		case 10:  //COLOR_GRAY_SCALE:
+		case COLOR_GRAY_SCALE:
 			for (i=0; i<size; i++)
 			{
 				*ptr_pixbyte++ = jni_get_rgb_r(pixels[0]) |
@@ -270,8 +265,8 @@ static jobject jni_get_packed_pixels(JNIEnv *env, jni_document *hdoc, fz_pixmap 
 				pixels += pix->n;
 			}
 			break;
-		case 12:  //COLOR_BLACK_WHITE:
-		case 121: //COLOR_BLACK_WHITE_DITHER:
+		case COLOR_BLACK_WHITE:
+		case COLOR_BLACK_WHITE_DITHER:
 			rc = jni_pix_to_black_white(hdoc->ctx, pix, dither, (unsigned char *)ptr_pixbyte);
 			break;
 		default:
@@ -466,158 +461,6 @@ int jni_pix_to_binary(fz_context *ctx, fz_pixmap * pix, int dither, unsigned cha
 	}
 	fz_free(ctx, pixbuf);
 	return 0;
-}
-
-/**
- * Get an RGB, Gray or Binary pixels
- * Returns an array of byte[] or int[]
- */
-JNIEXPORT jobject JNICALL
-Java_com_jmupdf_JmuPdf_getPixMap(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint color, jfloat gamma, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
-{
-	jni_document *hdoc = jni_get_document(handle);
-
-	if (!hdoc)
-	{
-		return NULL;
-	}
-
-	fz_pixmap *pix = jni_get_pixmap(hdoc, pagen, zoom, rotate, color, gamma, x0, y0, x1, y1);
-
-	if (!pix)
-	{
-		return NULL;
-	}
-
-	// Create new array of either int's or bytes'.
-	int usebyte = (color == COLOR_BLACK_WHITE || color == COLOR_BLACK_WHITE_DITHER || color == COLOR_GRAY_SCALE);
-	int size = pix->w * pix->h;
-	jobject pixarray;
-
-	if (usebyte)
-	{
-		pixarray = jni_new_byte_array(size);
-	}
-	else
-	{
-		pixarray = jni_new_int_array(size);
-	}
-
-	if (!pixarray)
-	{
-		fz_drop_pixmap(hdoc->ctx, pix);
-		return NULL;
-	}
-
-	// Get pointer to array
-	jint *pixint = NULL;
-	jbyte *pixbyte = NULL;
-
-	if (usebyte)
-	{
-		pixbyte = jni_start_array_critical(pixarray);
-	}
-	else
-	{
-		pixint = jni_start_array_critical(pixarray);
-	}
-
-	if (!pixbyte && !pixint) {
-		fz_drop_pixmap(hdoc->ctx, pix);
-		return NULL;
-	}
-
-	// Get a pointer to pixel data
-	unsigned char *pixels = pix->samples;
-	jint *ptr_pixint = pixint;
-	jbyte *ptr_pixbyte = pixbyte;
-
-	int i = 0;
-	int rc = 0;
-
-	if (color == COLOR_ARGB || color == COLOR_ARGB_PRE)
-	{
-		for (i=0; i<size; i++)
-		{
-			*ptr_pixint++ = jni_get_rgb_a(pixels[3]) |
-							jni_get_rgb_r(pixels[0]) |
-							jni_get_rgb_g(pixels[1]) |
-							jni_get_rgb_b(pixels[2]);
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_RGB)
-	{
-		for (i=0; i<size; i++)
-		{
-			*ptr_pixint++ = jni_get_rgb_r(pixels[0]) |
-							jni_get_rgb_g(pixels[1]) |
-							jni_get_rgb_b(pixels[2]);
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_BGR)
-	{
-		for (i=0; i<size; i++)
-		{
-			*ptr_pixint++ = jni_get_bgr_b(pixels[0]) |
-							jni_get_bgr_g(pixels[1]) |
-							jni_get_bgr_r(pixels[2]);
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_GRAY_SCALE)
-	{
-		for (i=0; i<size; i++)
-		{
-			*ptr_pixbyte++ = jni_get_rgb_r(pixels[0]) |
-						 	 jni_get_rgb_g(pixels[0]) |
-							 jni_get_rgb_b(pixels[0]);
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_BLACK_WHITE || color == COLOR_BLACK_WHITE_DITHER)
-	{
-		int dither = (color == COLOR_BLACK_WHITE_DITHER);
-		rc = jni_pix_to_black_white(hdoc->ctx, pix, dither, (unsigned char *)ptr_pixbyte);
-	}
-
-	// Set array region
-	if (usebyte)
-	{
-		jni_end_array_critical(pixarray, pixbyte);
-		pixbyte = NULL;
-	}
-	else
-	{
-		jni_end_array_critical(pixarray, pixint);
-		pixint = NULL;
-	}
-
-	if (rc == 0)
-	{
-		jint *ae = jni_get_int_array(bbox);
-		if (ae)
-		{
-			ae[0] = 0;
-			ae[1] = 0;
-			ae[2] = ABS(pix->w);
-			ae[3] = ABS(pix->h);
-		}
-		jni_release_int_array(bbox, ae);
-	}
-
-	// Cleanup
-	fz_drop_pixmap(hdoc->ctx, pix);
-
-	if (rc == 0)
-	{
-		return pixarray;
-	}
-	else
-	{
-		return NULL;
-	}
 }
 
 /**

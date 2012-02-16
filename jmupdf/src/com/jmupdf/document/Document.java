@@ -249,26 +249,6 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 		}
 		return null;
 	}
-
-	/**
-	 * Get pixels for a page
-	 * @param page
-	 * @param zoom
-	 * @param rotate
-	 * @param color
-	 * @param bbox
-	 * @param x0
-	 * @param y0
-	 * @param x1
-	 * @param y1
-	 * @return
-	 */
-	public Object getPagePixels(int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1) {
-		if (handle > 0) {
-			return getPixMap(handle, page, zoom, rotate, color, gamma, bbox, x0, y0, x1, y1);
-		}
-		return null;
-	}
 	
 	/**
 	 * Get a page as a byte buffer
