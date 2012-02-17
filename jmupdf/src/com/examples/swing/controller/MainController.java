@@ -349,10 +349,10 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 			rotate = Page.PAGE_ROTATE_AUTO;
 		}
 		else if (view.getComboRotate().getSelectedIndex() == 1) {
-			rotate = Page.PAGE_ROTATE_90_CW;
+			rotate = Page.PAGE_ROTATE_90;
 		}
 		else if (view.getComboRotate().getSelectedIndex() == 2) {
-			rotate = Page.PAGE_ROTATE_90_CCW;
+			rotate = Page.PAGE_ROTATE_90 * -1;
 		}
 		else if (view.getComboRotate().getSelectedIndex() == 3) {
 			rotate = Page.PAGE_ROTATE_180;

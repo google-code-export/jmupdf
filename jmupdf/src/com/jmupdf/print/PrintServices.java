@@ -238,7 +238,7 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
             if (o.equals(OrientationRequested.PORTRAIT)) {
             	rotate = Page.PAGE_ROTATE_NONE;
             } else {
-            	rotate = Page.PAGE_ROTATE_90_CW;
+            	rotate = Page.PAGE_ROTATE_90;
             }
 
             // Set default color space

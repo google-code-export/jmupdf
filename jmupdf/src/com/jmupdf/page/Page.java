@@ -6,7 +6,6 @@
 package com.jmupdf.page;
 
 import com.jmupdf.document.Document;
-import com.jmupdf.interfaces.PageTypes;
 
 /**
  * Page class.
@@ -14,7 +13,7 @@ import com.jmupdf.interfaces.PageTypes;
  * @author Pedro J Rivera
  *
  */
-public class Page implements PageTypes {
+public class Page {
 	private Document document;
 	private PageRect origBoundBox;
 	private PageRect normBoundBox;
@@ -22,6 +21,13 @@ public class Page implements PageTypes {
 	private int pageNumber;
 	private int pageRotate;		
 
+	public static final int PAGE_ROTATE_AUTO = -1;
+	public static final int PAGE_ROTATE_NONE = 0;
+	public static final int PAGE_ROTATE_90 = 90;
+	public static final int PAGE_ROTATE_180 = 180;
+	public static final int PAGE_ROTATE_270 = 270;
+	public static final int PAGE_ROTATE_360 = 360;
+	
 	/**
 	 * Create a new page object
 	 * @param doc
@@ -236,7 +242,7 @@ public class Page implements PageTypes {
 			pageRotate = (int)pageInfo[4];
 
 			// Normalize initial page rotation
-			if (pageRotate == PAGE_ROTATE_90_CW || pageRotate == PAGE_ROTATE_270)  {
+			if (pageRotate == PAGE_ROTATE_90 || pageRotate == PAGE_ROTATE_270)  {
 				normBoundBox = origBoundBox.rotate(origBoundBox, pageRotate);
 			} else {
 				normBoundBox = origBoundBox.rotate(origBoundBox, 0);

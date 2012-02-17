@@ -5,8 +5,6 @@
  */
 package com.jmupdf.page;
 
-import com.jmupdf.interfaces.PageTypes;
-
 /**
  * PageRect Class
  * 
@@ -15,7 +13,7 @@ import com.jmupdf.interfaces.PageTypes;
  * @author Pedro J Rivera
  *
  */
-public class PageRect implements PageTypes {
+public class PageRect {
     private float p1x;
     private float p1y;
     private float p2x;
@@ -169,7 +167,7 @@ public class PageRect implements PageTypes {
     	}
 
     	// Exit if rotation = 0
-    	if (rotation == PAGE_ROTATE_NONE || rotation == PAGE_ROTATE_360) {
+    	if (rotation == Page.PAGE_ROTATE_NONE || rotation == Page.PAGE_ROTATE_360) {
    			return new PageRect(p1x, p1y, p2x, p2y);
     	}
     	
@@ -205,19 +203,19 @@ public class PageRect implements PageTypes {
         float y1 = 0;
         
         // Adjust rotated points to x0, y0 (upper left) coordinates 
-        if (rotation == PAGE_ROTATE_90_CW) {
+        if (rotation == Page.PAGE_ROTATE_90) {
             mbx1 = Math.max(p_mbx2, p_mby2) + Math.min(p_mbx1, p_mby1);
             mby1 = Math.max(p_mbx2, p_mby2) - Math.min(p_mbx1, p_mby1);
             x0 = mbx1 - Math.abs(p_mbx1 - p_x1) - p_w;
             y0 = Math.abs(p_mby1 - p_y1);
         }
-        else if (rotation == PAGE_ROTATE_180) {
+        else if (rotation == Page.PAGE_ROTATE_180) {
             mbx1 = p_mbx1;
             mby1 = p_mby1;
             x0 = mbx1 - Math.abs(p_mbx1 - p_x1) - p_w;
             y0 = mby1 - Math.abs(p_mby1 - p_y1) - p_h;
         }
-        else if (rotation == PAGE_ROTATE_270) {
+        else if (rotation == Page.PAGE_ROTATE_270) {
             mbx1 = Math.max(p_mbx2, p_mby2) - Math.min(p_mbx1, p_mby1);
             mby1 = Math.max(p_mbx2, p_mby2) + Math.min(p_mbx1, p_mby1);
             x0 = Math.abs(p_mbx1 - p_x1);

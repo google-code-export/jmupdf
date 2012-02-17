@@ -32,7 +32,7 @@ public class Tiling {
 
 			// setup zoom, rotation, color, and tile info
 			float zoom = 3f;
-			int rotate = Page.PAGE_ROTATE_90_CW;
+			int rotate = Page.PAGE_ROTATE_90;
 			ImageType color = ImageType.IMAGE_TYPE_RGB;
 			int tilew = 512;
 			int tileh = 512;
