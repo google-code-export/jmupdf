@@ -7,7 +7,7 @@ package com.jmupdf.pdf;
 
 import java.io.File;
 
-import com.jmupdf.interfaces.DictionaryTypes;
+import com.jmupdf.enums.DictionaryType;
 
 /**
  * This is a convenience class that contains commonly
@@ -16,7 +16,7 @@ import com.jmupdf.interfaces.DictionaryTypes;
  * @author Pedro Rivera
  *
  */
-public class PdfInformation implements DictionaryTypes {
+public class PdfInformation {
 	private String fileName;
 	private String path;
 	private String title;
@@ -40,15 +40,15 @@ public class PdfInformation implements DictionaryTypes {
 		fileName = pdfFile.getName();
 		path = pdfFile.getParent();
 		
-		title = pdfDoc.getInfo(INFO_TITLE);
-		author = pdfDoc.getInfo(INFO_AUTHOR);
-		producer = pdfDoc.getInfo(INFO_PRODUCER);
-		creator = pdfDoc.getInfo(INFO_CREATOR);
-		subject = pdfDoc.getInfo(INFO_SUBJECT);
-		keywords = pdfDoc.getInfo(INFO_KEYWORDS);
-		createdDate = convertDate(pdfDoc.getInfo(INFO_CREATION_DATE));
-		modifiedDate = convertDate(pdfDoc.getInfo(INFO_MODIFIED_DATE));
-		trapped = pdfDoc.getInfo(INFO_TRAPPED);
+		title = pdfDoc.getInfo(DictionaryType.INFO_TITLE);
+		author = pdfDoc.getInfo(DictionaryType.INFO_AUTHOR);
+		producer = pdfDoc.getInfo(DictionaryType.INFO_PRODUCER);
+		creator = pdfDoc.getInfo(DictionaryType.INFO_CREATOR);
+		subject = pdfDoc.getInfo(DictionaryType.INFO_SUBJECT);
+		keywords = pdfDoc.getInfo(DictionaryType.INFO_KEYWORDS);
+		createdDate = convertDate(pdfDoc.getInfo(DictionaryType.INFO_CREATION_DATE));
+		modifiedDate = convertDate(pdfDoc.getInfo(DictionaryType.INFO_MODIFIED_DATE));
+		trapped = pdfDoc.getInfo(DictionaryType.INFO_TRAPPED);
 		
 		int v = pdfDoc.getVersion();
 		version = (v/10) + "." +  (v%10);

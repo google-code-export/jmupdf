@@ -1,11 +1,11 @@
 package com.examples.pdf.general;
 
+import com.jmupdf.enums.DictionaryType;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.enums.TifCompression;
 import com.jmupdf.enums.TifMode;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
-import com.jmupdf.interfaces.DictionaryTypes;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageRenderer;
 import com.jmupdf.pdf.PdfDocument;
@@ -17,7 +17,7 @@ import com.jmupdf.pdf.PdfEncrypt;
  * @author Pedro J Rivera
  *
  */
-public class GeneralTest implements DictionaryTypes {
+public class GeneralTest {
 
 	public static void main(String[] args) {
 		
@@ -49,21 +49,21 @@ public class GeneralTest implements DictionaryTypes {
 			 * Get some info
 			 */
 			String value;
-			value = pdfDoc.getInfo(INFO_TITLE);			
+			value = pdfDoc.getInfo(DictionaryType.INFO_TITLE);			
 			log("Title: " + value);
-			value = pdfDoc.getInfo(INFO_AUTHOR);			
+			value = pdfDoc.getInfo(DictionaryType.INFO_AUTHOR);			
 			log("Author: " + value);
-			value = pdfDoc.getInfo(INFO_MODIFIED_DATE);			
+			value = pdfDoc.getInfo(DictionaryType.INFO_MODIFIED_DATE);			
 			log("Mod Date: " + value);
-			value = pdfDoc.getInfo(INFO_CREATION_DATE);			
+			value = pdfDoc.getInfo(DictionaryType.INFO_CREATION_DATE);			
 			log("Creation Date: " + value);			
-			value = pdfDoc.getInfo(INFO_PRODUCER);			
+			value = pdfDoc.getInfo(DictionaryType.INFO_PRODUCER);			
 			log("Producer: " + value);
-			value = pdfDoc.getInfo(INFO_CREATOR);
+			value = pdfDoc.getInfo(DictionaryType.INFO_CREATOR);
 			log("Creator: " + value);
-			value = pdfDoc.getInfo(INFO_KEYWORDS);
+			value = pdfDoc.getInfo(DictionaryType.INFO_KEYWORDS);
 			log("Keywords: " + value);
-			value = pdfDoc.getInfo(INFO_SUBJECT);
+			value = pdfDoc.getInfo(DictionaryType.INFO_SUBJECT);
 			log("Subject: " + value);
 
 			log("-----------------");

@@ -6,6 +6,7 @@
 package com.jmupdf.pdf;
 
 import com.jmupdf.document.Document;
+import com.jmupdf.enums.DictionaryType;
 import com.jmupdf.enums.DocumentType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
@@ -114,9 +115,9 @@ public class PdfDocument extends Document {
 	 * @param key
 	 * @return Null if no value could be retrieved 
 	 */
-	public String getInfo(String key) {
+	public String getInfo(DictionaryType key) {
 		if (getHandle() > 0) {
-			return pdfInfo(getHandle(), key);
+			return pdfInfo(getHandle(), key.getStrValue());
 		}
 		return null;
 	}
