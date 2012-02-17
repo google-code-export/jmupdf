@@ -1,6 +1,5 @@
 package com.examples.pdf.concurrent;
 
-import com.jmupdf.JmuPdf;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;

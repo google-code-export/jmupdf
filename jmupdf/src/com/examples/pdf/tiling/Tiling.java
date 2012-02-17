@@ -9,7 +9,6 @@ import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
-import com.jmupdf.page.PageRenderer;
 import com.jmupdf.pdf.PdfDocument;
 import com.jmupdf.tiles.TileCache;
 import com.jmupdf.tiles.TiledImage;

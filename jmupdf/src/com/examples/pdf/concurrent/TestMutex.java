@@ -7,6 +7,8 @@ import javax.imageio.ImageIO;
 
 import com.jmupdf.JmuPdf;
 import com.jmupdf.enums.ImageType;
+import com.jmupdf.enums.TifCompression;
+import com.jmupdf.enums.TifMode;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
@@ -61,8 +63,8 @@ public class TestMutex {
 								"c:\\tmp\\test-0.tif", 					// TIF file
 								3f, 									// Zoom
 								ImageType.IMAGE_TYPE_RGB,				// Color space
-								PdfDocument.TIF_COMPRESSION_LZW,		// Compression
-								PdfDocument.TIF_DATA_APPEND,			// File mode
+								TifCompression.TIF_COMPRESSION_LZW,		// Compression
+								TifMode.TIF_DATA_APPEND,			// File mode
 								75);									// Quality. Only for JPEG & ZLIB compressions
 					}
 					pdfDoc.dispose();
@@ -83,8 +85,8 @@ public class TestMutex {
 								"c:\\tmp\\test-1.tif", 					// TIF file
 								3f, 									// Zoom
 								ImageType.IMAGE_TYPE_RGB,				// Color space
-								PdfDocument.TIF_COMPRESSION_LZW,		// Compression
-								PdfDocument.TIF_DATA_APPEND,			// File mode
+								TifCompression.TIF_COMPRESSION_LZW,		// Compression
+								TifMode.TIF_DATA_APPEND,			// File mode
 								75);									// Quality. Only for JPEG & ZLIB compressions						
 					}
 					pdfDoc.dispose();
@@ -105,8 +107,8 @@ public class TestMutex {
 								"c:\\tmp\\test-6.tif", 					// TIF file
 								3f, 									// Zoom
 								ImageType.IMAGE_TYPE_RGB,				// Color space
-								PdfDocument.TIF_COMPRESSION_LZW,		// Compression
-								PdfDocument.TIF_DATA_APPEND,			// File mode
+								TifCompression.TIF_COMPRESSION_LZW,		// Compression
+								TifMode.TIF_DATA_APPEND,			// File mode
 								75);									// Quality. Only for JPEG & ZLIB compressions
 					}
 					pdfDoc.dispose();

@@ -1,6 +1,8 @@
 package com.examples.pdf.concurrent;
 
 import com.jmupdf.enums.ImageType;
+import com.jmupdf.enums.TifCompression;
+import com.jmupdf.enums.TifMode;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -27,8 +29,8 @@ public class Sample1_b implements Runnable {
 						"c:\\tmp\\images\\test-" + n + ".tif", 
 						2f, 			// Zoom
 						ImageType.IMAGE_TYPE_RGB, 
-						PdfDocument.TIF_COMPRESSION_DEFLATE, 
-						PdfDocument.TIF_DATA_APPEND, 
+						TifCompression.TIF_COMPRESSION_DEFLATE, 
+						TifMode.TIF_DATA_APPEND, 
 						0)) {
 					System.out.println("Could not save page.");
 				}

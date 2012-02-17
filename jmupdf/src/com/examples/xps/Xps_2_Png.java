@@ -3,7 +3,6 @@ package com.examples.xps;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
-import com.jmupdf.pdf.PdfDocument;
 import com.jmupdf.xps.XpsDocument;
 
 /**

@@ -13,8 +13,9 @@ import java.nio.ByteBuffer;
 import com.jmupdf.JmuPdf;
 import com.jmupdf.enums.DocumentType;
 import com.jmupdf.enums.ImageType;
+import com.jmupdf.enums.TifCompression;
+import com.jmupdf.enums.TifMode;
 import com.jmupdf.exceptions.DocException;
-import com.jmupdf.interfaces.TifTypes;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.page.PageText;
@@ -25,7 +26,7 @@ import com.jmupdf.page.PageText;
  * @author Pedro J Rivera
  *
  */
-public abstract class Document extends JmuPdf implements TifTypes {
+public abstract class Document extends JmuPdf {
 	private String document;
 	private String password;
 	private long handle;
@@ -532,7 +533,7 @@ public abstract class Document extends JmuPdf implements TifTypes {
 	 *        </blockquote>  
 	 * @return
 	 */
-	public boolean saveAsTif(int page, String file, float zoom, ImageType color, float gamma, int compression, int mode, int quality) {
+	public boolean saveAsTif(int page, String file, float zoom, ImageType color, float gamma, TifCompression compression, TifMode mode, int quality) {
 		if (handle > 0) {
 			
 			if (!(color == ImageType.IMAGE_TYPE_RGB      || 
@@ -545,15 +546,15 @@ public abstract class Document extends JmuPdf implements TifTypes {
 				return false;
 			}
 			
-			if (!(mode == TIF_DATA_APPEND || 
-				  mode == TIF_DATA_DISCARD)) {
+			if (!(mode == TifMode.TIF_DATA_APPEND || 
+				  mode == TifMode.TIF_DATA_DISCARD)) {
 				log("Invalid mode value specified.");
 				return false;
 			}
 
-			if (compression == TIF_COMPRESSION_CCITT_RLE || 
-				compression == TIF_COMPRESSION_CCITT_T_4 ||
-				compression == TIF_COMPRESSION_CCITT_T_6) {
+			if (compression == TifCompression.TIF_COMPRESSION_CCITT_RLE || 
+				compression == TifCompression.TIF_COMPRESSION_CCITT_T_4 ||
+				compression == TifCompression.TIF_COMPRESSION_CCITT_T_6) {
 				if (!(color == ImageType.IMAGE_TYPE_BINARY || 
 					  color == ImageType.IMAGE_TYPE_BINARY_DITHER)) {
 					log("When using CCITT compression, color must be type binary");
@@ -566,19 +567,19 @@ public abstract class Document extends JmuPdf implements TifTypes {
 				}
 			}
 
-			if (compression == TIF_COMPRESSION_JPEG) {
+			if (compression == TifCompression.TIF_COMPRESSION_JPEG) {
 				if (!(quality >= 1 && quality <= 100)) {
 					quality = 75;
 				}
 			}
 
-			if (compression == TIF_COMPRESSION_ZLIB) {
+			if (compression == TifCompression.TIF_COMPRESSION_ZLIB) {
 				if (!(quality >= 1 && quality <= 9)) {
 					quality = 6;
 				}
 			}
 
-			return writeTif(handle, page, zoom, color.getIntValue(), gamma, file.getBytes(), compression, mode, quality) == 0;
+			return writeTif(handle, page, zoom, color.getIntValue(), gamma, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
 		}
 
 		return false;
@@ -595,7 +596,7 @@ public abstract class Document extends JmuPdf implements TifTypes {
 	 * @param quality
 	 * @return
 	 */
-	public boolean saveAsTif(int page, String file, float zoom, ImageType color, int compression, int mode, int quality) {
+	public boolean saveAsTif(int page, String file, float zoom, ImageType color, TifCompression compression, TifMode mode, int quality) {
 		return saveAsTif(page, file, zoom, color, 1f, compression, mode, quality);
 	}
 	

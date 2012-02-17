@@ -1,6 +1,8 @@
 package com.examples.pdf.general;
 
 import com.jmupdf.enums.ImageType;
+import com.jmupdf.enums.TifCompression;
+import com.jmupdf.enums.TifMode;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.interfaces.DictionaryTypes;
@@ -116,8 +118,8 @@ public class GeneralTest implements DictionaryTypes {
 					tif, 
 					zoom, 
 					ImageType.IMAGE_TYPE_RGB, 
-					PdfDocument.TIF_COMPRESSION_ZLIB, 
-					PdfDocument.TIF_DATA_DISCARD,
+					TifCompression.TIF_COMPRESSION_ZLIB, 
+					TifMode.TIF_DATA_DISCARD,
 					0))
 				log("TIF file created!");
 			else

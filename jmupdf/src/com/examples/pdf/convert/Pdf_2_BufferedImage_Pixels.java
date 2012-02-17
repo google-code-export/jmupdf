@@ -9,7 +9,6 @@ import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PagePixels;
-import com.jmupdf.page.PageRenderer;
 import com.jmupdf.pdf.PdfDocument;
 
 /**
