@@ -121,14 +121,11 @@ public class PdfDocument extends Document {
 		if (getHandle() > 0) {
 			return;
 		}
-		if (getHandle() == -1 || getHandle() == -2 || getHandle() == -3) {
+		if (getHandle() == -1 || getHandle() == -2) {
 			throw new DocException("Error " + getHandle() + ": Document " + getDocumentName() + " could not be opened.");
 		}
-		else if (getHandle() == -4) {
+		else if (getHandle() == -3) {
 			throw new DocSecurityException("Error " + getHandle() + ": Document requires authentication");
-		}
-		else if (getHandle() == -5) {
-			throw new DocSecurityException("Error " + getHandle() + ": incorrect user name or password");			
 		}
 		else {
 			throw new DocException("Unexpected error opening document.");

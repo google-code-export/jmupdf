@@ -178,18 +178,16 @@ Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jbyteArray docum
     char * file = jni_jbyte_to_char(env, hdoc, document);
     char * pass = jni_jbyte_to_char(env, hdoc, password);
 
-    int rc = 0;
+    int rc = jni_open_document(hdoc, (const char*)file, pass);
 
-    rc = jni_open_document(hdoc, (const char*)file, pass);
+    fz_free(hdoc->ctx, file);
+    fz_free(hdoc->ctx, pass);
 
     if (rc != 0)
     {
             jni_free_document(hdoc);
             return rc;
     }
-
-    fz_free(hdoc->ctx, file);
-    fz_free(hdoc->ctx, pass);
 
     return jni_ptr_to_jlong(hdoc);
 }

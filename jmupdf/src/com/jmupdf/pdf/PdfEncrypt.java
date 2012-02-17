@@ -5,7 +5,7 @@
  */
 package com.jmupdf.pdf;
 
-import com.jmupdf.interfaces.CryptTypes;
+import com.jmupdf.enums.EncryptType;
 
 /**
  * PDF encryption information
@@ -13,7 +13,7 @@ import com.jmupdf.interfaces.CryptTypes;
  * @author Pedro J Rivera
  *
  */
-public class PdfEncrypt implements CryptTypes {
+public class PdfEncrypt {
 	private boolean isEncrypted;
 	private boolean canPrint;
 	private boolean canModify;	
@@ -25,7 +25,7 @@ public class PdfEncrypt implements CryptTypes {
 	private boolean canPrintQuality;
 	private int revision;	
 	private int length;
-	private String method;
+	private EncryptType method;
 	
 	/**
 	 * PDF encryption information
@@ -44,16 +44,7 @@ public class PdfEncrypt implements CryptTypes {
 		canPrintQuality = data[8] > 0;
 		revision = data[9];			
 		length = data[10];
-
-		if (data[11] == 0) {
-			method = PDF_CRYPT_NONE;
-		} else if (data[11] == 1) {
-			method = PDF_CRYPT_RC4;
-		} else if (data[11] == 2) {
-			method = PDF_CRYPT_AES;
-		} else if (data[11] == 3) {
-			method = PDF_CRYPT_NONE;
-		}
+		method = EncryptType.setType(data[11]);
 	}
 
 	public boolean isEncrypted() {
@@ -68,7 +59,7 @@ public class PdfEncrypt implements CryptTypes {
 		return length;
 	}
 
-	public String getMethod() {
+	public EncryptType getMethod() {
 		return method;
 	}
 

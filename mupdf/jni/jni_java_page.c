@@ -340,7 +340,7 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint 
 
 	for (link = page_links; link; link = link->next)
 	{
-		if (link->dest.kind == FZ_LINK_URI || link->dest.kind == FZ_LINK_GOTO)
+		if (link->dest.kind)
 		{
 			totlinks++;
 		}

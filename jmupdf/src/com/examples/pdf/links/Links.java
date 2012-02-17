@@ -21,12 +21,12 @@ public class Links {
 			/*
 			 * Open document
 			 */
-			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_docs\\itextinaction.pdf", "");
+			PdfDocument pdfDoc = new PdfDocument("C:\\Users\\riverap\\Documents\\bank stuff\\secure.pdf", "xxx");
 		
 			/*
 			 * Get page
 			 */
-			Page page = pdfDoc.getPage(8);
+			Page page = pdfDoc.getPage(1);
 			
 			/*
 			 * Get links, if any
