@@ -6,6 +6,7 @@
 package com.jmupdf.xps;
 
 import com.jmupdf.document.Document;
+import com.jmupdf.enums.DocumentType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 
@@ -16,7 +17,7 @@ import com.jmupdf.exceptions.DocSecurityException;
  *
  */
 public class XpsDocument extends Document  {
-	private static final int DOC_TYPE = DOC_XPS; 
+	private static final DocumentType DOC_TYPE = DocumentType.DOC_XPS; 
 	
 	/**
 	 * Create a new document object

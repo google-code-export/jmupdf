@@ -1,5 +1,16 @@
+/*
+ * 
+ * See copyright file
+ *  
+ */
 package com.jmupdf.enums;
 
+/**
+ * ImageType enum
+ * 
+ * @author Pedro J Rivera
+ *
+ */
 public enum ImageType {
 	
 	IMAGE_TYPE_RGB(1), 

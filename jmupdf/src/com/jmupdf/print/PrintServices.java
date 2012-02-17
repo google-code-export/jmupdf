@@ -37,6 +37,7 @@ import javax.print.event.PrintJobEvent;
 import javax.print.event.PrintJobListener;
 
 import com.jmupdf.document.Document;
+import com.jmupdf.enums.DocumentType;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
@@ -103,9 +104,9 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	 * @throws DocException 
 	 */
 	public PrintServices(Document document) throws DocException {
-		if (document.getDocumentType() == Document.DOC_PDF) {
+		if (document.getDocumentType() == DocumentType.DOC_PDF) {
 			this.document = ((PdfDocument)document).clone();		
-		} else if (document.getDocumentType() == Document.DOC_XPS) {
+		} else if (document.getDocumentType() == DocumentType.DOC_XPS) {
 			this.document = ((XpsDocument)document).clone();
 		}
 		if(this.document == null) {

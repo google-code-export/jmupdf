@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.jmupdf.JmuPdf;
+import com.jmupdf.enums.DocumentType;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
-import com.jmupdf.interfaces.DocumentTypes;
 import com.jmupdf.interfaces.TifTypes;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageLinks;
@@ -25,12 +25,12 @@ import com.jmupdf.page.PageText;
  * @author Pedro J Rivera
  *
  */
-public abstract class Document extends JmuPdf implements DocumentTypes, TifTypes {
+public abstract class Document extends JmuPdf implements TifTypes {
 	private String document;
 	private String password;
 	private long handle;
 	private int pageCount;		
-	private int documentType;
+	private DocumentType documentType;
 	private int antiAliasLevel;
 	private int maxStore;
 	private boolean isCached;		
@@ -44,7 +44,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, TifTypes
 	 * @param maxStore
 	 * @throws DocException
 	 */
-	public void open(String document, String password, int type, int maxStore) throws DocException {
+	public void open(String document, String password, DocumentType type, int maxStore) throws DocException {
 		this.document = document;
 		this.password = password;
 		this.documentType = type;
@@ -59,7 +59,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, TifTypes
 			throw new DocException("Document " + document + " does not exist.");
 		}
 
-		this.handle = open(getDocumentType(), getDocumentName().getBytes(), getPassWord().getBytes(), getMaxStore());
+		this.handle = open(getDocumentType().getIntValue(), getDocumentName().getBytes(), getPassWord().getBytes(), getMaxStore());
 
 		if (getHandle() > 0) {
 			this.pageCount = getPageCount(getHandle());
@@ -75,7 +75,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, TifTypes
 	 * @param maxStore
 	 * @throws DocException
 	 */
-	public void open(byte[] document, String password, int type, int maxStore) throws DocException {
+	public void open(byte[] document, String password, DocumentType type, int maxStore) throws DocException {
 		try {
 			File tmp = File.createTempFile("jmupdf" + getClass().hashCode(), ".tmp");
 			tmp.deleteOnExit();
@@ -123,7 +123,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, TifTypes
 	 * Get document type
 	 * @return
 	 */
-	public int getDocumentType() {
+	public DocumentType getDocumentType() {
 		return documentType;
 	}
 	

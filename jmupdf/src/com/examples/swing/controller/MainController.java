@@ -32,6 +32,7 @@ import com.examples.swing.view.DocInfoView;
 import com.examples.swing.view.MainView;
 import com.jmupdf.cbz.CbzDocument;
 import com.jmupdf.document.Document;
+import com.jmupdf.enums.DocumentType;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
@@ -322,10 +323,10 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	 * Show document information
 	 */
 	private void showDocInfo() {
-		if (document.getDocumentType() == Document.DOC_PDF) { 
+		if (document.getDocumentType() == DocumentType.DOC_PDF) { 
 			DocInfoView div = new DocInfoView((PdfDocument)document);
 			div.setVisible(true);
-		} else if (document.getDocumentType() == Document.DOC_XPS) {
+		} else if (document.getDocumentType() == DocumentType.DOC_XPS) {
 
 		}
 	}

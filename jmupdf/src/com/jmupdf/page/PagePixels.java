@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import com.jmupdf.enums.ImageType;
-import com.jmupdf.interfaces.DocumentTypes;
 
 /**
  * PagePixels Class
@@ -16,7 +15,7 @@ import com.jmupdf.interfaces.DocumentTypes;
  * @author Pedro J Rivera
  *
  */
-public class PagePixels implements DocumentTypes {
+public class PagePixels {
 	private Page page;
 	private PageRect boundBox;
 	private BufferedImage image;	

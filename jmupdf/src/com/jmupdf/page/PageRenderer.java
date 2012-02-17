@@ -10,7 +10,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 
 import com.jmupdf.enums.ImageType;
-import com.jmupdf.interfaces.DocumentTypes;
+
 
 /**
  * PdfRenderer class.</br>
@@ -24,7 +24,7 @@ import com.jmupdf.interfaces.DocumentTypes;
  * @author Pedro J Rivera
  *
  */
-public class PageRenderer implements Runnable, DocumentTypes {
+public class PageRenderer implements Runnable {
 	private PageRect boundBox;
 	private PagePixels pagePixels;
 	private PageRendererWorker worker;
