@@ -37,6 +37,7 @@ import javax.print.event.PrintJobEvent;
 import javax.print.event.PrintJobListener;
 
 import com.jmupdf.document.Document;
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
@@ -44,6 +45,14 @@ import com.jmupdf.pdf.PdfDocument;
 import com.jmupdf.tiles.TileCache;
 import com.jmupdf.tiles.TiledImage;
 import com.jmupdf.xps.XpsDocument;
+
+/*
+ * TODO: Needs reworking. Will focus on printing for next release
+ * ---------------------------------------------------------------------
+ *   1. Provide more Adobe like printing features for headless printing.
+ *   2. Provide a nice custom dialog for interactive printing (like Adobe's :-)).
+ *   3. ?? 
+ */
 
 /**
  * Print a document
@@ -60,7 +69,7 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	
 	private boolean printJobDone = false;
 	private int currentPage = 0;
-	private int colorSpace;
+	private ImageType colorSpace;
 	private int rotate;
 	
 	private boolean customResolution = false;
@@ -236,15 +245,15 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
             if (c.equals(Chromaticity.MONOCHROME)) {
             	if (pureBlackWhite) {
             		if (ditherBlackWhite) {
-            			colorSpace = PdfDocument.IMAGE_TYPE_BINARY_DITHER;
+            			colorSpace = ImageType.IMAGE_TYPE_BINARY_DITHER;
             		} else {
-            			colorSpace = PdfDocument.IMAGE_TYPE_BINARY;
+            			colorSpace = ImageType.IMAGE_TYPE_BINARY;
             		}
             	} else {
-            		colorSpace = PdfDocument.IMAGE_TYPE_GRAY;
+            		colorSpace = ImageType.IMAGE_TYPE_GRAY;
             	}
             } else {
-            	colorSpace = PdfDocument.IMAGE_TYPE_RGB;
+            	colorSpace = ImageType.IMAGE_TYPE_RGB;
             }
 
         	job = ps.createPrintJob();

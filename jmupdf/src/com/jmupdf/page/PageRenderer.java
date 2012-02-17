@@ -9,8 +9,8 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JComponent;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.interfaces.DocumentTypes;
-import com.jmupdf.interfaces.ImageTypes;
 
 /**
  * PdfRenderer class.</br>
@@ -24,7 +24,7 @@ import com.jmupdf.interfaces.ImageTypes;
  * @author Pedro J Rivera
  *
  */
-public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
+public class PageRenderer implements Runnable, DocumentTypes {
 	private PageRect boundBox;
 	private PagePixels pagePixels;
 	private PageRendererWorker worker;
@@ -36,7 +36,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * Create renderer instance with default values. 
 	 */
 	public PageRenderer() {
-		this(null, 1f, Page.PAGE_ROTATE_AUTO, IMAGE_TYPE_RGB);
+		this(null, 1f, Page.PAGE_ROTATE_AUTO, ImageType.IMAGE_TYPE_RGB);
 	}
 	
 	/**
@@ -45,7 +45,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param rotate
 	 * @param color
 	 */
-	public PageRenderer(float zoom, int rotate, int color) {
+	public PageRenderer(float zoom, int rotate, ImageType color) {
 		this(null, zoom, rotate, color);
 	}
 
@@ -56,7 +56,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * @param rotate
 	 * @param color
 	 */
-	public PageRenderer(Page page, float zoom, int rotate, int color) {
+	public PageRenderer(Page page, float zoom, int rotate, ImageType color) {
 		this.boundBox = new PageRect();
 		setPage(page);
 		setZoom(zoom);
@@ -219,7 +219,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * Get color type
 	 * @return
 	 */
-	public int getColorType() {		
+	public ImageType getColorType() {		
 		return getPagePixels().getColor();
 	}
 
@@ -227,7 +227,7 @@ public class PageRenderer implements Runnable, ImageTypes, DocumentTypes {
 	 * Set color type
 	 * @param color
 	 */
-	public void setColorType(int color) {
+	public void setColorType(ImageType color) {
 		if (!isPageRendering()) {
 			getPagePixels().setColor(color);
 			needsRendering();

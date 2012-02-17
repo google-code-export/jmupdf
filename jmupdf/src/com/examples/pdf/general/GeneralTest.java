@@ -1,5 +1,6 @@
 package com.examples.pdf.general;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.interfaces.DictionaryTypes;
@@ -101,7 +102,7 @@ public class GeneralTest implements DictionaryTypes {
 					pageNumber, 
 					png, 
 					zoom, 
-					PdfDocument.IMAGE_TYPE_RGB))
+					ImageType.IMAGE_TYPE_RGB))
 				log("PNG file created!");
 			else
 				log("PNG file not created");
@@ -114,7 +115,7 @@ public class GeneralTest implements DictionaryTypes {
 					pageNumber, 
 					tif, 
 					zoom, 
-					PdfDocument.IMAGE_TYPE_RGB, 
+					ImageType.IMAGE_TYPE_RGB, 
 					PdfDocument.TIF_COMPRESSION_ZLIB, 
 					PdfDocument.TIF_DATA_DISCARD,
 					0))
@@ -136,7 +137,7 @@ public class GeneralTest implements DictionaryTypes {
 			/*
 			 * Create a rendering object
 			 */
-			PageRenderer render = new PageRenderer(p1, 1f, Page.PAGE_ROTATE_AUTO, PageRenderer.IMAGE_TYPE_RGB);
+			PageRenderer render = new PageRenderer(p1, 1f, Page.PAGE_ROTATE_AUTO, ImageType.IMAGE_TYPE_RGB);
 			
 			log("-----------------");
 			log("Creating image...");

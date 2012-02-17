@@ -1,5 +1,6 @@
 package com.examples.pdf.convert;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -26,7 +27,7 @@ public class Pdf_2_Tif_MultiPage {
 				pdfDoc.saveAsTif((i+1),							// Page number 
 						"e:\\tmp\\test4.tif", 					// TIF file
 						1f, 									// Zoom
-						PdfDocument.IMAGE_TYPE_RGB,		    	// Color space
+						ImageType.IMAGE_TYPE_RGB,		    	// Color space
 						PdfDocument.TIF_COMPRESSION_LZW,		// Compression
 						PdfDocument.TIF_DATA_APPEND,			// File mode
 						75);									// Quality. Only for JPEG & ZLIB compressions

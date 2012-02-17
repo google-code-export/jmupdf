@@ -51,6 +51,7 @@ import javax.swing.event.ChangeListener;
 
 import com.examples.swing.resources.Images;
 import com.jmupdf.JmuPdf;
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.page.Page;
 
 /**
@@ -495,7 +496,7 @@ public class MainView {
 	 * Set page canvas area
 	 * @param page
 	 */
-	public void setPageCanvas(Page page, float zoom, int rotate, int color, int antiAliasLevel, float gamma) {
+	public void setPageCanvas(Page page, float zoom, int rotate, ImageType color, int antiAliasLevel, float gamma) {
 		if (this.pageView == null) {
 			this.pageView = new PageView();
 			this.scrollPane.setViewportView(pageView);

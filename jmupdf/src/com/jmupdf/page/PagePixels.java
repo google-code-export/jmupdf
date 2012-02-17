@@ -5,8 +5,8 @@ import java.awt.image.WritableRaster;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.interfaces.DocumentTypes;
-import com.jmupdf.interfaces.ImageTypes;
 
 /**
  * PagePixels Class
@@ -16,7 +16,7 @@ import com.jmupdf.interfaces.ImageTypes;
  * @author Pedro J Rivera
  *
  */
-public class PagePixels implements ImageTypes, DocumentTypes {
+public class PagePixels implements DocumentTypes {
 	private Page page;
 	private PageRect boundBox;
 	private BufferedImage image;	
@@ -28,7 +28,7 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 	private float resolution;
 	private int rotate;
 	private int rotation;
-	private int color;
+	private ImageType color;
 	private boolean isDirty;
 	private static int default_resolution = 72;
 	
@@ -42,7 +42,7 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 		this.zoom = 1f;
 		this.rotate = 0;
 		this.resolution = default_resolution;
-		this.color = IMAGE_TYPE_RGB; 
+		this.color = ImageType.IMAGE_TYPE_RGB; 
 		this.pixels = null;
 		this.image = null;
 		setRotation();
@@ -269,7 +269,7 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 	 * Get color type
 	 * @return
 	 */
-	public int getColor() {
+	public ImageType getColor() {
 		return color;
 	}
 
@@ -277,7 +277,7 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 	 * Set color type. Default value is IMAGE_TYPE_RGB.
 	 * @param color
 	 */
-	public void setColor(int color) {
+	public void setColor(ImageType color) {
 		if (getColor() == color) {
 			return;
 		}
@@ -450,9 +450,9 @@ public class PagePixels implements ImageTypes, DocumentTypes {
 	 * @return
 	 */
 	private boolean isByteData() {
-		return (getColor() == IMAGE_TYPE_BINARY        || 
-		        getColor() == IMAGE_TYPE_BINARY_DITHER ||
-		        getColor() == IMAGE_TYPE_GRAY);
+		return (getColor() == ImageType.IMAGE_TYPE_BINARY        || 
+		        getColor() == ImageType.IMAGE_TYPE_BINARY_DITHER ||
+		        getColor() == ImageType.IMAGE_TYPE_GRAY);
 	}
 
 	/**

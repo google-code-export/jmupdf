@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
@@ -25,7 +26,7 @@ public class Pdf_2_BufferedImage_ARGB {
 			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf\\pdf_docs\\itextinaction.pdf", "");
 			
 			/* Create a reusable renderer and set pixel output to ARGB */
-			PageRenderer render = new PageRenderer(2f, Page.PAGE_ROTATE_AUTO, PageRenderer.IMAGE_TYPE_ARGB);
+			PageRenderer render = new PageRenderer(2f, Page.PAGE_ROTATE_AUTO, ImageType.IMAGE_TYPE_ARGB);
 			
 			/* Render all pages */
 			for (int i=0; i<pdfDoc.getPageCount(); i++) {

@@ -1,5 +1,6 @@
 package com.examples.pdf.antialiasing;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -31,7 +32,7 @@ public class Pdf_2_Png {
 					1,									// Page number
 					"c:\\tmp\\test1.png",				// PNG file
 					6f,									// Zoom								
-					PdfDocument.IMAGE_TYPE_ARGB);		// Color space. Only RGB, ARGB & Gray.
+					ImageType.IMAGE_TYPE_ARGB);		// Color space. Only RGB, ARGB & Gray.
 			
 			/*
 			 * Dispose

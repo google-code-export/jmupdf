@@ -1,5 +1,6 @@
 package com.examples.pdf.convert;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -26,7 +27,7 @@ public class Pdf_2_Tif_CCIT_Dithering {
 				pdfDoc.saveAsTif((i+1),							// Page number 
 						"e:\\tmp\\test1.tif", 					// TIF file
 						1f, 									// Zoom
-						PdfDocument.IMAGE_TYPE_BINARY_DITHER,	// Color space
+						ImageType.IMAGE_TYPE_BINARY_DITHER,	// Color space
 						PdfDocument.TIF_COMPRESSION_CCITT_T_6,	// Compression
 						PdfDocument.TIF_DATA_APPEND,			// File mode
 						0);										// Quality. Only for JPEG & ZLIB compressions

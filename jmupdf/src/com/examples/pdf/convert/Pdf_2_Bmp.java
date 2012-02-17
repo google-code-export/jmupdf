@@ -1,5 +1,6 @@
 package com.examples.pdf.convert;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -26,7 +27,7 @@ public class Pdf_2_Bmp {
 					1,									// Page number
 					"c:\\tmp\\pdf-test1.bmp",			// bmp file
 					3f,									// Zoom	
-					PdfDocument.IMAGE_TYPE_BINARY);		// Color space. Only RGB & Gray.
+					ImageType.IMAGE_TYPE_BINARY);		// Color space. Only RGB & Gray.
 			
 			/*
 			 * Dispose

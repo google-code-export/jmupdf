@@ -32,6 +32,7 @@ import com.examples.swing.view.DocInfoView;
 import com.examples.swing.view.MainView;
 import com.jmupdf.cbz.CbzDocument;
 import com.jmupdf.document.Document;
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
@@ -54,7 +55,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	private float zoom = 1f;
 	private int antiAliasLevel = 8;
 	private float gammaLevel = 1f;
-	private int color; // = Document.IMAGE_TYPE_ARGB;
+	private ImageType color; // = Document.IMAGE_TYPE_ARGB;
 	private boolean isOpened = false;
 	private boolean isZooming = false;
 	private int maxStore = 60; 
@@ -194,19 +195,19 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 		
 		else if (source.equals(view.getComboColor())) { 
 			if (view.getComboColor().getSelectedIndex() == 0) {
-				color = Document.IMAGE_TYPE_RGB;
+				color = ImageType.IMAGE_TYPE_RGB;
 			} else if (view.getComboColor().getSelectedIndex() == 1) {
-				color = Document.IMAGE_TYPE_ARGB;
+				color = ImageType.IMAGE_TYPE_ARGB;
 			} else if (view.getComboColor().getSelectedIndex() == 2) {
-				color = Document.IMAGE_TYPE_ARGB_PRE;
+				color = ImageType.IMAGE_TYPE_ARGB_PRE;
 			} else if (view.getComboColor().getSelectedIndex() == 3) {
-				color = Document.IMAGE_TYPE_BGR;
+				color = ImageType.IMAGE_TYPE_BGR;
 			} else if (view.getComboColor().getSelectedIndex() == 4) {
-				color = Document.IMAGE_TYPE_GRAY;
+				color = ImageType.IMAGE_TYPE_GRAY;
 			} else if (view.getComboColor().getSelectedIndex() == 5) {
-				color = Document.IMAGE_TYPE_BINARY;				
+				color = ImageType.IMAGE_TYPE_BINARY;				
 			} else {
-				color = Document.IMAGE_TYPE_BINARY_DITHER;
+				color = ImageType.IMAGE_TYPE_BINARY_DITHER;
 			}
 			setPage();
 		}

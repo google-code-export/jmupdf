@@ -1,6 +1,7 @@
 package com.examples.pdf.concurrent;
 
 import com.jmupdf.JmuPdf;
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
@@ -27,9 +28,9 @@ public class TestSync {
 		}
 
 		/* Create renderer */
-		PageRenderer r1 = new PageRenderer(2f, Page.PAGE_ROTATE_AUTO, PageRenderer.IMAGE_TYPE_RGB);
-		PageRenderer r2 = new PageRenderer(2f, Page.PAGE_ROTATE_AUTO, PageRenderer.IMAGE_TYPE_GRAY);
-		PageRenderer r3 = new PageRenderer(2f, Page.PAGE_ROTATE_AUTO, PageRenderer.IMAGE_TYPE_RGB);
+		PageRenderer r1 = new PageRenderer(2f, Page.PAGE_ROTATE_AUTO, ImageType.IMAGE_TYPE_RGB);
+		PageRenderer r2 = new PageRenderer(2f, Page.PAGE_ROTATE_AUTO, ImageType.IMAGE_TYPE_GRAY);
+		PageRenderer r3 = new PageRenderer(2f, Page.PAGE_ROTATE_AUTO, ImageType.IMAGE_TYPE_RGB);
 
 		/* Set pages to render */
 		r1.setPage(pdfDoc.getPage(1));

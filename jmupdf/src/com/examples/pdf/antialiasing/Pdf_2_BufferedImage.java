@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
@@ -34,7 +35,7 @@ public class Pdf_2_BufferedImage {
 			/*
 			 * Get rendering object
 			 */
-			PageRenderer render = new PageRenderer(page, 4f, Page.PAGE_ROTATE_AUTO, PageRenderer.IMAGE_TYPE_RGB);
+			PageRenderer render = new PageRenderer(page, 4f, Page.PAGE_ROTATE_AUTO, ImageType.IMAGE_TYPE_RGB);
 			
 			/*
 			 * turn off anti-aliasing

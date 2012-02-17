@@ -21,14 +21,10 @@ import com.jmupdf.page.PageRect;
  */
 public class TiledImage {
 	private PagePixels pagePixels;
+	private PageRect tileRect;
+	private PageRect pixRect;
 	private int tilex;
 	private int tiley;
-	private int x;
-	private int y;
-	private int w;
-	private int h;
-	
-	private int rx, ry, rw, rh;
 	
 	/**
 	 * TiledImage Class
@@ -41,10 +37,8 @@ public class TiledImage {
 	public TiledImage(PagePixels pagePixels, int tilex, int tiley, int tilew, int tileh) {
 		this.tilex = tilex;
 		this.tiley = tiley;
-		this.w = tilew;
-		this.h = tileh;
-		this.x = tilex*(tilew);
-		this.y = tiley*(tileh);		
+		this.tileRect = new PageRect(tilex * tilew, tiley * tileh, tilew, tileh);
+		this.pixRect = new PageRect();		
 		this.pagePixels = (PagePixels)pagePixels.clone();
 		normalize();
 	}
@@ -62,10 +56,10 @@ public class TiledImage {
 	 */
 	public void render() {
 		getPagePixels().drawPage(
-				 this.rx/getPagePixels().getZoom(), 
-				 this.ry/getPagePixels().getZoom(), 
-				(this.rx+this.rw)/getPagePixels().getZoom(), 
-				(this.ry+this.rh)/getPagePixels().getZoom());
+				 pixRect.getX0() / getPagePixels().getZoom(), 
+				 pixRect.getY0() / getPagePixels().getZoom(), 
+				 pixRect.getX1() / getPagePixels().getZoom(), 
+				 pixRect.getY1() / getPagePixels().getZoom() );
 	}
 
 	/**
@@ -89,7 +83,7 @@ public class TiledImage {
 	 * @return
 	 */
 	public int getX() {
-		return x;
+		return tileRect.getX();
 	}
 
 	/**
@@ -97,7 +91,7 @@ public class TiledImage {
 	 * @return
 	 */
 	public int getY() {
-		return y;
+		return tileRect.getY();
 	}
 
 	/**
@@ -105,7 +99,7 @@ public class TiledImage {
 	 * @return
 	 */
 	public int getWidth() {
-		return w;
+		return tileRect.getWidth();
 	}
 
 	/**
@@ -113,7 +107,7 @@ public class TiledImage {
 	 * @return
 	 */
 	public int getHeight() {
-		return h;
+		return tileRect.getHeight();
 	}
 
 	/**
@@ -123,6 +117,8 @@ public class TiledImage {
 		if (getPagePixels() != null) {
 			getPagePixels().dispose();
 		}
+		tileRect = null;
+		pixRect = null;
 	}
 
 	/**
@@ -138,19 +134,12 @@ public class TiledImage {
 		int x1 = rb.getWidth();
 		int y1 = rb.getHeight();
 		int x2 = getX() + getWidth();
-		int y2 = getY() + getHeight();
-		this.w = Math.min(x1, x2) - getX();
-		this.h = Math.min(y1, y2) - getY();
+		int y2 = getY() + getHeight();		
+		tileRect.setRect(tileRect.getX(), tileRect.getY(), (Math.min(x1, x2) - getX()), (Math.min(y1, y2) - getY()));
 
 		// Rotate to default page rotation
-		PageRect r = new PageRect(getX(), getY(), getWidth(), getHeight());
-		r = r.rotate(bb, getPagePixels().getRotation(), getPage().getRotation());
-
-		// Assign new rendering coordinates
-		this.rx = r.getX();
-		this.ry = r.getY();
-		this.rw = r.getWidth();
-		this.rh = r.getHeight();
+		pixRect.setRect(getX(), getY(), getWidth(), getHeight());
+		pixRect = pixRect.rotate(bb, getPagePixels().getRotation(), getPage().getRotation());
 	}
 
 	/**

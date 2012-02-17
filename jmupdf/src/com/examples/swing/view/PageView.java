@@ -31,6 +31,7 @@ import java.awt.image.WritableRaster;
 
 import javax.swing.JComponent;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageRenderer;
 
@@ -127,7 +128,7 @@ public class PageView extends JComponent {
      * Set page object to view
      * @param page
      */
-    public void setPage(Page page, float zoom, int rotate, int color, int antiAliasLevel, float gamma) {    	
+    public void setPage(Page page, float zoom, int rotate, ImageType color, int antiAliasLevel, float gamma) {
     	if (renderer == null) {        	
     		renderer = new PageRenderer(page, zoom, rotate, color);
         	renderer.setComponent(this);

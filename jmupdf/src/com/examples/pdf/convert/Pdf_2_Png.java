@@ -1,5 +1,6 @@
 package com.examples.pdf.convert;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -27,7 +28,7 @@ public class Pdf_2_Png {
 					1,									// Page number
 					"e:\\tmp\\Lösung.png",				// PNG file
 					2f,									// Zoom	
-					PdfDocument.IMAGE_TYPE_RGB);		// Color space. Only RGB, ARGB & Gray.
+					ImageType.IMAGE_TYPE_RGB);		// Color space. Only RGB, ARGB & Gray.
 
 			/*
 			 * Dispose

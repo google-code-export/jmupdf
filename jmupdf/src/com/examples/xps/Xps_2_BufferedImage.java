@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
@@ -30,7 +31,7 @@ public class Xps_2_BufferedImage {
 			/*
 			 * Get rendering object
 			 */
-			PageRenderer render = new PageRenderer(page, 1f, Page.PAGE_ROTATE_NONE, PageRenderer.IMAGE_TYPE_ARGB);
+			PageRenderer render = new PageRenderer(page, 1f, Page.PAGE_ROTATE_NONE, ImageType.IMAGE_TYPE_ARGB);
 			render.render(true);	
 			
 			/*

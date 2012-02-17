@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.jmupdf.JmuPdf;
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.interfaces.DocumentTypes;
-import com.jmupdf.interfaces.ImageTypes;
 import com.jmupdf.interfaces.TifTypes;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageLinks;
@@ -25,7 +25,7 @@ import com.jmupdf.page.PageText;
  * @author Pedro J Rivera
  *
  */
-public abstract class Document extends JmuPdf implements DocumentTypes, ImageTypes, TifTypes {
+public abstract class Document extends JmuPdf implements DocumentTypes, TifTypes {
 	private String document;
 	private String password;
 	private long handle;
@@ -264,9 +264,9 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param y1
 	 * @return
 	 */
-	public ByteBuffer getPageByteBuffer(int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1) {
+	public ByteBuffer getPageByteBuffer(int page, float zoom, int rotate, ImageType color, float gamma, int[] bbox, float x0, float y0, float x1, float y1) {
 		if (handle > 0) {
-			return getByteBuffer(handle, page, zoom, rotate, color, gamma, bbox, x0, y0, x1, y1);
+			return getByteBuffer(handle, page, zoom, rotate, color.getIntValue(), gamma, bbox, x0, y0, x1, y1);
 		}
 		return null;
 	}
@@ -348,11 +348,11 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPnm(int page, String file, float zoom, int color, float gamma) {
+	public boolean saveAsPnm(int page, String file, float zoom, ImageType color, float gamma) {
 		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB || 
-				color == IMAGE_TYPE_GRAY) {
-				return writePnm(handle, page, zoom, color, gamma, file.getBytes()) == 0;
+			if (color == ImageType.IMAGE_TYPE_RGB || 
+				color == ImageType.IMAGE_TYPE_GRAY) {
+				return writePnm(handle, page, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -366,7 +366,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param color
 	 * @return
 	 */
-	public boolean saveAsPnm(int page, String file, float zoom, int color) {
+	public boolean saveAsPnm(int page, String file, float zoom, ImageType color) {
 		return saveAsPnm(page, file, zoom, color, 1f);
 	}
 
@@ -381,14 +381,14 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * <blockquote>quality levels are in the range 0-100 with a default value of 75.</blockquote>
 	 * @return
 	 */
-	public boolean saveAsJPeg(int page, String file, float zoom, int color, float gamma, int quality) {
+	public boolean saveAsJPeg(int page, String file, float zoom, ImageType color, float gamma, int quality) {
 		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB || 
-				color == IMAGE_TYPE_GRAY) {
+			if (color == ImageType.IMAGE_TYPE_RGB || 
+				color == ImageType.IMAGE_TYPE_GRAY) {
 				if (!(quality >= 0 && quality <= 100)) {
 					quality = 75;
 				}
-				return writeJPeg(handle, page, zoom, color, gamma, file.getBytes(), quality) == 0;
+				return writeJPeg(handle, page, zoom, color.getIntValue(), gamma, file.getBytes(), quality) == 0;
 			}
 		}
 		return false;
@@ -403,7 +403,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param quality
 	 * @return
 	 */
-	public boolean saveAsJPeg(int page, String file, float zoom, int color, int quality) {
+	public boolean saveAsJPeg(int page, String file, float zoom, ImageType color, int quality) {
 		return saveAsJPeg(page, file, zoom, color, 1f, quality);
 	}
 	
@@ -416,13 +416,13 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsBmp(int page, String file, float zoom, int color, float gamma) {
+	public boolean saveAsBmp(int page, String file, float zoom, ImageType color, float gamma) {
 		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB    || 
-				color == IMAGE_TYPE_GRAY   ||
-				color == IMAGE_TYPE_BINARY ||
-				color == IMAGE_TYPE_BINARY_DITHER) {
-				return writeBmp(handle, page, zoom, color, gamma, file.getBytes()) == 0;
+			if (color == ImageType.IMAGE_TYPE_RGB    || 
+				color == ImageType.IMAGE_TYPE_GRAY   ||
+				color == ImageType.IMAGE_TYPE_BINARY ||
+				color == ImageType.IMAGE_TYPE_BINARY_DITHER) {
+				return writeBmp(handle, page, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -436,7 +436,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param color
 	 * @return
 	 */
-	public boolean saveAsBmp(int page, String file, float zoom, int color) {
+	public boolean saveAsBmp(int page, String file, float zoom, ImageType color) {
 		return saveAsBmp(page, file, zoom, color, 1f);
 	}
 	
@@ -449,13 +449,13 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPng(int page, String file, float zoom, int color, float gamma) {
+	public boolean saveAsPng(int page, String file, float zoom, ImageType color, float gamma) {
 		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB  	 || 
-				color == IMAGE_TYPE_ARGB 	 ||
-				color == IMAGE_TYPE_ARGB_PRE ||
-				color == IMAGE_TYPE_GRAY) {
-				return writePng(handle, page, zoom, color, gamma, file.getBytes()) == 0;
+			if (color == ImageType.IMAGE_TYPE_RGB  	 || 
+				color == ImageType.IMAGE_TYPE_ARGB 	 ||
+				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
+				color == ImageType.IMAGE_TYPE_GRAY) {
+				return writePng(handle, page, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -469,7 +469,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param color
 	 * @return
 	 */
-	public boolean saveAsPng(int page, String file, float zoom, int color) {
+	public boolean saveAsPng(int page, String file, float zoom, ImageType color) {
 		return saveAsPng(page, file, zoom, color, 1f);
 	}
 	
@@ -483,13 +483,13 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPam(int page, String file, float zoom, int color, float gamma) {
+	public boolean saveAsPam(int page, String file, float zoom, ImageType color, float gamma) {
 		if (handle > 0) {
-			if (color == IMAGE_TYPE_RGB  	 || 
-				color == IMAGE_TYPE_ARGB 	 || 
-				color == IMAGE_TYPE_ARGB_PRE ||
-				color == IMAGE_TYPE_GRAY) {
-				return writePam(handle, page, zoom, color, gamma, file.getBytes()) == 0;
+			if (color == ImageType.IMAGE_TYPE_RGB  	 || 
+				color == ImageType.IMAGE_TYPE_ARGB 	 || 
+				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
+				color == ImageType.IMAGE_TYPE_GRAY) {
+				return writePam(handle, page, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -503,7 +503,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param color
 	 * @return
 	 */
-	public boolean saveAsPam(int page, String file, float zoom, int color) {
+	public boolean saveAsPam(int page, String file, float zoom, ImageType color) {
 		return saveAsPam(page, file, zoom, color, 1f);
 	}
 	
@@ -532,15 +532,15 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 *        </blockquote>  
 	 * @return
 	 */
-	public boolean saveAsTif(int page, String file, float zoom, int color, float gamma, int compression, int mode, int quality) {
+	public boolean saveAsTif(int page, String file, float zoom, ImageType color, float gamma, int compression, int mode, int quality) {
 		if (handle > 0) {
 			
-			if (!(color == IMAGE_TYPE_RGB      || 
-				  color == IMAGE_TYPE_ARGB     ||
-				  color == IMAGE_TYPE_ARGB_PRE ||
-				  color == IMAGE_TYPE_GRAY     ||
-				  color == IMAGE_TYPE_BINARY   || 
-				  color == IMAGE_TYPE_BINARY_DITHER)) {
+			if (!(color == ImageType.IMAGE_TYPE_RGB      || 
+				  color == ImageType.IMAGE_TYPE_ARGB     ||
+				  color == ImageType.IMAGE_TYPE_ARGB_PRE ||
+				  color == ImageType.IMAGE_TYPE_GRAY     ||
+				  color == ImageType.IMAGE_TYPE_BINARY   || 
+				  color == ImageType.IMAGE_TYPE_BINARY_DITHER)) {
 				log("Invalid color type specified.");
 				return false;
 			}
@@ -554,13 +554,13 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 			if (compression == TIF_COMPRESSION_CCITT_RLE || 
 				compression == TIF_COMPRESSION_CCITT_T_4 ||
 				compression == TIF_COMPRESSION_CCITT_T_6) {
-				if (!(color == IMAGE_TYPE_BINARY || 
-					  color == IMAGE_TYPE_BINARY_DITHER)) {
+				if (!(color == ImageType.IMAGE_TYPE_BINARY || 
+					  color == ImageType.IMAGE_TYPE_BINARY_DITHER)) {
 					log("When using CCITT compression, color must be type binary");
 					return false;
 				}
-				if (color == IMAGE_TYPE_ARGB || 
-					color == IMAGE_TYPE_ARGB_PRE) {
+				if (color == ImageType.IMAGE_TYPE_ARGB || 
+					color == ImageType.IMAGE_TYPE_ARGB_PRE) {
 					log("When using CCITT compression, color cannot be type of ARGB");
 					return false;
 				}
@@ -578,7 +578,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 				}
 			}
 
-			return writeTif(handle, page, zoom, color, gamma, file.getBytes(), compression, mode, quality) == 0;
+			return writeTif(handle, page, zoom, color.getIntValue(), gamma, file.getBytes(), compression, mode, quality) == 0;
 		}
 
 		return false;
@@ -595,7 +595,7 @@ public abstract class Document extends JmuPdf implements DocumentTypes, ImageTyp
 	 * @param quality
 	 * @return
 	 */
-	public boolean saveAsTif(int page, String file, float zoom, int color, int compression, int mode, int quality) {
+	public boolean saveAsTif(int page, String file, float zoom, ImageType color, int compression, int mode, int quality) {
 		return saveAsTif(page, file, zoom, color, 1f, compression, mode, quality);
 	}
 	

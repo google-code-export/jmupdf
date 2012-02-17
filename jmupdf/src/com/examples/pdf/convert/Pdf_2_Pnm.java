@@ -1,5 +1,6 @@
 package com.examples.pdf.convert;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -26,7 +27,7 @@ public class Pdf_2_Pnm {
 					1,									// Page number
 					"c:\\temp\\test1.pnm",				// PNM file
 					1f,									// Zoom		
-					PdfDocument.IMAGE_TYPE_RGB);		// Color space. Only RGB & Gray.
+					ImageType.IMAGE_TYPE_RGB);		// Color space. Only RGB & Gray.
 
 			/*
 			 * Dispose

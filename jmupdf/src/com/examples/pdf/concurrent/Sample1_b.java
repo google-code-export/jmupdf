@@ -1,5 +1,6 @@
 package com.examples.pdf.concurrent;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -25,7 +26,7 @@ public class Sample1_b implements Runnable {
 				if (!pdf.saveAsTif(i+1, 
 						"c:\\tmp\\images\\test-" + n + ".tif", 
 						2f, 			// Zoom
-						PdfDocument.IMAGE_TYPE_RGB, 
+						ImageType.IMAGE_TYPE_RGB, 
 						PdfDocument.TIF_COMPRESSION_DEFLATE, 
 						PdfDocument.TIF_DATA_APPEND, 
 						0)) {

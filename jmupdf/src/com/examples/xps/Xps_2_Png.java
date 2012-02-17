@@ -1,5 +1,6 @@
 package com.examples.xps;
 
+import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -27,7 +28,7 @@ public class Xps_2_Png {
 					1,									// Page number
 					"c:\\tmp\\xps-test1.png",			// PNG file
 					1f,									// Zoom	
-					PdfDocument.IMAGE_TYPE_RGB);		// Color space. Only RGB, ARGB & Gray.
+					ImageType.IMAGE_TYPE_RGB);		// Color space. Only RGB, ARGB & Gray.
 
 			/*
 			 * Dispose
