@@ -5,7 +5,7 @@
  */
 package com.jmupdf.page;
 
-import com.jmupdf.interfaces.LinkTypes;
+import com.jmupdf.enums.LinkType;
 
 /**
  * Links Class
@@ -13,12 +13,12 @@ import com.jmupdf.interfaces.LinkTypes;
  * @author Pedro J Rivera
  *
  */
-public class PageLinks implements LinkTypes {
+public class PageLinks {
 	private float x0;
 	private float y0;
 	private float x1;
 	private float y1;
-	private int type;
+	private LinkType type;
 	private String destination;
 
 	/**
@@ -35,7 +35,7 @@ public class PageLinks implements LinkTypes {
 		this.y0 = y0;
 		this.x1 = x1;
 		this.y1 = y1;
-		this.type = type;
+		this.type = LinkType.setType(type);
 		this.destination = destination;
 	}
 
@@ -108,7 +108,7 @@ public class PageLinks implements LinkTypes {
 	 * @see LinkTypes
 	 * @return
 	 */
-	public int getType() {
+	public LinkType getType() {
 		return type;
 	}
 

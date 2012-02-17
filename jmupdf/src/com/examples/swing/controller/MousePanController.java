@@ -39,6 +39,7 @@ import com.examples.swing.util.BareBonesBrowserLaunch;
 import com.examples.swing.util.ImageSelection;
 import com.examples.swing.view.MainView;
 import com.examples.swing.view.PageView;
+import com.jmupdf.enums.LinkType;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.page.PagePixels;
 import com.jmupdf.page.PageRect;
@@ -95,9 +96,9 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 	public void mouseReleased(MouseEvent e) {
 		if (leftButtonPressed) {
 			if (link != null) {
-				if (link.getType() == PageLinks.LINK_URL) {
+				if (link.getType() == LinkType.LINK_URL) {
 					BareBonesBrowserLaunch.openURL(link.getDestination());
-				} else if (link.getType() == PageLinks.LINK_GOTO) {
+				} else if (link.getType() == LinkType.LINK_GOTO) {
 					view.getPageNumber().setValue(Integer.valueOf(link.getDestination())+1);
 				}
 				link = null;

@@ -37,10 +37,26 @@ public class Links {
 			 * List out data
 			 */
 			for (int i=0; i<links.length; i++) {
-				if (links[i].getType() == 0)
+				switch (links[i].getType()) {
+				case LINK_GOTO:
 					System.out.println("Page #: " + links[i].getDestination());
-				else
+					break;
+				case LINK_URL:
 					System.out.println("URL: " + links[i].getDestination());
+					break;
+				case LINK_GOTOR:
+					System.out.println("GOTOR: " + links[i].getDestination());
+					break;
+				case LINK_LAUNCH:
+					System.out.println("LAUNCH: " + links[i].getDestination());
+					break;
+				case LINK_NAMED:
+					System.out.println("NAMED: " + links[i].getDestination());
+					break;
+				default:
+					System.out.println("Undefined");
+					break;
+				}					
 			}
 
 			/*
