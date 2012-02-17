@@ -28,7 +28,6 @@ public class XpsDocument extends Document  {
 	 */
 	public XpsDocument(String document, int maxStore) throws DocException, DocSecurityException {
 		open(document, null, DOC_TYPE, maxStore);
-		validate();
 	}
 	
 	/**
@@ -50,7 +49,6 @@ public class XpsDocument extends Document  {
 	 */
 	public XpsDocument(byte[] document, int maxStore) throws DocException, DocSecurityException {
 		open(document, null, DOC_TYPE, maxStore);
-		validate();
 	}
 	
 	/**
@@ -61,23 +59,6 @@ public class XpsDocument extends Document  {
 	 */
 	public XpsDocument(byte[] document) throws DocException, DocSecurityException {
 		this(document, 0);
-	}
-
-	/**
-	 * Validate handle value
-	 * @throws DocException
-	 * @throws DocSecurityException
-	 */
-	private void validate() throws DocException, DocSecurityException {
-		if (getHandle() > 0) {
-			return;
-		}
-		if (getHandle() == -1 || getHandle() == -2) {
-			throw new DocException("Error " + getHandle() + ": Document " + getDocumentName() + " could not be opened.");
-		}			
-		else {
-			throw new DocException("Unexpected error opening document.");
-		}			
 	}
 	
 	/**

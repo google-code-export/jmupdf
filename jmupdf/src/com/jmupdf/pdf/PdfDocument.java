@@ -31,7 +31,6 @@ public class PdfDocument extends Document {
 	 */
 	public PdfDocument(String document, String password, int maxStore) throws DocException, DocSecurityException {
 		open(document, password, DOC_TYPE, maxStore);
-		validate();
 	}
 
 	/**
@@ -76,7 +75,6 @@ public class PdfDocument extends Document {
 	 */
 	public PdfDocument(byte[] document, String password, int maxStore) throws DocException, DocSecurityException {
 		open(document, password, DOC_TYPE, maxStore);
-		validate();
 	}
 
 	/**
@@ -109,27 +107,6 @@ public class PdfDocument extends Document {
 	 */
 	public PdfDocument(byte[] document) throws DocException, DocSecurityException {
 		this(document, null, 0);
-	}
-
-	/**
-	 * Validate handle value
-	 * @param password
-	 * @throws DocException
-	 * @throws DocSecurityException
-	 */
-	private void validate() throws DocException, DocSecurityException {
-		if (getHandle() > 0) {
-			return;
-		}
-		if (getHandle() == -1 || getHandle() == -2) {
-			throw new DocException("Error " + getHandle() + ": Document " + getDocumentName() + " could not be opened.");
-		}
-		else if (getHandle() == -3) {
-			throw new DocSecurityException("Error " + getHandle() + ": Document requires authentication");
-		}
-		else {
-			throw new DocException("Unexpected error opening document.");
-		}		
 	}
 
 	/**

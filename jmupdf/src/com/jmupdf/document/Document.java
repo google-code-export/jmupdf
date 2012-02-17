@@ -16,6 +16,7 @@ import com.jmupdf.enums.ImageType;
 import com.jmupdf.enums.TifCompression;
 import com.jmupdf.enums.TifMode;
 import com.jmupdf.exceptions.DocException;
+import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.page.PageText;
@@ -45,7 +46,7 @@ public abstract class Document extends JmuPdf {
 	 * @param maxStore
 	 * @throws DocException
 	 */
-	public void open(String document, String password, DocumentType type, int maxStore) throws DocException {
+	public void open(String document, String password, DocumentType type, int maxStore) throws DocException, DocSecurityException  {
 		this.document = document;
 		this.password = password;
 		this.documentType = type;
@@ -65,6 +66,12 @@ public abstract class Document extends JmuPdf {
 		if (getHandle() > 0) {
 			this.pageCount = getPageCount(getHandle());
 			this.antiAliasLevel = getAntiAliasLevel(getHandle());
+		} else {
+			if (getHandle() == -3) {
+				throw new DocSecurityException("Error " + getHandle() + ": Document requires authentication");
+			} else {
+				throw new DocException("Error " + getHandle() + ": Document " + getDocumentName() + " could not be opened.");
+			}		
 		}
 	}
 
@@ -76,7 +83,7 @@ public abstract class Document extends JmuPdf {
 	 * @param maxStore
 	 * @throws DocException
 	 */
-	public void open(byte[] document, String password, DocumentType type, int maxStore) throws DocException {
+	public void open(byte[] document, String password, DocumentType type, int maxStore) throws DocException, DocSecurityException  {
 		try {
 			File tmp = File.createTempFile("jmupdf" + getClass().hashCode(), ".tmp");
 			tmp.deleteOnExit();
@@ -89,7 +96,7 @@ public abstract class Document extends JmuPdf {
             open(tmp.getAbsolutePath(), password, type, maxStore);
     		isCached = true;
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new DocException("Error: byte[] document could not be opened.");
 		}
 	}
 
