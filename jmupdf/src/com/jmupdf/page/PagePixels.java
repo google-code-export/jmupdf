@@ -254,14 +254,8 @@ public class PagePixels {
 				rotate += getPage().getRotation();
 			}
 		}
-	    
-		rotate = rotate % 360;
-	    
-		if (rotate < 0) { 
-	    	rotate = rotate + 360;
-		}
 
-		rotation = rotate;
+		rotation = PageRect.rotate360(rotate);
 	}
 	
 	/**

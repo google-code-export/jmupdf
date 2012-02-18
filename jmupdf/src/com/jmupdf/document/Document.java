@@ -136,7 +136,7 @@ public abstract class Document extends JmuPdf {
 	}
 	
 	/**
-	 * Get max memory used to store pdf information.
+	 * Get max memory used to store information.
 	 * @return
 	 */
 	public int getMaxStore() {

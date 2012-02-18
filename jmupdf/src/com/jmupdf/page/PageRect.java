@@ -160,11 +160,8 @@ public class PageRect {
      */
     public PageRect rotate(PageRect boundBox, int rotation) {
     	
-    	// Normalize rotation
-    	rotation = rotation % 360;
-    	if (rotation < 0) {
-    		rotation += 360;
-    	}
+    	// Assure a positive rotation
+    	rotation = rotate360(rotation);
 
     	// Exit if rotation = 0
     	if (rotation == Page.PAGE_ROTATE_NONE || rotation == Page.PAGE_ROTATE_360) {
@@ -241,6 +238,19 @@ public class PageRect {
     	PageRect b = boundBox.rotate(boundBox, fromRotation);
     	PageRect c = new PageRect(getX0(), getY0(), getX1(), getY1());
     	return c.rotate(b, -(fromRotation-toRotation));
+    }
+    
+    /**
+     * Convert a negative rotation to a positive rotation. 
+     * @param rotate
+     * @return
+     */
+    public static int rotate360(int rotate) {
+       	int rotation = rotate % 360;
+    	if (rotation < 0) {
+    		rotation += 360;
+    	}
+    	return rotation;
     }
     
     /**
