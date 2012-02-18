@@ -13,7 +13,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
- 
+
 /* 
  * NOTES:
  * ------ 
@@ -21,8 +21,6 @@
  * 
  *  (2) MakeJNI2 will need to be modified so that JVM_INCLUDES variable has the proper JVM
  *      include paths for the installed JVM.
- *
- *  (3) As of v0.3.0 pthreads is no longer required
  */
  
 ====================================================================================================
@@ -30,7 +28,7 @@
 ====================================================================================================
 Program Name      Date		  Description
 ================  ==========  ======================================================================
-MuPdf             Thu, 26 Jan 2012 19:24:12 +0000  git://git.ghostscript.com/mupdf.git
+MuPdf             Thu, 16 Feb 2012 00:32:00 +0000  git://git.ghostscript.com/mupdf.git
 ThirdParty        04/21/2011  Added TIFFLIB 3.9.5
 ThirdParty        07/31/2011  Added bmplib folder
 tiffiop.h         04/21/2011  Added !defined(__GNUC__) on line #65
@@ -40,7 +38,10 @@ tiffconf.h        04/21/2011  Custom config for GNUC
 ======================
 MuPDF customized code
 ======================
-draw_glyph.c	  01/14/2011  Increased MAX_FONT_SIZE from 1000 to 3000
+No custom modifications.
 
 
-  
+======================
+Dependencies
+======================
+There are no dependencies beyond the MuPDF binaries.
