@@ -225,7 +225,7 @@ public class PagePixels {
 		if (rotate == Page.PAGE_ROTATE_AUTO) {
 			rotate = Page.PAGE_ROTATE_NONE;
 		}
-		this.rotate = rotate;
+		this.rotate = PageRect.rotate360(rotate);
 		setDirty(true);
 	}
  
