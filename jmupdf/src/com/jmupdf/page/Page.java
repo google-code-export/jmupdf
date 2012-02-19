@@ -122,10 +122,11 @@ public class Page {
 	}
 	
 	/**
-	 * Get text from page. </br>
+	 * Get text from page. </br></br>
 	 * 
-	 * Optionally pass in a PagePixel object to determine how to extract text. </br>
-	 * If PagePixel object is null, then coordinates must assume zero rotation and 1f zoom. </br>
+	 * If PagePixel object is null then all coordinates are assumed to be in </br>
+	 * 1f zoom and 0 rotation. Otherwise the coordinates passed in must reflect </br>
+	 * the zoom factor and rotation of the PagePixel object passed in.</br></br>
 	 * 
 	 * @param pagePixels Optional
 	 * @param x
@@ -165,14 +166,15 @@ public class Page {
 
 		return text;
 	}
-	
+
 	/**
-	 * Get TextSpan Array Object. </br>
+	 * Get TextSpan Array Object. </br></br>
 	 * 
-	 * Optionally pass in a PagePixel object to determine how to extract text. </br>
-	 * If PagePixel object is null, then coordinates must assume zero rotation and 1f zoom. </br>
+	 * If PagePixel object is null then all coordinates are assumed to be in </br>
+	 * 1f zoom and 0 rotation. Otherwise the coordinates passed in must reflect </br>
+	 * the zoom factor and rotation of the PagePixel object passed in.</br></br>
 	 * 
-	 * @param pagePixels  Optional.
+	 * @param pagePixels Optional.
 	 * @param x
 	 * @param y
 	 * @param w
@@ -192,7 +194,7 @@ public class Page {
 		pr.setRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);		
 		pr = pr.rotate(getBoundBox(), rotate, PAGE_ROTATE_NONE);
 
-		return getDocument().getPageText(getPageNumber(), 1f, PAGE_ROTATE_NONE, (int)pr.getX0(), (int)pr.getY0(), (int)pr.getX1(), (int)pr.getY1());
+		return getDocument().getPageText(getPageNumber(), (int)pr.getX0(), (int)pr.getY0(), (int)pr.getX1(), (int)pr.getY1());
 	}
 
 	/**

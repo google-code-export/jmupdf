@@ -39,9 +39,9 @@ static void jni_draw_page(jni_document *hdoc, int pagen)
 /**
  * Load page text
  */
-static fz_text_span * jni_load_page_text(jni_document *hdoc, int pagen, float zoom, int rotate)
+static fz_text_span * jni_load_page_text(jni_document *hdoc, int pagen)
 {
-	fz_matrix ctm = jni_get_view_ctm(hdoc, zoom, rotate);
+	fz_matrix ctm = jni_get_view_ctm(hdoc, 1, 0);
 
 	fz_text_span *page_text = NULL;
 	fz_device *dev = NULL;
@@ -205,9 +205,11 @@ Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle, jint page
 
 /**
  * Get Page Text
+ *
+ * Coordinates are assumed to reflect a zoom factor of 1f and 0 rotation
  */
 JNIEXPORT jobjectArray JNICALL
-Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloat zoom, jint rotate, jint x0, jint y0, jint x1, jint y1)
+Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint pagen, jint x0, jint y0, jint x1, jint y1)
 {
 	jni_document *hdoc = jni_get_document(handle);
 
@@ -223,7 +225,7 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint p
 		return NULL;
 	}
 
-	fz_text_span *page_text = jni_load_page_text(hdoc, pagen, zoom, rotate);
+	fz_text_span *page_text = jni_load_page_text(hdoc, pagen);
 
 	if (!page_text)
 	{

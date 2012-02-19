@@ -243,17 +243,15 @@ public abstract class Document extends JmuPdf {
 	/**
 	 * Get page text
 	 * @param page
-	 * @param zoom
-	 * @param rotate
 	 * @param x0
 	 * @param y0
 	 * @param x1
 	 * @param y1
 	 * @return
 	 */
-	public PageText[] getPageText(int page, float zoom, int rotate, int x0, int y0, int x1, int y1) {
+	public PageText[] getPageText(int page, int x0, int y0, int x1, int y1) {
 		if (handle > 0) {
-			return getPageText(handle, page, zoom, rotate, x0, y0, x1, y1);
+			return getPageText(handle, page, x0, y0, x1, y1);
 		}
 		return null;
 	}

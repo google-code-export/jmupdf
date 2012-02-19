@@ -37,7 +37,7 @@ public abstract class JmuPdf {
 	protected native synchronized int getVersion(long handle);
 	protected native synchronized int getPageCount(long handle);
 	protected native synchronized float[] loadPage(long handle, int page);
-	protected native synchronized PageText[] getPageText(long handle, int page, float zoom, int rotate, int x0, int y0, int x1, int y1);
+	protected native synchronized PageText[] getPageText(long handle, int page, int x0, int y0, int x1, int y1);
 	protected native synchronized Outline getOutline(long handle);
 	protected native synchronized PageLinks[] getPageLinks(long handle, int page);
 	
