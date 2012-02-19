@@ -409,7 +409,7 @@ public class PageRenderer implements Runnable {
 			isPageRendering = true;
 			needsRendering();			
 
-			getPagePixels().drawPage(getX0(), getY0(), getX1(), getY1());
+			getPagePixels().drawPage(null, getX0(), getY0(), getX1(), getY1());
 			boundBox.setRect(getPagePixels().getX0(), getPagePixels().getY0(), getPagePixels().getX1(), getPagePixels().getY1());
 			
 		} catch (Exception e) {

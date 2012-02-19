@@ -42,7 +42,6 @@ import com.examples.swing.view.PageView;
 import com.jmupdf.enums.LinkType;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.page.PagePixels;
-import com.jmupdf.page.PageRect;
 
 /**
  * Mouse Panning Controller for View Port
@@ -279,28 +278,20 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 		Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
 
 		if (copyAsImage) {
-			float zoom = pageView.getRenderer().getZoom();
-			PageRect rect = new PageRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);
-			rect = rect.rotate(
-					pageView.getPage().getBoundBox(), 
-					pageView.getRenderer().getPagePixels().getRotation(), 
-					pageView.getPage().getRotation());
-
 			// Render region
 			PagePixels r = new PagePixels(pageView.getPage());
 			r.setAntiAliasLevel(pageView.getRenderer().getAntiAliasLevel());
 			r.setGamma(pageView.getRenderer().getGamma());
 			r.setColor(pageView.getRenderer().getColorType());
 			r.setRotate(pageView.getRenderer().getRotation());			
-			r.setZoom(zoom);
-			r.drawPage(rect.getX0(), rect.getY0(), rect.getX1(), rect.getY1());
+			r.setZoom(pageView.getRenderer().getZoom());
+			r.drawPage(pageView.getRenderer().getPagePixels(), x, y, x+w, y+h);
 
 			// Copy to clip board
 			ImageSelection is = new ImageSelection(r.getImage());			
 			cb.setContents(is, null);
 			r.dispose();
 		} else {
-			//log("cor: " + x + "," + y + "," +  w + "," +  h);
 			String text = pageView.getPage().getText(pageView.getRenderer().getPagePixels(), x, y, w, h);
 			StringSelection ss = new StringSelection(text);
 			cb.setContents(ss, null);

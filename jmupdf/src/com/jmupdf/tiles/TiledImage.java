@@ -56,6 +56,7 @@ public class TiledImage {
 	 */
 	public void render() {
 		getPagePixels().drawPage(
+				 null,
 				 pixRect.getX0() / getPagePixels().getZoom(), 
 				 pixRect.getY0() / getPagePixels().getZoom(), 
 				 pixRect.getX1() / getPagePixels().getZoom(), 
@@ -139,7 +140,7 @@ public class TiledImage {
 
 		// Rotate to default page rotation
 		pixRect.setRect(getX(), getY(), getWidth(), getHeight());
-		pixRect = pixRect.rotate(bb, getPagePixels().getRotation(), getPage().getRotation());
+		pixRect = pixRect.rotate(bb, getPagePixels().getRotation(), Page.PAGE_ROTATE_NONE);
 	}
 
 	/**

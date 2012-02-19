@@ -24,21 +24,24 @@ public class Pdf_2_BufferedImage_Pixels {
 			/*
 			 * Open document
 			 */
-			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_tests\\test05.pdf", "");
+			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_tests\\test01.pdf", "");
 			//PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_tests\\iTextAction.pdf", "");
 			
 			/*
 			 * Get page object
 			 */
 			Page page = pdfDoc.getPage(1);
-
+			log("PR: " + page.getRotation());
+			
 			/*
 			 * Get pixel object
 			 */
 			PagePixels pp = new PagePixels(page);
 			//pp.setColor(PagePixels.IMAGE_TYPE_RGB);
-			pp.setRotate(Page.PAGE_ROTATE_AUTO);			
-			pp.drawPage(509f,569f, 564f, 756f);
+			pp.setRotate(Page.PAGE_ROTATE_AUTO);
+			log("PR: " + pp.getRotation());
+			log("PR: " + pp.getRotate());
+			//pp.drawPage(509f,569f, 564f, 756f);
 			//pp.drawPage(175, 385, 200, 500);
 			//pp.drawPage(385, 465, 500, 500);
 			

@@ -246,15 +246,9 @@ public class PagePixels {
 	 */
 	private void setRotation() {
 		int rotate = getRotate();
-		
 		if (rotate == Page.PAGE_ROTATE_AUTO) {
-			rotate = getPage().getRotation();
-		} else {
-			if (rotate != Page.PAGE_ROTATE_NONE) {
-				rotate += getPage().getRotation();
-			}
+			rotate = Page.PAGE_ROTATE_NONE;
 		}
-
 		rotation = PageRect.rotate360(rotate);
 	}
 	
@@ -339,22 +333,35 @@ public class PagePixels {
 	}
 
 	/**
-	 * Draw page image. </br>
+	 * Draw page image. </br></br>
+	 * 
 	 * The coordinates passed in is the region to render </br>
-	 * The coordinates should be based on the pages default rotation and a zoom level of 1f. </br> 
+	 * 
+	 * If PagePixel object is null, then coordinates must assume zero rotation and 1f zoom. </br></br>
+	 * 
+	 * If PagePixel object is passed in then coordinates are assumed to be based on PagePixel </br>
+	 * zoom and rotation. 
+	 * 
+	 * @param pagePixels Optional 
 	 * @param x0
 	 * @param y0
 	 * @param x1
 	 * @param y1
 	 */
-	public void drawPage(float x0, float y0, float x1, float y1) {
+	public void drawPage(PagePixels pagePixels, float x0, float y0, float x1, float y1) {
 		
 		if (!isDirty()) {
 			return;
 		}
 		
-		getBoundBox().setRect(x0, y0, x1, y1);
-		PageRect c = getBoundBox().rotate(getPage().getBoundBox(), getPage().getRotation(), 0);
+		if (pagePixels != null) {
+			float zoom = pagePixels.getZoom();
+			PageRect rect = new PageRect(x0/zoom, y0/zoom, x1/zoom, y1/zoom);
+			rect = rect.rotate(getPage().getBoundBox(), pagePixels.getRotation(), Page.PAGE_ROTATE_NONE);
+			getBoundBox().setRect(rect.getX0(), rect.getY0(), rect.getX1(), rect.getY1());
+		} else {
+			getBoundBox().setRect(x0, y0, x1, y1);	
+		}
 		
 		int[] bbox = new int[4];
 		
@@ -365,10 +372,10 @@ public class PagePixels {
 				 getColor(),
 				 getGamma(),
 				 bbox, 
-				 c.getX0(), 
-				 c.getY0(), 
-				 c.getX1(), 
-				 c.getY1());
+				 getX0(), 
+				 getY0(), 
+				 getX1(), 
+				 getY1());
 
 		if (buffer != null || pixels != null) {
 			getBoundBox().setRect(bbox[0], bbox[1], bbox[2], bbox[3]);			

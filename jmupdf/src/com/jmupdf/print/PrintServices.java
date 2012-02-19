@@ -42,6 +42,7 @@ import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
+import com.jmupdf.page.PageRect;
 import com.jmupdf.pdf.PdfDocument;
 import com.jmupdf.tiles.TileCache;
 import com.jmupdf.tiles.TiledImage;
@@ -302,8 +303,12 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 		/* TODO: Add page centering, etc. */
 		int x = (int)pageFormat.getImageableX();
 		int y = (int)pageFormat.getImageableY();
-		int w = page.getWidth();
-		int h = page.getHeight();
+		
+		PageRect rect = page.getBoundBox();
+		rect = rect.rotate(rect, rotate==0?0:90);
+		
+		int w = rect.getWidth();
+		int h = rect.getHeight();
 
 		if (w > (int)pageFormat.getImageableWidth() || stretch)
 			w = (int)pageFormat.getImageableWidth();
@@ -325,15 +330,9 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
         int gx = x;
         int gy = y;
         int gw = w;
-        int gh = 0;
-        int tw = 0;
+        int gh = 0;        
         int th = tileH;
-        
-        if (rotate == Page.PAGE_ROTATE_NONE) {
-        	tw = (int)(Math.ceil(page.getWidth()*zoomFactor));
-        } else {
-        	tw = (int)(Math.ceil(page.getHeight()*zoomFactor));
-        }
+        int tw = (int)(Math.ceil(rect.getHeight()*zoomFactor));
 
         /* Create tile cache */
 		tc = new TileCache(page, colorSpace, rotate, zoomFactor, tw, th);
@@ -341,7 +340,7 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 		int totalTiles = tc.getTiles().size();
 		
 		/* Adjust tile height if source is greater than target */
-		if (page.getHeight() > (int)pageFormat.getImageableHeight()) {			
+		if (rect.getHeight() > (int)pageFormat.getImageableHeight()) {			
 			if (totalTiles > 1) {
 				gh = h / tc.getTiles().size();
 				int firstTileH = tc.getTiles().get(0).getHeight();
@@ -354,7 +353,7 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 		} else {
 			gh = (int)(tileH / zoomFactor);
 			if (stretch) {
-				int spread = (int)pageFormat.getImageableHeight() - page.getHeight();
+				int spread = (int)pageFormat.getImageableHeight() - rect.getHeight();
 				gh += spread / tc.getTiles().size();
 			}
 		}
