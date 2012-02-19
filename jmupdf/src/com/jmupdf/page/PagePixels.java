@@ -432,7 +432,7 @@ public class PagePixels {
 	/**
 	 * Return a new copy of PagePixels object
 	 */
-	public Object clone() {
+	public PagePixels clone() {
 		PagePixels p = new PagePixels(getPage());
 		p.setAntiAliasLevel(getAntiAliasLevel());
 		p.setColor(getColor());

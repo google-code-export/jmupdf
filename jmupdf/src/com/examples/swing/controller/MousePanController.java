@@ -279,12 +279,7 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 
 		if (copyAsImage) {
 			// Render region
-			PagePixels r = new PagePixels(pageView.getPage());
-			r.setAntiAliasLevel(pageView.getRenderer().getAntiAliasLevel());
-			r.setGamma(pageView.getRenderer().getGamma());
-			r.setColor(pageView.getRenderer().getColorType());
-			r.setRotation(pageView.getRenderer().getRotation());			
-			r.setZoom(pageView.getRenderer().getZoom());
+			PagePixels r = pageView.getRenderer().getPagePixels().clone();
 			r.drawPage(pageView.getRenderer().getPagePixels(), x, y, x+w, y+h);
 
 			// Copy to clip board

@@ -11,13 +11,10 @@ import javax.swing.JComponent;
 
 import com.jmupdf.enums.ImageType;
 
-
 /**
- * PdfRenderer class.</br>
+ * PdfRenderer class.</br></br>
  * 
- * This class is responsible for rendering a page to a {@code BufferedImage}. </br></br>
- * 
- * The object is reusable. </br></br>
+ * This is a helper class to render pages either in current thread or in the background. </br></br>
  * 
  * Implements Runnable 
  * 
@@ -25,8 +22,8 @@ import com.jmupdf.enums.ImageType;
  *
  */
 public class PageRenderer implements Runnable {
-	private PageRect boundBox;
 	private PagePixels pagePixels;
+	private PageRect boundBox;
 	private PageRendererWorker worker;
 	private JComponent component;
 	private boolean isPageRendered;

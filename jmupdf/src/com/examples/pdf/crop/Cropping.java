@@ -36,7 +36,8 @@ public class Cropping {
 			 * Get rendering object
 			 */
 			PageRenderer render = new PageRenderer(page, 1f, Page.PAGE_ROTATE_90, ImageType.IMAGE_TYPE_RGB);
-			render.setCroppingArea(40f,500f,218f,564f);
+			render.setCroppingArea(560f,50f,755f,100f);
+			//render.setCroppingArea(40f,500f,218f,564f);
 			//512,575,752,563
 			//78.0, 287.0, 146.0, 306.0
 			//146.0, 289.0, 474.0, 305.0
