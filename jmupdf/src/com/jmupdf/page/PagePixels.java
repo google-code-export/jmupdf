@@ -26,7 +26,6 @@ public class PagePixels {
 	private float zoom;
 	private float resolution;
 	private int rotate;
-	private int rotation;
 	private ImageType color;
 	private boolean isDirty;
 	private static int default_resolution = 72;
@@ -39,12 +38,11 @@ public class PagePixels {
 		this.boundBox = new PageRect();
 		this.gamma = 1f;
 		this.zoom = 1f;
-		this.rotate = 0;
+		this.rotate = Page.PAGE_ROTATE_NONE;
 		this.resolution = default_resolution;
 		this.color = ImageType.IMAGE_TYPE_RGB; 
 		this.pixels = null;
 		this.image = null;
-		setRotation();
 		this.isDirty = true;
 	}
 
@@ -212,7 +210,7 @@ public class PagePixels {
 	 * Get image rotation.
 	 * @return
 	 */
-	public int getRotate() {
+	public int getRotation() {
 		return rotate;
 	}
 	
@@ -220,38 +218,17 @@ public class PagePixels {
 	 * Set image rotation. Default value is 0.
 	 * @param rotate
 	 */
-	public void setRotate(int rotate) {
-		if (getRotate() == rotate) {
+	public void setRotation(int rotate) {
+		if (getRotation() == rotate) {
 			return;
 		}
-		this.rotate = rotate;
-		setRotation();
-		setDirty(true);
-	}
-
-	/**
-	 * Get actual rotation
-	 * This will return whatever rotation is being requested </br> 
-	 * plus any default page rotations stored in the page. </br>
-	 * In other words, this will be the actual rotation performed on the image </br>
-	 * which is not necessarily the getRotate() value.
-	 * @return
-	 */
-	public int getRotation() {
-		return rotation;
-	}
-
-	/**
-	 * Set actual rotation
-	 */
-	private void setRotation() {
-		int rotate = getRotate();
 		if (rotate == Page.PAGE_ROTATE_AUTO) {
 			rotate = Page.PAGE_ROTATE_NONE;
 		}
-		rotation = PageRect.rotate360(rotate);
+		this.rotate = rotate;
+		setDirty(true);
 	}
-	
+ 
 	/**
 	 * Get color type
 	 * @return
@@ -335,12 +312,9 @@ public class PagePixels {
 	/**
 	 * Draw page image. </br></br>
 	 * 
-	 * The coordinates passed in is the region to render </br>
-	 * 
-	 * If PagePixel object is null, then coordinates must assume zero rotation and 1f zoom. </br></br>
-	 * 
-	 * If PagePixel object is passed in then coordinates are assumed to be based on PagePixel </br>
-	 * zoom and rotation. 
+	 * If PagePixel object is null then all coordinates are assumed to be in </br>
+	 * 1f zoom and 0 rotation. Otherwise the coordinates passed in must reflect </br>
+	 * the zoom factor and rotation of the PagePixel object passed in.</br></br>
 	 * 
 	 * @param pagePixels Optional 
 	 * @param x0
@@ -463,7 +437,7 @@ public class PagePixels {
 		p.setAntiAliasLevel(getAntiAliasLevel());
 		p.setColor(getColor());
 		p.setGamma(getGamma());
-		p.setRotate(getRotate());
+		p.setRotation(getRotation());
 		p.setZoom(getZoom());
 		return p;
 	}

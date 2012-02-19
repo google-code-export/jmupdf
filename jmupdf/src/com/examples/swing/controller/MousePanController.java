@@ -283,7 +283,7 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 			r.setAntiAliasLevel(pageView.getRenderer().getAntiAliasLevel());
 			r.setGamma(pageView.getRenderer().getGamma());
 			r.setColor(pageView.getRenderer().getColorType());
-			r.setRotate(pageView.getRenderer().getRotation());			
+			r.setRotation(pageView.getRenderer().getRotation());			
 			r.setZoom(pageView.getRenderer().getZoom());
 			r.drawPage(pageView.getRenderer().getPagePixels(), x, y, x+w, y+h);
 

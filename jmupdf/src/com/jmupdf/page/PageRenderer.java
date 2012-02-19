@@ -182,7 +182,7 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public int getRotation() {
-		return getPagePixels().getRotate();
+		return getPagePixels().getRotation();
 	}
 	
 	/**
@@ -191,7 +191,7 @@ public class PageRenderer implements Runnable {
 	 */
 	public void setRotation(int rotate) {
 		if (!isPageRendering()) {
-			getPagePixels().setRotate(rotate);
+			getPagePixels().setRotation(rotate);
 			needsRendering();
 		}
 	}

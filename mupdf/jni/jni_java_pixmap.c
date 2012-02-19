@@ -124,16 +124,6 @@ static fz_pixmap *jni_get_pixmap(jni_document *hdoc, int pagen, float zoom, int 
 		fz_set_aa_level(hdoc->ctx, hdoc->anti_alias_level);
 	}
 
-	// Normalize rotation
-	if (rotate == -1)
-	{
-		rotate = 0;
-		if (hdoc->doc_type == DOC_PDF)
-		{
-			rotate = ((pdf_page*)hdoc->page)->rotate;
-		}
-	}
-
 	// Get Current Transformation Matrix
 	fz_matrix ctm = jni_get_view_ctm(hdoc, zoom, rotate);
 

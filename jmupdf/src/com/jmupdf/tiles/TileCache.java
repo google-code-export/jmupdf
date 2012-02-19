@@ -40,7 +40,7 @@ public class TileCache {
 		
 		PagePixels pagePixels = new PagePixels(page);
 		pagePixels.setZoom(zoom);
-		pagePixels.setRotate(rotate);
+		pagePixels.setRotation(rotate);
 		pagePixels.setColor(color);
 		
 		// Rotate page as we want to display it

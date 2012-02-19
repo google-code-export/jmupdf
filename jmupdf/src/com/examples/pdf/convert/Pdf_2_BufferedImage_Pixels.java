@@ -31,17 +31,13 @@ public class Pdf_2_BufferedImage_Pixels {
 			 * Get page object
 			 */
 			Page page = pdfDoc.getPage(1);
-			log("PR: " + page.getRotation());
 			
 			/*
 			 * Get pixel object
 			 */
 			PagePixels pp = new PagePixels(page);
-			//pp.setColor(PagePixels.IMAGE_TYPE_RGB);
-			pp.setRotate(Page.PAGE_ROTATE_AUTO);
-			log("PR: " + pp.getRotation());
-			log("PR: " + pp.getRotate());
-			//pp.drawPage(509f,569f, 564f, 756f);
+			pp.setRotation(Page.PAGE_ROTATE_NONE);			
+			pp.drawPage(null, pp.getX0(),pp.getY0(), pp.getX1(), pp.getY1());
 			//pp.drawPage(175, 385, 200, 500);
 			//pp.drawPage(385, 465, 500, 500);
 			
