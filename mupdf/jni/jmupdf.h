@@ -11,7 +11,7 @@
 #include "jni.h"
 
 // Define JMuPdf internal version
-#define JMUPDF_VERSION "0.3.5"
+#define JMUPDF_VERSION "0.4.0"
 
 // Pointer conversions for x86 and x64
 #define jni_jlong_to_ptr(a) ((void *)(uintptr_t)(a))
