@@ -29,7 +29,7 @@ public class Pdf_Outline {
 			t += " ";
 		
 		while (o != null) {
-			log(t + o.getTitle() + " " + o.getPage());
+			log(t + o.getTitle() + " " + o.getPage() + " (" + o.getDestination() + ")");
 			if (o.getChild() != null) {
 				debug_outline(o.getChild(), level + 2);
 			}

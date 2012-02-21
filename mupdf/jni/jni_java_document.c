@@ -126,25 +126,60 @@ static int jni_open_document(jni_document *hdoc, const char *file, char *passwor
  */
 static void jni_load_outline(JNIEnv *env, jclass cls, jobject obj,
 		                     jmethodID add_next, jmethodID add_child,
-		                     jmethodID set_page, jmethodID set_title,
-		                     jni_document *hdoc, fz_outline *outline)
+		                     jmethodID set_page, jmethodID set_dest, jmethodID set_title,
+		                     jmethodID set_type, jni_document *hdoc, fz_outline *outline)
 {
+	char *buf;
+	int type;
+	int page;
 	while (outline)
 	{
+		switch (outline->dest.kind) {
+			case FZ_LINK_GOTO:
+				type = 1;
+				page = outline->dest.ld.gotor.page + 1;
+				break;
+			case FZ_LINK_URI:
+				type = 2;
+				buf = outline->dest.ld.uri.uri;
+				break;
+			case FZ_LINK_LAUNCH:
+				type = 3;
+				buf = outline->dest.ld.launch.file_spec;
+				break;
+			case FZ_LINK_NAMED:
+				type = 4;
+				buf = outline->dest.ld.named.named;
+				break;
+			case FZ_LINK_GOTOR:
+				type = 5;
+				buf = outline->dest.ld.gotor.file_spec;
+				break;
+			default:
+				type = 0;
+				break;
+		}
+		if (type > 0)
+		{
+			jni_outline_set_type_call(obj, set_type, type);
+			if (type == 1)
+			{
+				jni_outline_set_page_call(obj, set_page, page);
+			}
+			else
+			{
+				jni_outline_set_destination_call(obj, set_dest, buf);
+			}
+		}
 		if (outline->title)
 		{
 			jstring title = jni_new_string(outline->title);
 			jni_outline_set_title_call(obj, set_title, title);
 		}
-		if (outline->dest.kind == FZ_LINK_GOTO)
-		{
-			int page = outline->dest.ld.gotor.page + 1;
-			jni_outline_set_title_call(obj, set_page, page);
-		}
 		if (outline->down)
 		{
 			jobject new_child = jni_outline_add_child_call(obj, add_child);
-			jni_load_outline(env, cls, new_child, add_next, add_child, set_page, set_title, hdoc, outline->down);
+			jni_load_outline(env, cls, new_child, add_next, add_child, set_page, set_dest, set_title, set_type, hdoc, outline->down);
 		}
 		outline = outline->next;
 		if (outline)
@@ -242,12 +277,14 @@ Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass obj, jlong handle)
 	jmethodID add_next  = jni_get_outline_add_next(cls);
 	jmethodID add_child = jni_get_outline_add_child(cls);
 	jmethodID set_page  = jni_get_outline_set_page(cls);
+	jmethodID set_dest  = jni_get_outline_set_destination(cls);
 	jmethodID set_title = jni_get_outline_set_title(cls);
+	jmethodID set_type  = jni_get_outline_set_type(cls);
 
 	fz_outline *outline = NULL;
 	jobject out = NULL;
 
-	if(init > 0 && add_next > 0 && add_child > 0 && set_page > 0 && set_title > 0)
+	if(init > 0 && add_next > 0 && add_child > 0 && set_page > 0 && set_title > 0 && set_dest > 0 && set_type > 0)
 	{
 		outline = fz_load_outline(hdoc->doc);
 		if (outline)
@@ -255,7 +292,7 @@ Java_com_jmupdf_JmuPdf_getOutline(JNIEnv *env, jclass obj, jlong handle)
 			out = jni_new_outline_obj(cls, init);
 			if (out)
 			{
-				jni_load_outline(env, cls, out, add_next, add_child, set_page, set_title, hdoc, outline);
+				jni_load_outline(env, cls, out, add_next, add_child, set_page, set_dest, set_title, set_type, hdoc, outline);
 			}
 		}
 	}
