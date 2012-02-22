@@ -122,11 +122,16 @@ public class MainView {
 	}
 	
 	/**
-	 * Set default look and feel
+	 * Set default look and feel  
 	 */
-	private void setLookAndFeel() {
+	private void setLookAndFeel() {		
 		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			String os = System.getProperty("os.name");
+			if (os.equals("Linux")) {
+				UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+			} else {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());	
+			}
 		} catch (Exception e) {
 			// - Oh well
 		}
