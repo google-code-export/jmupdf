@@ -29,6 +29,12 @@ public class PageRenderer implements Runnable {
 	private boolean isPageRendered;
 	private boolean isPageRendering;
 	
+	private float zoom;
+	private int rotation;
+	private ImageType color;
+	private float gamma;
+	private int antiAlias;
+	
 	/**
 	 * Create renderer instance with default values. 
 	 */
@@ -55,11 +61,11 @@ public class PageRenderer implements Runnable {
 	 */
 	public PageRenderer(Page page, float zoom, int rotate, ImageType color) {
 		this.boundBox = new PageRect();
-		setPage(page);
 		setZoom(zoom);
 		setRotation(rotate);
 		setColorType(color);
 		setGamma(1f);
+		setPage(page);
 	}
 
 	/**
@@ -179,7 +185,7 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public int getRotation() {
-		return getPagePixels().getRotation();
+		return rotation;
 	}
 	
 	/**
@@ -187,8 +193,11 @@ public class PageRenderer implements Runnable {
 	 * @param rotate
 	 */
 	public void setRotation(int rotate) {
-		if (!isPageRendering()) {
-			getPagePixels().setRotation(rotate);
+		if (getRotation() == rotate) {
+			return;
+		}
+		if (!isPageRendering()) {			
+			this.rotation = rotate;
 			needsRendering();
 		}
 	}
@@ -198,7 +207,7 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public float getZoom() {
-		return getPagePixels().getZoom();
+		return zoom;
 	}
 
 	/**
@@ -206,8 +215,11 @@ public class PageRenderer implements Runnable {
 	 * @param zoom
 	 */
 	public void setZoom(float zoom) {
+		if (getZoom() == zoom) {
+			return;
+		}
 		if (!isPageRendering()) {
-			getPagePixels().setZoom(zoom);
+			this.zoom = zoom;
 			needsRendering();
 		}
 	}
@@ -217,7 +229,7 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public ImageType getColorType() {		
-		return getPagePixels().getColor();
+		return color;
 	}
 
 	/**
@@ -225,8 +237,11 @@ public class PageRenderer implements Runnable {
 	 * @param color
 	 */
 	public void setColorType(ImageType color) {
+		if (getColorType() == color) {
+			return;
+		}
 		if (!isPageRendering()) {
-			getPagePixels().setColor(color);
+			this.color = color;
 			needsRendering();
 		}
 	}
@@ -236,7 +251,7 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public float getGamma() {
-		return getPagePixels().getGamma();
+		return gamma;
 	}
 
 	/**
@@ -248,8 +263,11 @@ public class PageRenderer implements Runnable {
 	 * @param gamma
 	 */
 	public void setGamma(float gamma) {
+		if (getGamma() == gamma) {
+			return;
+		}
 		if (!isPageRendering()) {
-			getPagePixels().setGamma(gamma);
+			this.gamma = gamma;
 			needsRendering();
 		}
 	}
@@ -259,7 +277,7 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public int getAntiAliasLevel() {
-		return getPage().getDocument().getAntiAliasLevel();
+		return antiAlias;
 	}
 	
 	/**
@@ -270,8 +288,11 @@ public class PageRenderer implements Runnable {
 	 * @param level
 	 */
 	public void setAntiAliasLevel(int level) {
+		if (getAntiAliasLevel() == level) {
+			return;
+		}
 		if (!isPageRendering()) {
-			getPage().getDocument().setAntiAliasLevel(level);
+			this.antiAlias = level;
 			needsRendering();
 		}
 	}
@@ -281,6 +302,9 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public float getResolution() {
+		if (getPagePixels() == null) {
+			return 0;
+		}
 		return getPagePixels().getResolution();
 	}
 
@@ -338,6 +362,11 @@ public class PageRenderer implements Runnable {
 			}
 			if (page != null) {
 				pagePixels = new PagePixels(page);
+				pagePixels.setAntiAliasLevel(getAntiAliasLevel());
+				pagePixels.setColor(getColorType());
+				pagePixels.setGamma(getGamma());
+				pagePixels.setRotation(getRotation());
+				pagePixels.setZoom(getZoom());
 			}
 			needsRendering();
 		}

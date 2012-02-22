@@ -56,7 +56,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	private float zoom = 1f;
 	private int antiAliasLevel = 8;
 	private float gammaLevel = 1f;
-	private ImageType color; // = Document.IMAGE_TYPE_ARGB;
+	private ImageType color = ImageType.IMAGE_TYPE_RGB;
 	private boolean isOpened = false;
 	private boolean isZooming = false;
 	private int maxStore = 60; 
