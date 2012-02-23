@@ -198,6 +198,9 @@ public class PageRenderer implements Runnable {
 		}
 		if (!isPageRendering()) {			
 			this.rotation = rotate;
+			if (getPagePixels() != null) {
+				getPagePixels().setRotation(rotate);
+			}
 			needsRendering();
 		}
 	}
@@ -220,6 +223,9 @@ public class PageRenderer implements Runnable {
 		}
 		if (!isPageRendering()) {
 			this.zoom = zoom;
+			if (getPagePixels() != null) {
+				getPagePixels().setZoom(zoom);
+			}
 			needsRendering();
 		}
 	}
@@ -242,6 +248,9 @@ public class PageRenderer implements Runnable {
 		}
 		if (!isPageRendering()) {
 			this.color = color;
+			if (getPagePixels() != null) {
+				getPagePixels().setColor(color);
+			}
 			needsRendering();
 		}
 	}
@@ -266,8 +275,11 @@ public class PageRenderer implements Runnable {
 		if (getGamma() == gamma) {
 			return;
 		}
-		if (!isPageRendering()) {
+		if (!isPageRendering()) {			
 			this.gamma = gamma;
+			if (getPagePixels() != null) {
+				getPagePixels().setGamma(gamma);
+			}
 			needsRendering();
 		}
 	}
@@ -293,6 +305,9 @@ public class PageRenderer implements Runnable {
 		}
 		if (!isPageRendering()) {
 			this.antiAlias = level;
+			if (getPagePixels() != null) {
+				getPagePixels().setAntiAliasLevel(level);
+			}
 			needsRendering();
 		}
 	}
