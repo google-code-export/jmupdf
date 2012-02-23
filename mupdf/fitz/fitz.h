@@ -1603,6 +1603,7 @@ struct fz_link_dest_s
 			fz_point rb;
 			char *file_spec;
 			int new_window;
+			char *rname; /* SumatraPDF: allow to resolve against remote documents */
 		}
 		gotor;
 		struct
@@ -1615,6 +1616,7 @@ struct fz_link_dest_s
 		{
 			char *file_spec;
 			int new_window;
+			fz_obj *embedded; /* SumatraPDF: support launching embedded files */
 		}
 		launch;
 		struct

@@ -471,4 +471,10 @@ void pdf_run_page_with_usage(pdf_document *doc, pdf_page *page, fz_device *dev, 
 void pdf_run_page(pdf_document *doc, pdf_page *page, fz_device *dev, fz_matrix ctm, fz_cookie *cookie);
 void pdf_run_glyph(pdf_document *doc, fz_obj *resources, fz_buffer *contents, fz_device *dev, fz_matrix ctm, void *gstate);
 
+/* SumatraPDF: parse full file specifications */
+char *pdf_file_spec_to_str(fz_context *ctx, fz_obj *file_spec);
+
+/* SumatraPDF: allow to synthesize XObjects (cf. pdf_create_annot) */
+pdf_xobject *pdf_create_xobject(fz_context *ctx, fz_obj *dict);
+
 #endif
