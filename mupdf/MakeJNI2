@@ -38,7 +38,7 @@ JNI_DLL := $(OUT)/libjmupdf64.so
 else
 JNI_DLL := $(OUT)/libjmupdf32.so
 endif
-JNI_CMD := --enable-shared -Wl,-export-all -shared
+JNI_CMD := -shared
 JVM_INCLUDES := -I"/usr/lib/jvm/java-6-openjdk/include" -I"/usr/lib/jvm/java-6-openjdk/include/linux"
 endif
 
