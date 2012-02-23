@@ -129,6 +129,7 @@ static void jni_load_outline(JNIEnv *env, jclass cls, jobject obj,
 		                     jmethodID set_page, jmethodID set_dest, jmethodID set_title,
 		                     jmethodID set_type, jni_document *hdoc, fz_outline *outline)
 {
+	jstring text;
 	char *buf;
 	int type;
 	int page;
@@ -168,7 +169,9 @@ static void jni_load_outline(JNIEnv *env, jclass cls, jobject obj,
 			}
 			else
 			{
-				jni_outline_set_destination_call(obj, set_dest, buf);
+				text = jni_new_string(buf);
+				if (buf)
+					jni_outline_set_destination_call(obj, set_dest, text);
 			}
 		}
 		if (outline->title)
