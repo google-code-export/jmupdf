@@ -128,12 +128,16 @@ public class MainView {
 		try {
 			String os = System.getProperty("os.name");
 			if (os.equals("Linux")) {
-				UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
 			} else {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());	
 			}
 		} catch (Exception e) {
-			// - Oh well
+			try {
+				UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());				
+			} catch (Exception e2) {
+				// Well, we did the best we could!
+			}
 		}
 	}
 
