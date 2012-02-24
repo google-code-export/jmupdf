@@ -24,13 +24,13 @@ public class Pdf_2_BufferedImage_Pixels {
 			/*
 			 * Open document
 			 */
-			PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_tests\\test01.pdf", "");
+			PdfDocument pdfDoc = new PdfDocument("C:\\Users\\Pedro\\Downloads\\test-2.pdf", "");
 			//PdfDocument pdfDoc = new PdfDocument("E:\\development\\indigo\\workspace_jmupdf-old\\pdf_tests\\iTextAction.pdf", "");
 			
 			/*
 			 * Get page object
 			 */
-			Page page = pdfDoc.getPage(1);
+			Page page = pdfDoc.getPage(2);
 			
 			/*
 			 * Get pixel object
@@ -50,7 +50,7 @@ public class Pdf_2_BufferedImage_Pixels {
 			/*
 			 * Save to disk for review
 			 */
-			ImageIO.write(pp.getImage(), "PNG", new File("e:\\tmp\\test-1.jpg"));
+			ImageIO.write(pp.getImage(), "PNG", new File("C:\\Users\\Pedro\\Downloads\\test-1.jpg"));
 			
 			/*
 			 * Dispose

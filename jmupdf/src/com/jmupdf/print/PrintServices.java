@@ -74,7 +74,7 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	private ImageType colorSpace;
 	private int rotate;
 	
-	private boolean customResolution = false;
+	private boolean isCustomResolution = false;
 	private float zoomFactor = 1f;
 	
 	private boolean pureBlackWhite = false;
@@ -82,7 +82,8 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	
 	// TODO: private boolean center = false;
 	private boolean stretch = false;
-	
+	private boolean autoRotate = false;
+
 	private final PrintQuality defaultPrintQuality = PrintQuality.NORMAL;
 	private final MediaSizeName defualtMediaSize = MediaSizeName.NA_LETTER;
 	private final Chromaticity defaultChromacity = Chromaticity.MONOCHROME; 
@@ -290,8 +291,8 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
         // Load page, and load it only once
 		if (page == null || currentPage != page.getPageNumber()) {						
 			page = document.getPage(currentPage);
-			if (!customResolution) {
-				float z = (float)page.getWidth() / (float)pageFormat.getImageableWidth();
+			if (!isCustomResolution()) {
+				float z = (float)page.getWidth() / (float)pageFormat.getWidth();
 				zoomFactor = (float)g2.getTransform().getScaleX();
 				if (z > 1) {
 					zoomFactor /= z;
@@ -301,23 +302,78 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 
 		/* Setup page region */
 		/* TODO: Add page centering, etc. */
-		int x = (int)pageFormat.getImageableX();
-		int y = (int)pageFormat.getImageableY();
-		
+
 		PageRect rect = page.getBoundBox();
-		rect = rect.rotate(rect, rotate==0?0:90);
+		int rotation = rotate;
 		
-		int w = rect.getWidth();
-		int h = rect.getHeight();
+		// Page format ...
+		int px = 0; 
+		int py = 0; 
+		int pw = (int)pageFormat.getWidth(); 
+		int ph = (int)pageFormat.getHeight();
 
-		if (w > (int)pageFormat.getImageableWidth() || stretch)
-			w = (int)pageFormat.getImageableWidth();
+		/*
+		 * Auto rotate page?
+		 */
+		if (isAutoRotate()) {
+			if (rect.getWidth() > rect.getHeight()) {
+				rotation = Page.PAGE_ROTATE_90;
+			} else {
+				rotation = Page.PAGE_ROTATE_NONE;
+			}
+			/* Consider internal rotation */
+			if (page.getRotation() == Page.PAGE_ROTATE_90) {
+				rotation = Page.PAGE_ROTATE_270;
+			} else if(page.getRotation() == Page.PAGE_ROTATE_270) {
+				rotation = Page.PAGE_ROTATE_90;
+			}
+			rect = rect.rotate(rect, rotation);
+		}
+		
+		/*
+		 * Print as is?
+		 */
+		if (!isAutoRotate()) {
+			
+			/* Consider internal rotation */
+			if (page.getRotation() != Page.PAGE_ROTATE_NONE) {
+				
+				/* Landscape */
+				if (rotation == Page.PAGE_ROTATE_90) {
+					rotation = 270;
+					PageRect pr = rect.rotate(rect, Page.PAGE_ROTATE_90);
+					pw = pr.getWidth(); 
+					ph = pr.getHeight();
+					
+				/* Portrait */		
+				} else {  
+					rotation = 0;
+					PageRect pr = rect.rotate(rect, Page.PAGE_ROTATE_90);
+					pw = pr.getWidth(); 
+					ph = pr.getHeight();					
+				}
+			
+			/* Normal processing */
+			} else {
+				if (rotation == Page.PAGE_ROTATE_90) {
+					PageRect pr = rect.rotate(rect, Page.PAGE_ROTATE_NONE);
+					pw = pr.getWidth(); 
+					ph = pr.getHeight();
+				}
+			}
 
-		if (h > (int)pageFormat.getImageableHeight() || stretch)
-			h = (int)pageFormat.getImageableHeight();
+		}
 
-		g2.setClip(x, y, w, h);
+		/*
+		 * Stretch?
+		 */
+		if (isStretch()) {
+			pw = (int)pageFormat.getWidth(); 
+			ph = (int)pageFormat.getHeight();
+		}
 
+		g2.setClip(px, py, pw, ph);
+		
 		/* 
 		 * Printing will occur in tiles to reduce the amount of memory needed
 		 * when rendering a page. Tiles will be in strips so we only have to deal
@@ -327,39 +383,39 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 		 */
 		TileCache tc;
 		int tileH = 512;
-        int gx = x;
-        int gy = y;
-        int gw = w;
+        int gx = px;
+        int gy = py;
+        int gw = pw;
         int gh = 0;        
         int th = tileH;
-        int tw = (int)(Math.ceil(rect.getHeight()*zoomFactor));
+        int tw = rect.rotate(rect, rotation).scale(zoomFactor).getWidth();
 
         /* Create tile cache */
-		tc = new TileCache(page, colorSpace, rotate, zoomFactor, tw, th);
+		tc = new TileCache(page, colorSpace, rotation, zoomFactor, tw, th);
         
 		int totalTiles = tc.getTiles().size();
 		
 		/* Adjust tile height if source is greater than target */
-		if (rect.getHeight() > (int)pageFormat.getImageableHeight()) {			
+		if (rect.getHeight() > ph) {			
 			if (totalTiles > 1) {
-				gh = h / tc.getTiles().size();
+				gh = ph / tc.getTiles().size();
 				int firstTileH = tc.getTiles().get(0).getHeight();
 				int lastTileH = tc.getTiles().get(totalTiles-1).getHeight();				
 				if (lastTileH < firstTileH) {
 					float spread = (lastTileH/zoomFactor) / (tc.getTiles().size()-1);
-					gh = (int)((h / (tc.getTiles().size())) + spread);
+					gh = (int)((ph / (tc.getTiles().size())) + spread);
 				}
 			}
 		} else {
 			gh = (int)(tileH / zoomFactor);
-			if (stretch) {
-				int spread = (int)pageFormat.getImageableHeight() - rect.getHeight();
+			if (isStretch()) {
+				int spread = ph - rect.getHeight();
 				gh += spread / tc.getTiles().size();
 			}
 		}
 		
 		/* Render all tiles and send to printer */
-		for (TiledImage tile : tc.getTiles()) {			
+		for (TiledImage tile : tc.getTiles()) {
 			tile.render();
 			if (totalTiles-1 == tile.getTileY()) {
 				if ((tile.getHeight()/zoomFactor) < gh) {
@@ -388,6 +444,22 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	}
 
 	/**
+	 * Get auto rotate flag
+	 * @return
+	 */
+	public boolean isAutoRotate() {
+		return autoRotate;
+	}
+	
+	/**
+	 * Set whether print job should auto rotate pages before printing
+	 * @param autoRotate
+	 */
+	public void setAutoRotate(boolean autoRotate) {
+		this.autoRotate = autoRotate;
+	}
+	
+	/**
 	 * Set a custom resolution for printing. By
 	 * default the resolution is determined by the 
 	 * PrintQuality setting (Draft/Normal/High).
@@ -400,14 +472,22 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	 */
 	public void setCustomResolution(int resolution) {
 		if (resolution > 0) {
-			customResolution = true;
+			isCustomResolution = true;
 			zoomFactor = resolution / 72;
 		} else {
-			customResolution = false;
+			isCustomResolution = false;
 			zoomFactor = 0;
 		}
 	}
 
+	/**
+	 * Return true if custom resolution has been set.
+	 * @return
+	 */
+	public boolean isCustomResolution() {
+		return isCustomResolution;
+	}
+	
 	/**
 	 * Set if contents should be stretched to fit printable area.
 	 * Default value is false.
@@ -416,6 +496,14 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	 */
 	public void setStretching(boolean stretch) {
 		this.stretch = stretch;
+	}
+	
+	/**
+	 * Return true if image should be stretched
+	 * @return
+	 */
+	public boolean isStretch() {
+		return stretch;
 	}
 	
 	/**

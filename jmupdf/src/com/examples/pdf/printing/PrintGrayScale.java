@@ -18,17 +18,18 @@ public class PrintGrayScale {
 	public static void main(String[] args) {
 		int copies = 1;
 		int startPage = 1;
-		int endPage = 1;
+		int endPage = 3;
 		boolean showDialog = false;
 
 		try {
 
 			// Create new print object
-			PrintServices p = new PrintServices("e:\\tmp\\large_page.pdf", "");
+			PrintServices p = new PrintServices("C:\\Users\\Pedro\\Downloads\\test-2.pdf", "");
 
 			// Override default resolution
-			p.setCustomResolution(1200);
-			p.setStretching(true);
+			p.setCustomResolution(150);
+			p.setStretching(false);
+			p.setAutoRotate(true);
 			
 			// Print it
 			p.print("Test job", 
@@ -39,14 +40,16 @@ public class PrintGrayScale {
 					MediaSizeName.NA_LETTER,
 					PrintQuality.NORMAL,  
 					Chromaticity.MONOCHROME,  
-					OrientationRequested.PORTRAIT,  
+					OrientationRequested.LANDSCAPE,  
 					showDialog);
 
 			// Wait here until printing is done
 			p.waitForPrintJobDone();
 			
 		} catch (DocException e) {
+			e.printStackTrace();
 		} catch (DocSecurityException e) {
+			e.printStackTrace();
 		}
 		
 	}
