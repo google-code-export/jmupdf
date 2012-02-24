@@ -1,6 +1,10 @@
 #include "fitz.h"
 #include "mupdf.h"
 
+#ifndef _WIN32
+#define _vsnprintf(a, b, c, d) vsnprintf(a, b, c, d)
+#endif
+
 static fz_obj *
 resolve_dest_rec(pdf_document *xref, fz_obj *dest, int depth)
 {
