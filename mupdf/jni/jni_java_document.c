@@ -331,13 +331,13 @@ Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj, jlong handle, jstring ke
 		return NULL;
 	}
 
-	fz_obj *info = fz_dict_gets(((pdf_document*)hdoc->doc)->trailer, "Info");
+	pdf_obj *info = pdf_dict_gets(((pdf_document*)hdoc->doc)->trailer, "Info");
 	char *text = NULL;
 
 	if (info)
 	{
 		const char *dictkey = jni_new_char(key);
-		fz_obj *obj = fz_dict_gets(info, (char*)dictkey);
+		pdf_obj *obj = pdf_dict_gets(info, (char*)dictkey);
 		jni_free_char(key, dictkey);
 		if (!obj)
 		{
