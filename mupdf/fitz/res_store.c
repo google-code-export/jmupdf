@@ -1,5 +1,7 @@
 #include "fitz.h"
 
+typedef struct fz_item_s fz_item;
+
 struct fz_item_s
 {
 	void *key;
@@ -248,7 +250,7 @@ fz_store_item(fz_context *ctx, void *key, void *val_, unsigned int itemsize, fz_
 	/* If we can index it fast, put it into the hash table */
 	if (use_hash)
 	{
-		fz_pixmap *existing;
+		fz_item *existing;
 
 		fz_try(ctx)
 		{
@@ -265,7 +267,8 @@ fz_store_item(fz_context *ctx, void *key, void *val_, unsigned int itemsize, fz_
 		if (existing)
 		{
 			fz_unlock(ctx, FZ_LOCK_ALLOC);
-			return existing;
+			fz_free(ctx, item);
+			return existing->val;
 		}
 	}
 	/* Now we can never fail, bump the ref */
@@ -419,7 +422,7 @@ fz_empty_store(fz_context *ctx)
 }
 
 fz_store *
-fz_store_keep(fz_context *ctx)
+fz_keep_store_context(fz_context *ctx)
 {
 	if (ctx == NULL || ctx->store == NULL)
 		return NULL;
