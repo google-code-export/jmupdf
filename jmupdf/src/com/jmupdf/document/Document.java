@@ -326,9 +326,12 @@ public abstract class Document extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPbm(int page, String file, float zoom, float gamma) {
+	public boolean saveAsPbm(int page, String file, int rotate, float zoom, float gamma) {
 		if (handle > 0) {
-			return writePbm(handle, page, zoom, gamma, file.getBytes()) == 0;
+			if (rotate == Page.PAGE_ROTATE_AUTO) {
+				rotate = Page.PAGE_ROTATE_NONE;
+			}
+			return writePbm(handle, page, rotate, zoom, gamma, file.getBytes()) == 0;
 		}
 		return false;
 	}
@@ -342,7 +345,7 @@ public abstract class Document extends JmuPdf {
 	 * @return
 	 */
 	public boolean saveAsPbm(int page, String file, float zoom) {
-		return saveAsPbm(page, file, zoom, 1f);
+		return saveAsPbm(page, file, Page.PAGE_ROTATE_NONE, zoom, 1f);
 	}
 	
 	/**
@@ -354,11 +357,14 @@ public abstract class Document extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPnm(int page, String file, float zoom, ImageType color, float gamma) {
+	public boolean saveAsPnm(int page, String file, int rotate, float zoom, ImageType color, float gamma) {
 		if (handle > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB || 
 				color == ImageType.IMAGE_TYPE_GRAY) {
-				return writePnm(handle, page, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writePnm(handle, page, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -373,7 +379,7 @@ public abstract class Document extends JmuPdf {
 	 * @return
 	 */
 	public boolean saveAsPnm(int page, String file, float zoom, ImageType color) {
-		return saveAsPnm(page, file, zoom, color, 1f);
+		return saveAsPnm(page, file, Page.PAGE_ROTATE_NONE, zoom, color, 1f);
 	}
 
 	/**
@@ -387,14 +393,17 @@ public abstract class Document extends JmuPdf {
 	 * <blockquote>quality levels are in the range 0-100 with a default value of 75.</blockquote>
 	 * @return
 	 */
-	public boolean saveAsJPeg(int page, String file, float zoom, ImageType color, float gamma, int quality) {
+	public boolean saveAsJPeg(int page, String file, int rotate, float zoom, ImageType color, float gamma, int quality) {
 		if (handle > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB || 
 				color == ImageType.IMAGE_TYPE_GRAY) {
 				if (!(quality >= 0 && quality <= 100)) {
 					quality = 75;
 				}
-				return writeJPeg(handle, page, zoom, color.getIntValue(), gamma, file.getBytes(), quality) == 0;
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writeJPeg(handle, page, rotate, zoom, color.getIntValue(), gamma, file.getBytes(), quality) == 0;
 			}
 		}
 		return false;
@@ -410,7 +419,7 @@ public abstract class Document extends JmuPdf {
 	 * @return
 	 */
 	public boolean saveAsJPeg(int page, String file, float zoom, ImageType color, int quality) {
-		return saveAsJPeg(page, file, zoom, color, 1f, quality);
+		return saveAsJPeg(page, file, Page.PAGE_ROTATE_NONE, zoom, color, 1f, quality);
 	}
 	
 	/**
@@ -422,13 +431,16 @@ public abstract class Document extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsBmp(int page, String file, float zoom, ImageType color, float gamma) {
+	public boolean saveAsBmp(int page, String file, int rotate, float zoom, ImageType color, float gamma) {
 		if (handle > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB    || 
 				color == ImageType.IMAGE_TYPE_GRAY   ||
 				color == ImageType.IMAGE_TYPE_BINARY ||
 				color == ImageType.IMAGE_TYPE_BINARY_DITHER) {
-				return writeBmp(handle, page, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writeBmp(handle, page, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -443,7 +455,7 @@ public abstract class Document extends JmuPdf {
 	 * @return
 	 */
 	public boolean saveAsBmp(int page, String file, float zoom, ImageType color) {
-		return saveAsBmp(page, file, zoom, color, 1f);
+		return saveAsBmp(page, file, Page.PAGE_ROTATE_NONE, zoom, color, 1f);
 	}
 	
 	/**
@@ -455,13 +467,16 @@ public abstract class Document extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPng(int page, String file, float zoom, ImageType color, float gamma) {
+	public boolean saveAsPng(int page, String file, int rotate, float zoom, ImageType color, float gamma) {
 		if (handle > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB  	 || 
 				color == ImageType.IMAGE_TYPE_ARGB 	 ||
 				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
 				color == ImageType.IMAGE_TYPE_GRAY) {
-				return writePng(handle, page, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writePng(handle, page, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -476,7 +491,7 @@ public abstract class Document extends JmuPdf {
 	 * @return
 	 */
 	public boolean saveAsPng(int page, String file, float zoom, ImageType color) {
-		return saveAsPng(page, file, zoom, color, 1f);
+		return saveAsPng(page, file, Page.PAGE_ROTATE_NONE, zoom, color, 1f);
 	}
 	
 	/**
@@ -489,13 +504,16 @@ public abstract class Document extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPam(int page, String file, float zoom, ImageType color, float gamma) {
+	public boolean saveAsPam(int page, String file, int rotate, float zoom, ImageType color, float gamma) {
 		if (handle > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB  	 || 
 				color == ImageType.IMAGE_TYPE_ARGB 	 || 
 				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
 				color == ImageType.IMAGE_TYPE_GRAY) {
-				return writePam(handle, page, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writePam(handle, page, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -510,7 +528,7 @@ public abstract class Document extends JmuPdf {
 	 * @return
 	 */
 	public boolean saveAsPam(int page, String file, float zoom, ImageType color) {
-		return saveAsPam(page, file, zoom, color, 1f);
+		return saveAsPam(page, file, Page.PAGE_ROTATE_NONE, zoom, color, 1f);
 	}
 	
 	/**
@@ -538,7 +556,7 @@ public abstract class Document extends JmuPdf {
 	 *        </blockquote>  
 	 * @return
 	 */
-	public boolean saveAsTif(int page, String file, float zoom, ImageType color, float gamma, TifCompression compression, TifMode mode, int quality) {
+	public boolean saveAsTif(int page, String file, int rotate, float zoom, ImageType color, float gamma, TifCompression compression, TifMode mode, int quality) {
 		if (handle > 0) {
 			
 			if (!(color == ImageType.IMAGE_TYPE_RGB      || 
@@ -584,7 +602,11 @@ public abstract class Document extends JmuPdf {
 				}
 			}
 
-			return writeTif(handle, page, zoom, color.getIntValue(), gamma, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
+			if (rotate == Page.PAGE_ROTATE_AUTO) {
+				rotate = Page.PAGE_ROTATE_NONE;
+			}
+			
+			return writeTif(handle, page, rotate, zoom, color.getIntValue(), gamma, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
 		}
 
 		return false;
@@ -602,7 +624,7 @@ public abstract class Document extends JmuPdf {
 	 * @return
 	 */
 	public boolean saveAsTif(int page, String file, float zoom, ImageType color, TifCompression compression, TifMode mode, int quality) {
-		return saveAsTif(page, file, zoom, color, 1f, compression, mode, quality);
+		return saveAsTif(page, file, Page.PAGE_ROTATE_NONE, zoom, color, 1f, compression, mode, quality);
 	}
 	
 	/**
