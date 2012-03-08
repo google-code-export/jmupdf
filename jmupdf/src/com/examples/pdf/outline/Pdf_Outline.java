@@ -8,8 +8,7 @@ import com.jmupdf.pdf.PdfDocument;
 public class Pdf_Outline {
 	
 	public static void main(String[] args) {
-		//String f = "E:\\development\\indigo\\workspace_jmupdf\\pdf_docs\\pdf_reference_1-7.pdf";
-		String f = "E:\\development\\indigo\\workspace_jmupdf-old\\pdf_docs\\itextinaction.pdf";
+		String f = "C:\\Users\\Pedro\\Downloads\\Introduction.pdf";
 		Outline o;
 		try {
 			PdfDocument doc = new PdfDocument(f);
@@ -29,7 +28,7 @@ public class Pdf_Outline {
 			t += " ";
 		
 		while (o != null) {
-			log(t + o.getTitle() + " " + o.getPage() + " (" + o.getDestination() + ")");
+			log(t + o.getTitle() + " " + o.getPage() + " (" + o.getDestination() + ") rect: " + o.getX0() + "," + o.getY0() + "," + o.getX1() + "," + o.getY1());
 			if (o.getChild() != null) {
 				debug_outline(o.getChild(), level + 2);
 			}
