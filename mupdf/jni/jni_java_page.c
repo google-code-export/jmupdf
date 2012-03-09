@@ -371,7 +371,7 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint 
 						{
 							seen = 1;
 							type = 1;
-							sprintf(buf, "%d", link->dest.ld.gotor.page);
+							sprintf(buf, "%d", link->dest.ld.gotor.page + 1);
 						}
 						break;
 					case FZ_LINK_URI:
