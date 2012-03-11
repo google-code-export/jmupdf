@@ -19,16 +19,16 @@ import com.jmupdf.tiles.TiledImage;
  * @author Pedro Rivera
  *
  */
-public class Tiling {
+public class TilingTest {
 	
 	public static void main(String[] args) {
 		try {
 
 			// Open document
-			PdfDocument pdfDoc = new PdfDocument("E:\\tmp\\itextinaction.pdf", 10);
+			PdfDocument doc = new PdfDocument("d:\\tmp\\itextinaction.pdf", 10);
 
 			// Get page object
-			Page page = pdfDoc.getPage(12);
+			Page page = new Page(doc, 1);
 
 			// setup zoom, rotation, color, and tile info
 			float zoom = 3f;
@@ -38,20 +38,21 @@ public class Tiling {
 			int tileh = 512;
 
 			// Create tile cache object
-			TileCache c = new TileCache(page, color, rotate, zoom, tilew, tileh);
+			TileCache cache = new TileCache(page, color, rotate, zoom, tilew, tileh);
 
 			// Loop through tiles and save
-			for (TiledImage t : c.getTiles()) {	
+			for (TiledImage t : cache.getTiles()) {	
 				t.render();
-				ImageIO.write(t.getImage(), "PNG", new File("e:\\tmp\\img\\test1_" + t.getTileY() + "_" + t.getTileX() + ".png"));
+				ImageIO.write(t.getImage(), "PNG", new File("d:\\tmp\\img\\test1_" + t.getTileY() + "_" + t.getTileX() + ".png"));
 				t.dispose();
 			}
 
 			log("done!");
 
 			// Dispose
-			c.dispose();
-			pdfDoc.dispose();
+			page.dispose();
+			cache.dispose();
+			doc.dispose();
 
 		} catch (DocException e) {
 			e.printStackTrace();

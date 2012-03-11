@@ -1,9 +1,9 @@
-package com.examples.xps;
+package com.examples.pdf.text;
 
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.page.Page;
-import com.jmupdf.xps.XpsDocument;
+import com.jmupdf.pdf.PdfDocument;
 
 /**
  * Sample get page text
@@ -11,36 +11,27 @@ import com.jmupdf.xps.XpsDocument;
  * @author Pedro J Rivera
  *
  */
-public class Text {
+public class TextTest {
 
 	public static void main(String[] args) {
 
 		try {
 			
-			/*
-			 * Open document
-			 */
-			XpsDocument xps = new XpsDocument("d:\\test01.xps");
-			
-			/*
-			 * Get page
-			 */
-			Page page = xps.getPage(1);
+			/* Open document */ 
+			PdfDocument doc = new PdfDocument("d:\\tmp\\iTextinAction.pdf");
 
-			/*
-			 * Get text, if any
-			 */
+			/* Get page */
+			Page page = new Page(doc, 5);
+			
+			/* Get text, if any */
 			String text = page.getText();
 			
-			/*
-			 * Display out data
-			 */
+			/* Display out data */
 			System.out.println(text);
 			
-			/*
-			 * Dispose
-			 */
-			xps.dispose();
+			/* Dispose */
+			page.dispose();
+			doc.dispose();
 			
 		} catch (DocException e) {
 			e.printStackTrace();

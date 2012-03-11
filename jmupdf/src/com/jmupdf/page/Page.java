@@ -5,7 +5,13 @@
  */
 package com.jmupdf.page;
 
+import java.nio.ByteBuffer;
+
+import com.jmupdf.JmuPdf;
 import com.jmupdf.document.Document;
+import com.jmupdf.enums.ImageType;
+import com.jmupdf.enums.TifCompression;
+import com.jmupdf.enums.TifMode;
 
 /**
  * Page class.
@@ -13,12 +19,13 @@ import com.jmupdf.document.Document;
  * @author Pedro J Rivera
  *
  */
-public class Page {
-	private Document document;	
+public class Page extends JmuPdf {
+	private Document document;
 	private PageRect boundBox;
 	private PageLinks[] pageLinks;
+	private long handle;
 	private int pageNumber;
-	private int pageRotate;		
+	private int pageRotate;
 
 	public static final int PAGE_ROTATE_AUTO = -1;
 	public static final int PAGE_ROTATE_NONE = 0;
@@ -26,26 +33,28 @@ public class Page {
 	public static final int PAGE_ROTATE_180 = 180;
 	public static final int PAGE_ROTATE_270 = 270;
 	public static final int PAGE_ROTATE_360 = 360;
-	
-	/**
-	 * Create a new page object
-	 * @param doc
-	 * @param page
-	 */
-	public Page(Document doc, int page) {
-		this(doc, doc.getPageInfo(page), page);
-	}
 
 	/**
 	 * Create a new page object
+	 * 
 	 * @param doc
-	 * @param pageInfo
 	 * @param page
+	 * 
+	 * TODO: Throw error here!
 	 */
-	public Page(Document doc, float[] pageInfo, int page) {
+	public Page(Document doc, int page) {
 		this.document = doc;
 		this.pageNumber = page;
-		loadPageInfo(pageInfo);
+		this.boundBox = new PageRect();
+		this.pageRotate = 0;
+		this.handle = newPage(doc.getHandle(), page);
+		if (handle > 0) {
+			if (!loadPageInfo()) {
+				// TODO: Throw error
+			}
+		} else {
+			// TODO: Throw error
+		}
 	}
 	
 	/**
@@ -118,7 +127,10 @@ public class Page {
 	 * @return
 	 */
 	public String getText() {
-		return getText(null, getX(), getY(), getWidth(), getHeight());
+		if (handle > 0) {
+			return getText(null, getX(), getY(), getWidth(), getHeight());
+		}
+		return null;
 	}
 	
 	/**
@@ -136,6 +148,10 @@ public class Page {
 	 * @return
 	 */
 	public String getText(PagePixels pagePixels, int x, int y, int w, int h) {
+		if (handle <= 0) {
+			return null;
+		}
+		
 		String text = "";
 
 		PageText[] pdfTextSpan = getTextSpan(pagePixels, x, y, w, h);
@@ -182,6 +198,10 @@ public class Page {
 	 * @return
 	 */
 	public PageText[] getTextSpan(PagePixels pagePixels, int x, int y, int w, int h) {
+		if (handle <= 0) {
+			return null;
+		}
+		
 		PageRect pr = new PageRect();
 		int rotate = getRotation();
 		float zoom = 1f;
@@ -194,18 +214,22 @@ public class Page {
 		pr.setRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);		
 		pr = pr.rotate(getBoundBox(), rotate, PAGE_ROTATE_NONE);
 
-		return getDocument().getPageText(getPageNumber(), (int)pr.getX0(), (int)pr.getY0(), (int)pr.getX1(), (int)pr.getY1());
+		return getPageText((int)pr.getX0(), (int)pr.getY0(), (int)pr.getX1(), (int)pr.getY1());
 	}
 
 	/**
 	 * Get PageLinks Array Object </br>
 	 * Optionally pass in a PagePixel object to determine how to extract links. </br>
+	 * 
 	 * @param pagePixels : can be null
 	 * @return
 	 */
 	public PageLinks[] getLinks(PagePixels pagePixels) {
+		if (handle <= 0) {
+			return null;
+		}
 		if (pageLinks == null) {
-			pageLinks = getDocument().getPageLinks(getPageNumber());
+			pageLinks = getPageLinks();
 			if (pageLinks == null) {
 				pageLinks = new PageLinks[1];
 				pageLinks[0] = new PageLinks(0, 0, 0, 0, 0, "");
@@ -231,22 +255,329 @@ public class Page {
 	}
 
 	/**
-	 * Load page information
-	 * @param pageInfo
+	 * Get a page as a byte buffer
+	 * 
+	 * @param zoom
+	 * @param rotate
+	 * @param color
+	 * @param gamma
+	 * @param bbox
+	 * @param x0
+	 * @param y0
+	 * @param x1
+	 * @param y1
+	 * @return
 	 */
-	private void loadPageInfo(float[] pageInfo) {
-		if (pageInfo != null) { 
-			boundBox  = new PageRect(pageInfo[0], pageInfo[1], pageInfo[2], pageInfo[3]);
-			pageRotate = (int)pageInfo[4];
+	public ByteBuffer getByteBuffer(float zoom, int rotate, ImageType color, float gamma, int[] bbox, float x0, float y0, float x1, float y1) {
+		if (handle > 0) {
+			return getByteBuffer(handle, zoom, rotate, color.getIntValue(), gamma, bbox, x0, y0, x1, y1);
+		}
+		return null;
+	}
+
+	/**
+	 * Free a byte buffer resource
+	 * 
+	 * @param buffer
+	 */
+	public void freeByteBuffer(ByteBuffer buffer) {
+		if (handle > 0) {
+			if (buffer != null) {
+				if (buffer.isDirect()) {
+					buffer.clear();
+					freeByteBuffer(handle, buffer);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Get page text
+	 * 
+	 * @param x0
+	 * @param y0
+	 * @param x1
+	 * @param y1
+	 * @return
+	 */
+	private PageText[] getPageText(int x0, int y0, int x1, int y1) {
+		if (handle > 0) {
+			return getPageText(handle, x0, y0, x1, y1);
+		}
+		return null;
+	}
+	
+	/**
+	 * Get page links
+	 * 
+	 * @return
+	 */
+	private PageLinks[] getPageLinks() {
+		if (handle > 0) {
+			return getPageLinks(handle);
+		}
+		return null;
+	}
+	
+	/**
+	 * Load page information
+	 */
+	private boolean loadPageInfo() {
+		float[] pageInfo = loadPage(handle);
+		if (pageInfo == null) {
+			dispose();
+			return false;
+		}
+		boundBox = new PageRect(pageInfo[0], pageInfo[1], pageInfo[2], pageInfo[3]);
+		pageRotate = (int)pageInfo[4];
+		return true;
+	}
+
+	/**
+	 * Dispose of page resources
+	 */
+	public void dispose() {
+		if (handle > 0) {
+			freePage(handle);
+			handle = 0;
 		}
 	}
 
-    /**
-     * Print test messages
-     * @param text
-     */
-    protected void log(String text) {
-    	System.out.println(text);
-    }
-    
+	
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	/* saveAsXXX() methods.                      */
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	/* We could encapsulate to another class?    */
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	
+	/**
+	 * Save a page to a file in PNG format
+	 * 
+	 * @param file
+	 * @param rotate
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @return
+	 */
+	public boolean saveAsPng(String file, int rotate, float zoom, ImageType color, float gamma) {
+		if (handle > 0) {
+			if (color == ImageType.IMAGE_TYPE_RGB  	   || 
+				color == ImageType.IMAGE_TYPE_ARGB 	   ||
+				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
+				color == ImageType.IMAGE_TYPE_GRAY) {
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writePng(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Save a page to a file in PBM format</br>
+	 * PBM is the portable bitmap format, a lowest common denominator monochrome file format. 
+	 * @param file
+	 * @param rotate
+	 * @param zoom
+	 * @param gamma
+	 * @return
+	 */
+	public boolean saveAsPbm(String file, int rotate, float zoom, float gamma) {
+		if (handle > 0) {
+			if (rotate == Page.PAGE_ROTATE_AUTO) {
+				rotate = Page.PAGE_ROTATE_NONE;
+			}
+			return writePbm(handle, rotate, zoom, gamma, file.getBytes()) == 0;
+		}
+		return false;
+	}
+	
+	/**
+	 * Save a page to a file in PNM format
+	 * 
+	 * @param file
+	 * @param rotate
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @return
+	 */
+	public boolean saveAsPnm(String file, int rotate, float zoom, ImageType color, float gamma) {
+		if (handle > 0) {
+			if (color == ImageType.IMAGE_TYPE_RGB || 
+				color == ImageType.IMAGE_TYPE_GRAY) {
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writePnm(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Save a page to a file in JPEG format
+	 * 
+	 * @param file
+	 * @param rotate
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @param quality : quality levels are in the range 0-100 with a default value of 75.
+	 * @return
+	 */
+	public boolean saveAsJPeg(String file, int rotate, float zoom, ImageType color, float gamma, int quality) {
+		if (handle > 0) {
+			if (color == ImageType.IMAGE_TYPE_RGB || 
+				color == ImageType.IMAGE_TYPE_GRAY) {
+				if (!(quality >= 0 && quality <= 100)) {
+					quality = 75;
+				}
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writeJPeg(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes(), quality) == 0;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Save a page to a BMP format
+	 * 
+	 * @param file
+	 * @param rotate
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @return
+	 */
+	public boolean saveAsBmp(String file, int rotate, float zoom, ImageType color, float gamma) {
+		if (handle > 0) {
+			if (color == ImageType.IMAGE_TYPE_RGB    || 
+				color == ImageType.IMAGE_TYPE_GRAY   ||
+				color == ImageType.IMAGE_TYPE_BINARY ||
+				color == ImageType.IMAGE_TYPE_BINARY_DITHER) {
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writeBmp(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Save a page to a file in PAM format</br>
+	 * The name "PAM" is an acronym derived from "Portable Arbitrary Map"
+	 * 
+	 * @param file
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @return
+	 */
+	public boolean saveAsPam(String file, int rotate, float zoom, ImageType color, float gamma) {
+		if (handle > 0) {
+			if (color == ImageType.IMAGE_TYPE_RGB  	 || 
+				color == ImageType.IMAGE_TYPE_ARGB 	 || 
+				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
+				color == ImageType.IMAGE_TYPE_GRAY) {
+				if (rotate == Page.PAGE_ROTATE_AUTO) {
+					rotate = Page.PAGE_ROTATE_NONE;
+				}
+				return writePam(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Save a page to a TIF format
+	 * 
+	 * @param page
+	 * @param file
+	 * @param zoom
+	 * @param color
+	 * @param gamma
+	 * @param compression
+	 * @param mode
+	 * @param quality <br/><br/>
+	 *        
+	 *        <blockquote>
+	 *        <strong>When compression == TIF_COMPRESSION_ZLIB <br/></strong> 
+	 *          Control  the  compression  technique used by the Deflate codec.  <br/> 
+	 *          Quality levels are in the range 1-9 with larger numbers yielding <br/> 
+	 *          better compression at the cost of more computation. The default  <br/> 
+	 *          quality level is 6 which yields a good time-space tradeoff.      <br/><br/>
+	 *          
+	 *        <strong>When compression == TIF_COMPRESSION_JPEG <br/></strong>
+	 *          Control the compression quality level used in the baseline algo- <br/>
+	 *          rithm. Note that quality levels are in the range 0-100 with a    <br/>
+	 *          default value of 75. <br/><br/>
+	 *        </blockquote>  
+	 * @return
+	 */
+	public boolean saveAsTif(String file, int rotate, float zoom, ImageType color, float gamma, TifCompression compression, TifMode mode, int quality) {
+		if (handle > 0) {
+			
+			if (!(color == ImageType.IMAGE_TYPE_RGB      || 
+				  color == ImageType.IMAGE_TYPE_ARGB     ||
+				  color == ImageType.IMAGE_TYPE_ARGB_PRE ||
+				  color == ImageType.IMAGE_TYPE_GRAY     ||
+				  color == ImageType.IMAGE_TYPE_BINARY   || 
+				  color == ImageType.IMAGE_TYPE_BINARY_DITHER)) {
+				log("Invalid color type specified.");
+				return false;
+			}
+			
+			if (!(mode == TifMode.TIF_DATA_APPEND || 
+				  mode == TifMode.TIF_DATA_DISCARD)) {
+				log("Invalid mode value specified.");
+				return false;
+			}
+
+			if (compression == TifCompression.TIF_COMPRESSION_CCITT_RLE || 
+				compression == TifCompression.TIF_COMPRESSION_CCITT_T_4 ||
+				compression == TifCompression.TIF_COMPRESSION_CCITT_T_6) {
+				if (!(color == ImageType.IMAGE_TYPE_BINARY || 
+					  color == ImageType.IMAGE_TYPE_BINARY_DITHER)) {
+					log("When using CCITT compression, color must be type binary");
+					return false;
+				}
+				if (color == ImageType.IMAGE_TYPE_ARGB || 
+					color == ImageType.IMAGE_TYPE_ARGB_PRE) {
+					log("When using CCITT compression, color cannot be type of ARGB");
+					return false;
+				}
+			}
+
+			if (compression == TifCompression.TIF_COMPRESSION_JPEG) {
+				if (!(quality >= 1 && quality <= 100)) {
+					quality = 75;
+				}
+			}
+
+			if (compression == TifCompression.TIF_COMPRESSION_ZLIB) {
+				if (!(quality >= 1 && quality <= 9)) {
+					quality = 6;
+				}
+			}
+
+			if (rotate == Page.PAGE_ROTATE_AUTO) {
+				rotate = Page.PAGE_ROTATE_NONE;
+			}
+			
+			return writeTif(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
+		}
+
+		return false;
+	}
+		
 }

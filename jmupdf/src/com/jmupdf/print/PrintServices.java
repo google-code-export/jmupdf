@@ -289,8 +289,11 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
         g2.setBackground(Color.WHITE);
         
         // Load page, and load it only once
-		if (page == null || currentPage != page.getPageNumber()) {						
-			page = document.getPage(currentPage);
+		if (page == null || currentPage != page.getPageNumber()) {
+			if (page != null) {
+				page.dispose();
+			}
+			page = new Page(document, currentPage);
 			if (!isCustomResolution()) {
 				float z = (float)page.getWidth() / (float)pageFormat.getWidth();
 				zoomFactor = (float)g2.getTransform().getScaleX();

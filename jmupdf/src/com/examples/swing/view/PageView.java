@@ -139,7 +139,7 @@ public class PageView extends JComponent {
     		renderer.setColorType(color);
     	}
 		
-    	renderer.setAntiAliasLevel(antiAliasLevel);
+    	// TODO: fix me - renderer.setAntiAliasLevel(antiAliasLevel);
 		renderer.setGamma(gamma);
 		
     	unSetRect();

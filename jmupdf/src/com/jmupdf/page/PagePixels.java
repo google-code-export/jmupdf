@@ -146,28 +146,28 @@ public class PagePixels {
 		setDirty(true);
 	}
 
-	/**
-	 * Get anti-alias level.
-	 * @return
-	 */
-	public int getAntiAliasLevel() {
-		return getPage().getDocument().getAntiAliasLevel();
-	}
-	
-	/**
-	 * Set anti-alias level.</br>
-	 * This value is used to determine what bit level is used when </br> 
-	 * applying anti-aliasing while rendering page images.</br>
-	 * A value of zero turns off anti-aliasing. Maximum value is 8. </br>
-	 * @param level
-	 */
-	public void setAntiAliasLevel(int level) {
-		if (getAntiAliasLevel() == level) {
-			return;
-		}
-		getPage().getDocument().setAntiAliasLevel(level);
-		setDirty(true);
-	}
+//	/**
+//	 * Get anti-alias level.
+//	 * @return
+//	 */
+//	public int getAntiAliasLevel() {
+//		return getPage().getAntiAliasLevel();
+//	}
+//	
+//	/**
+//	 * Set anti-alias level.</br>
+//	 * This value is used to determine what bit level is used when </br> 
+//	 * applying anti-aliasing while rendering page images.</br>
+//	 * A value of zero turns off anti-aliasing. Maximum value is 8. </br>
+//	 * @param level
+//	 */
+//	public void setAntiAliasLevel(int level) {
+//		if (getAntiAliasLevel() == level) {
+//			return;
+//		}
+//		getPage().setAntiAliasLevel(level);
+//		setDirty(true);
+//	}
 
 	/**
 	 * Get resolution
@@ -301,7 +301,7 @@ public class PagePixels {
 						pixels = new int[buffer.order(ByteOrder.nativeOrder()).asIntBuffer().capacity()];
 						buffer.order(ByteOrder.nativeOrder()).asIntBuffer().get((int[])pixels);
 					}
-					getPage().getDocument().freeByteBuffer(buffer);
+					getPage().freeByteBuffer(buffer);
 					buffer = null;
 				}
 			}
@@ -339,8 +339,7 @@ public class PagePixels {
 		
 		int[] bbox = new int[4];
 		
-		buffer = getPage().getDocument().getPageByteBuffer(
-				 getPage().getPageNumber(), 
+		buffer = getPage().getByteBuffer( 
 				 getZoom(), 
 				 getRotation(), 
 				 getColor(),
@@ -434,7 +433,7 @@ public class PagePixels {
 	 */
 	public PagePixels clone() {
 		PagePixels p = new PagePixels(getPage());
-		p.setAntiAliasLevel(getAntiAliasLevel());
+//		FIXME: I have broken you ...Hahaha ==> p.setAntiAliasLevel(getAntiAliasLevel());
 		p.setColor(getColor());
 		p.setGamma(getGamma());
 		p.setRotation(getRotation());

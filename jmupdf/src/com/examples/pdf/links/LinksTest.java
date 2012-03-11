@@ -12,30 +12,22 @@ import com.jmupdf.pdf.PdfDocument;
  * @author Pedro J Rivera
  *
  */
-public class Links {
+public class LinksTest {
 
 	public static void main(String[] args) {
 
 		try {
 			
-			/*
-			 * Open document
-			 */
-			PdfDocument pdfDoc = new PdfDocument("C:\\Users\\riverap\\Documents\\bank stuff\\secure.pdf", "xxx");
-		
-			/*
-			 * Get page
-			 */
-			Page page = pdfDoc.getPage(1);
+			/* Open document */ 
+			PdfDocument doc = new PdfDocument("d:\\tmp\\sources.pdf");
+
+			/* Get page */
+			Page page = new Page(doc, 1);
 			
-			/*
-			 * Get links, if any
-			 */
+			/* Get links, if any */
 			PageLinks[] links = page.getLinks(null);
 			
-			/*
-			 * List out data
-			 */
+			/* Print the data */
 			for (int i=0; i<links.length; i++) {
 				switch (links[i].getType()) {
 				case LINK_GOTO:
@@ -59,10 +51,9 @@ public class Links {
 				}					
 			}
 
-			/*
-			 * Dispose
-			 */
-			pdfDoc.dispose();
+			/* Dispose */
+			page.dispose();
+			doc.dispose();
 			
 		} catch (DocException e) {
 			e.printStackTrace();

@@ -229,8 +229,10 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	 * Set page view
 	 */
 	private void setPage() {
-		if (isOpened) {			
-			page = null;
+		if (isOpened) {
+			if (page != null) {
+				page.dispose();
+			}			
 			page = document.getPage(getPageNumber());
 			if (page != null) {
 				try {
@@ -295,7 +297,10 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	 */
 	private void closeDoc() {
 		isOpened = false;
-		view.getPageNumber().requestFocusInWindow();		
+		view.getPageNumber().requestFocusInWindow();
+		if (page != null) {
+			page.dispose();
+		}
 		if (document != null) {
 			document.close();
 			if (mousePanController != null) {

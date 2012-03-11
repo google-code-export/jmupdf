@@ -1,66 +1,117 @@
 #include "jmupdf.h"
 
 /**
+ * Create new page object
+ */
+static jni_page *jni_new_page(jni_document *doc, int pagen)
+{
+	jni_page *page = fz_malloc_no_throw(doc->ctx, sizeof(jni_page));
+
+	if (!page)
+	{
+		return NULL;
+	}
+
+	page->doc = doc;
+	page->page = NULL;
+	page->list = NULL;
+	page->page_number = pagen;
+	page->ctx = fz_clone_context(doc->ctx);
+	page->anti_alias = fz_get_aa_level(page->ctx);
+	page->gamma = 1.0f;
+
+	return page;
+}
+
+/**
+ * Free page object
+ */
+static void jni_free_page(jni_page *page)
+{
+	if (!page)
+	{
+		return;
+	}
+
+	fz_context *ctx = page->ctx;
+
+	if (page->list)
+	{
+		fz_free_display_list(ctx, page->list);
+	}
+
+	if (page->page)
+	{
+		fz_free_page(page->doc->doc, page->page);
+	}
+
+	fz_flush_warnings(ctx);
+
+	page->page = NULL;
+	page->list = NULL;
+	page->page_number = 0;
+
+	fz_free(ctx, page);
+	fz_free_context(ctx);
+}
+
+/**
  * Load a page
  */
-static void jni_load_page(jni_document *hdoc, int pagen)
+static void jni_load_page(jni_page *page)
 {
-	fz_try(hdoc->ctx)
+	fz_try(page->ctx)
 	{
-		hdoc->page = fz_load_page(hdoc->doc, pagen-1);
-		hdoc->page_bbox = fz_bound_page(hdoc->doc, hdoc->page);
-		hdoc->page_number = pagen;
+		page->page = fz_load_page(page->doc->doc, page->page_number-1);
+		page->bbox = fz_bound_page(page->doc->doc, page->page);
 	}
-	fz_catch(hdoc->ctx)
+	fz_catch(page->ctx)
 	{
-		hdoc->page = NULL;
+		page->page = NULL;
 	}
 }
 
 /**
  * Draw a page
  */
-static void jni_draw_page(jni_document *hdoc, int pagen)
+static void jni_draw_page(jni_page *page)
 {
 	fz_device *dev = NULL;
-	fz_try(hdoc->ctx)
+	fz_try(page->ctx)
 	{
-		hdoc->page_list = fz_new_display_list(hdoc->ctx);
-		dev = fz_new_list_device(hdoc->ctx, hdoc->page_list);
-		fz_run_page(hdoc->doc, hdoc->page, dev, fz_identity, NULL);
+		page->list = fz_new_display_list(page->ctx);
+		dev = fz_new_list_device(page->ctx, page->list);
+		fz_run_page(page->doc->doc, page->page, dev, fz_identity, NULL);
 	}
-	fz_catch(hdoc->ctx)
-	{
-		jni_free_page(hdoc);
-	}
+	fz_catch(page->ctx) {}
 	fz_free_device(dev);
 }
 
 /**
  * Load page text
  */
-static fz_text_span * jni_load_page_text(jni_document *hdoc, int pagen)
+static fz_text_span * jni_load_text(jni_page *page)
 {
-	fz_matrix ctm = jni_get_view_ctm(hdoc, 1, 0);
+	fz_matrix ctm = jni_get_view_ctm(1, 0);
 
 	fz_text_span *page_text = NULL;
 	fz_device *dev = NULL;
 
-	fz_try(hdoc->ctx)
+	fz_try(page->ctx)
 	{
-		page_text = fz_new_text_span(hdoc->ctx);
-		dev = fz_new_text_device(hdoc->ctx, page_text);
-		fz_run_display_list(hdoc->page_list, dev, ctm, fz_infinite_bbox, NULL);
+		page_text = fz_new_text_span(page->ctx);
+		dev = fz_new_text_device(page->ctx, page_text);
+		fz_run_display_list(page->list, dev, ctm, fz_infinite_bbox, NULL);
 	}
-	fz_always(hdoc->ctx)
+	fz_always(page->ctx)
 	{
 		fz_free_device(dev);
 	}
-	fz_catch(hdoc->ctx)
+	fz_catch(page->ctx)
 	{
 		if(page_text)
 		{
-			fz_free_text_span(hdoc->ctx, page_text);
+			fz_free_text_span(page->ctx, page_text);
 			page_text = NULL;
 		}
 	}
@@ -93,88 +144,44 @@ static int jni_count_text_span(fz_text_span *page_text, int x0, int y0, int x1, 
 }
 
 /**
- * Get a page
+ * Get page from pointer
  */
-void jni_get_page(jni_document *hdoc, int pagen)
+jni_page *jni_get_page(jlong handle)
 {
-	if (pagen != hdoc->page_number)
-	{
-		jni_free_page(hdoc);
-	}
-
-	if (!hdoc->page)
-	{
-		jni_load_page(hdoc, pagen);
-	}
-
-	if (hdoc->page && !hdoc->page_list)
-	{
-		jni_draw_page(hdoc, pagen);
-	}
-}
-
-/**
- * Free page and resources
- */
-void jni_free_page(jni_document *hdoc)
-{
-	if (hdoc->page_list)
-	{
-		fz_free_display_list(hdoc->ctx, hdoc->page_list);
-	}
-
-	if (hdoc->page)
-	{
-		fz_free_page(hdoc->doc, hdoc->page);
-	}
-
-	hdoc->page = NULL;
-	hdoc->page_list = NULL;
-	hdoc->page_number = 0;
-
-	fz_flush_warnings(hdoc->ctx);
-}
-
-/**
- * Get page count
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_getPageCount(JNIEnv *env, jclass obj, jlong handle)
-{
-	jni_document *hdoc = jni_get_document(handle);
-
-	if (!hdoc)
-	{
-		return -1;
-	}
-
-	int rc = -2;
-
-	fz_try(hdoc->ctx)
-	{
-		rc = fz_count_pages(hdoc->doc);
-	}
-	fz_catch(hdoc->ctx) {}
-
-	return rc;
+	return (jni_page *)jni_jlong_to_ptr(handle);
 }
 
 /**
  * Get page dimensions
  */
 JNIEXPORT jfloatArray JNICALL
-Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle, jint pagen)
+Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle)
 {
-	jni_document *hdoc = jni_get_document(handle);
+	jni_page *page = jni_get_page(handle);
 
-	if (!hdoc)
+	if (!page)
 	{
 		return NULL;
 	}
 
-	jni_get_page(hdoc, pagen);
+	fz_lock(page->ctx, FZ_LOCK_FILE);
+	{
+	 jni_load_page(page);
+	}
+	fz_unlock(page->ctx, FZ_LOCK_FILE);
 
-	if(!hdoc->page)
+	if(!page->page)
+	{
+		return NULL;
+	}
+
+	fz_lock(page->ctx, FZ_LOCK_FILE);
+	{
+	  jni_draw_page(page);
+	}
+	fz_unlock(page->ctx, FZ_LOCK_FILE);
+
+	if(!page->list)
 	{
 		return NULL;
 	}
@@ -188,14 +195,14 @@ Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle, jint page
 
 	jfloat *data = jni_get_float_array(dataarray);
 
-	data[0] = hdoc->page_bbox.x0;
-	data[1] = hdoc->page_bbox.y0;
-	data[2] = hdoc->page_bbox.x1;
-	data[3] = hdoc->page_bbox.y1;
+	data[0] = page->bbox.x0;
+	data[1] = page->bbox.y0;
+	data[2] = page->bbox.x1;
+	data[3] = page->bbox.y1;
 
-	if (hdoc->doc_type == DOC_PDF)
+	if (page->doc->type == DOC_PDF)
 	{
-		data[4] = ((pdf_page*)hdoc->page)->rotate;
+		data[4] = ((pdf_page*)page->page)->rotate;
 	}
 
 	jni_release_float_array(dataarray, data);
@@ -209,23 +216,16 @@ Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle, jint page
  * Coordinates are assumed to reflect a zoom factor of 1f and 0 rotation
  */
 JNIEXPORT jobjectArray JNICALL
-Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint pagen, jint x0, jint y0, jint x1, jint y1)
+Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x0, jint y0, jint x1, jint y1)
 {
-	jni_document *hdoc = jni_get_document(handle);
+	jni_page *page = jni_get_page(handle);
 
-	if (!hdoc)
+	if (!page)
 	{
 		return NULL;
 	}
 
-	jni_get_page(hdoc, pagen);
-
-	if(!hdoc->page)
-	{
-		return NULL;
-	}
-
-	fz_text_span *page_text = jni_load_page_text(hdoc, pagen);
+	fz_text_span *page_text = jni_load_text(page);
 
 	if (!page_text)
 	{
@@ -236,7 +236,7 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint p
 
 	if (!cls)
 	{
-		fz_free_text_span(hdoc->ctx, page_text);
+		fz_free_text_span(page->ctx, page_text);
 		return NULL;
 	}
 
@@ -293,7 +293,7 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint p
 	}
 
 	jni_free_ref(cls);
-	fz_free_text_span(hdoc->ctx, page_text);
+	fz_free_text_span(page->ctx, page_text);
 
 	return page_text_arr;
 }
@@ -302,23 +302,16 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint p
  * Get Page Links
  */
 JNIEXPORT jobjectArray JNICALL
-Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint pagen)
+Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle)
 {
-	jni_document *hdoc = jni_get_document(handle);
+	jni_page *page = jni_get_page(handle);
 
-	if (!hdoc)
+	if (!page)
 	{
 		return NULL;
 	}
 
-	jni_get_page(hdoc, pagen);
-
-	if (!hdoc->page)
-	{
-		return NULL;
-	}
-
-	fz_link *page_links = fz_load_links(hdoc->doc, hdoc->page);
+	fz_link *page_links = fz_load_links(page->doc->doc, page->page);
 
 	if (!page_links)
 	{
@@ -329,7 +322,7 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint 
 
 	if (!cls)
 	{
-		fz_drop_link(hdoc->ctx, page_links);
+		fz_drop_link(page->ctx, page_links);
 		return NULL;
 	}
 
@@ -366,7 +359,7 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint 
 				seen = 0;
 				switch (link->dest.kind) {
 					case FZ_LINK_GOTO:
-						buf = fz_malloc_no_throw(hdoc->ctx, 1);
+						buf = fz_malloc_no_throw(page->ctx, 1);
 						if (buf)
 						{
 							seen = 1;
@@ -407,7 +400,7 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint 
 					jni_set_object_array_el(page_links_arr, e++, new_page_links);
 					if (type == 1)
 					{
-						fz_free(hdoc->ctx, buf);
+						fz_free(page->ctx, buf);
 					}
 				}
 			}
@@ -416,7 +409,39 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle, jint 
 
 	// Free resources
 	jni_free_ref(cls);
-	fz_drop_link(hdoc->ctx, page_links);
+	fz_drop_link(page->ctx, page_links);
 
 	return page_links_arr;
+}
+
+/**
+ * Create new page object
+ */
+JNIEXPORT jlong JNICALL
+Java_com_jmupdf_JmuPdf_newPage(JNIEnv *env, jclass obj, jlong handle, jint pagen)
+{
+	jni_document *doc = jni_get_document(handle);
+
+	if (!doc)
+	{
+		return -1;
+	}
+
+	jni_page *page = jni_new_page(doc, pagen);
+
+	if (!page)
+	{
+		return -2;
+	}
+
+	return jni_ptr_to_jlong(page);
+}
+
+/**
+ * Free page resources
+ */
+JNIEXPORT void JNICALL
+Java_com_jmupdf_JmuPdf_freePage(JNIEnv *env, jclass obj, jlong handle)
+{
+	jni_free_page(jni_get_page(handle));
 }

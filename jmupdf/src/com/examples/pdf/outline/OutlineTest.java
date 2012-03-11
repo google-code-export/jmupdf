@@ -5,18 +5,18 @@ import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
 
-public class Pdf_Outline {
+public class OutlineTest {
 	
 	public static void main(String[] args) {
-		String f = "C:\\Users\\Pedro\\Downloads\\Introduction.pdf";
-		Outline o;
 		try {
-			PdfDocument doc = new PdfDocument(f);
-			o = doc.getOutline();	
-			debug_outline(o, 0);
+			PdfDocument doc = new PdfDocument("d:\\tmp\\iTextinAction.pdf");
+			Outline o = doc.getOutline();;	
+			debug_outline(o, 0);			
 			doc.dispose();
 		} catch (DocException e) {
+			e.printStackTrace();
 		} catch (DocSecurityException e) {
+			e.printStackTrace();
 		}		
 	}
 
@@ -28,7 +28,7 @@ public class Pdf_Outline {
 			t += " ";
 		
 		while (o != null) {
-			log(t + o.getTitle() + " " + o.getPage() + " (" + o.getDestination() + ") rect: " + o.getX0() + "," + o.getY0() + "," + o.getX1() + "," + o.getY1());
+			log(t + o.getTitle() + " \tPage:" + o.getPage() + " (" + o.getDestination() + ") \trect: " + o.getX0() + "," + o.getY0() + "," + o.getX1() + "," + o.getY1());
 			if (o.getChild() != null) {
 				debug_outline(o.getChild(), level + 2);
 			}

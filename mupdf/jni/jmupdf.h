@@ -11,7 +11,7 @@
 #include "jni.h"
 
 // Define JMuPdf internal version
-#define JMUPDF_VERSION "0.4.2-beta"
+#define JMUPDF_VERSION "0.5.0-beta"
 
 // Pointer conversions for x86 and x64
 #define jni_jlong_to_ptr(a) ((void *)(uintptr_t)(a))
@@ -42,14 +42,21 @@ typedef struct jni_document_s jni_document;
 struct jni_document_s {
 	fz_context *ctx;
 	fz_document *doc;
+	jni_doc_type type;
+	fz_locks_context locks;
+};
 
+// Page Structure
+typedef struct jni_page_s jni_page;
+struct jni_page_s {
+	fz_context *ctx;
+	jni_document *doc;
 	fz_page *page;
-	fz_display_list *page_list;
-	fz_rect page_bbox;
-
+	fz_display_list *list;
+	fz_rect bbox;
 	int page_number;
-	int anti_alias_level;
-	jni_doc_type doc_type;
+	int anti_alias;
+	float gamma;
 };
 
 // Default DPI
@@ -69,16 +76,19 @@ static const int DEFAULT_DPI = 72;
 // Calculate resolution based on zoom factor
 #define jni_resolution(Z) (Z*DEFAULT_DPI)
 
+// jni_concurrent.c
+void jni_new_locks(jni_document*);
+void jni_free_locks(void*);
+
 // jni_java_document.c
 jni_document *jni_get_document(jlong);
 
 // jni_java_page.c
-void jni_get_page(jni_document*, int);
-void jni_free_page(jni_document*);
+jni_page *jni_get_page(jlong);
 
 // jni_java_pixmap.c
-char * jni_jbyte_to_char(JNIEnv*, jni_document*, jbyteArray);
-fz_matrix jni_get_view_ctm(jni_document*, float, int);
+char * jni_jbyte_to_char(JNIEnv*, fz_context*, jbyteArray);
+fz_matrix jni_get_view_ctm(float, int);
 int jni_pix_to_black_white(fz_context*, fz_pixmap*, int, unsigned char* );
 int jni_pix_to_binary(fz_context*, fz_pixmap*, int, unsigned char*);
 

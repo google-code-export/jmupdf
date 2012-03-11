@@ -20,7 +20,7 @@ import com.jmupdf.page.PageText;
  *
  */
 public abstract class JmuPdf {
-	private static final String jmupdf_version = "0.4.2-beta";
+	private static final String jmupdf_version = "0.5.0-beta";
 
 	/*
 	 * Open DLL dependency
@@ -32,38 +32,43 @@ public abstract class JmuPdf {
 	/*
 	 * PDF/XPS Common Functions 
 	 */
-	protected native synchronized long open(int type, byte[] pdf, byte[] password, int maxStore);
-	protected native synchronized void close(long handle);
-	protected native synchronized int getVersion(long handle);
-	protected native synchronized int getPageCount(long handle);
-	protected native synchronized float[] loadPage(long handle, int page);
-	protected native synchronized PageText[] getPageText(long handle, int page, int x0, int y0, int x1, int y1);
-	protected native synchronized Outline getOutline(long handle);
-	protected native synchronized PageLinks[] getPageLinks(long handle, int page);
+	
+	/* document level */
+	protected native long open(int type, byte[] pdf, byte[] password, int maxStore);
+	protected native void close(long handle);
+	protected native int getVersion(long handle);
+	protected native Outline getOutline(long handle);
+	protected native int getPageCount(long handle);
+	protected native int getAntiAliasLevel(long handle);
+	protected native int setAntiAliasLevel(long handle, int antiAliasLevel);
+	
+	/* page level */
+	protected native long newPage(long handle, int page);
+	protected native long freePage(long handle);
+	protected native float[] loadPage(long handle);
+	protected native PageText[] getPageText(long handle, int x0, int y0, int x1, int y1);
+	protected native PageLinks[] getPageLinks(long handle);
 	
 	/*
-	 * PDF Specific Functions
+	 * PDF Specific Functions (document level)
 	 */
-	protected native synchronized String pdfInfo(long handle, String key);
-	protected native synchronized int[] pdfEncryptInfo(long handle);
+	protected native String pdfInfo(long handle, String key);
+	protected native int[] pdfEncryptInfo(long handle);
 
 	/*
-	 * Rendering Functions 
+	 * Rendering Functions (all page level)
 	 */
-	protected native synchronized ByteBuffer getByteBuffer(long handle, int page, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1);
-	protected native synchronized void freeByteBuffer(long handle, ByteBuffer buffer);
+	protected native ByteBuffer getByteBuffer(long handle, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1);
+	protected native void freeByteBuffer(long handle, ByteBuffer buffer);
 	
-	protected native synchronized int getAntiAliasLevel(long handle);
-	protected native synchronized int setAntiAliasLevel(long handle, int antiAliasLevel);
-	
-	protected native synchronized int writePbm(long handle, int page, int rotate, float zoom, float gamma, byte[] file);
-	protected native synchronized int writePnm(long handle, int page, int rotate, float zoom, int color, float gamma, byte[] file);
-	protected native synchronized int writePam(long handle, int page, int rotate, float zoom, int color, float gamma, byte[] file);
-	protected native synchronized int writePng(long handle, int page, int rotate, float zoom, int color, float gamma, byte[] file);
-	protected native synchronized int writeTif(long handle, int page, int rotate, float zoom, int color, float gamma, byte[] file, int compression, int mode, int quality);
-	protected native synchronized int writeJPeg(long handle, int page, int rotate, float zoom, int color, float gamma, byte[] file, int quality);
-	protected native synchronized int writeBmp(long handle, int page, int rotate, float zoom, int color, float gamma, byte[] file);
-	
+	protected native int writePbm(long handle, int rotate, float zoom, float gamma, byte[] file);
+	protected native int writePnm(long handle, int rotate, float zoom, int color, float gamma, byte[] file);
+	protected native int writePam(long handle, int rotate, float zoom, int color, float gamma, byte[] file);
+	protected native int writePng(long handle, int rotate, float zoom, int color, float gamma, byte[] file);
+	protected native int writeTif(long handle, int rotate, float zoom, int color, float gamma, byte[] file, int compression, int mode, int quality);
+	protected native int writeJPeg(long handle,int rotate, float zoom, int color, float gamma, byte[] file, int quality);
+	protected native int writeBmp(long handle, int rotate, float zoom, int color, float gamma, byte[] file);
+
 	/**
 	 * Get library version
 	 * @return
