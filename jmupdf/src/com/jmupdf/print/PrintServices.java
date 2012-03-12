@@ -41,6 +41,7 @@ import com.jmupdf.enums.DocumentType;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
+import com.jmupdf.exceptions.PageException;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageRect;
 import com.jmupdf.pdf.PdfDocument;
@@ -293,7 +294,11 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 			if (page != null) {
 				page.dispose();
 			}
-			page = new Page(document, currentPage);
+			try {
+				page = new Page(document, currentPage);
+			} catch (PageException e) {
+				return NO_SUCH_PAGE;
+			}
 			if (!isCustomResolution()) {
 				float z = (float)page.getWidth() / (float)pageFormat.getWidth();
 				zoomFactor = (float)g2.getTransform().getScaleX();

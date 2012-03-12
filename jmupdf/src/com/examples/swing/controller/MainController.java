@@ -36,6 +36,7 @@ import com.jmupdf.enums.DocumentType;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
+import com.jmupdf.exceptions.PageException;
 import com.jmupdf.page.Page;
 import com.jmupdf.pdf.PdfDocument;
 import com.jmupdf.print.PrintServices;
@@ -233,7 +234,12 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 			if (page != null) {
 				page.dispose();
 			}			
-			page = document.getPage(getPageNumber());
+			try {
+				page = document.getPage(getPageNumber());
+			} catch (PageException e1) {
+				e1.printStackTrace();
+				page = null;
+			}
 			if (page != null) {
 				try {
 					if (isZooming) {
@@ -287,6 +293,10 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 					if (pass == null) {
 						break;
 					}
+				} catch (PageException e) {
+					e.printStackTrace();
+					page = null;
+					break;
 				}
 			}
 		}

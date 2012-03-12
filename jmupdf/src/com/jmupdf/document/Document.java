@@ -14,6 +14,7 @@ import com.jmupdf.JmuPdf;
 import com.jmupdf.enums.DocumentType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
+import com.jmupdf.exceptions.PageException;
 import com.jmupdf.page.Page;
 
 /**
@@ -206,7 +207,7 @@ public abstract class Document extends JmuPdf {
 	 * @param page
 	 * @return
 	 */
-	public Page getPage(int page) {
+	public Page getPage(int page) throws PageException {
 		if (handle > 0) {
 			return new Page(this, page);
 		}

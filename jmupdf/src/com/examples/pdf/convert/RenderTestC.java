@@ -3,6 +3,7 @@ package com.examples.pdf.convert;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
+import com.jmupdf.exceptions.PageException;
 import com.jmupdf.page.Page;
 import com.jmupdf.pdf.PdfDocument;
 
@@ -13,14 +14,16 @@ import com.jmupdf.pdf.PdfDocument;
 public class RenderTestC {
 
 	public static void main(String[] args) {
+		PdfDocument doc = null;
+		Page page = null;
 
 		try {
 			
 			/* Open document */
-			PdfDocument doc = new PdfDocument("C:\\tmp\\test-aa.pdf", "");			
+			doc = new PdfDocument("C:\\tmp\\test-aa.pdf", "");			
 			
 			/* Get page object */
-			Page page = new Page(doc, 1);
+			page = new Page(doc, 1);
 			page.setAntiAliasLevel(0);
 			
 			/* Set parameter values */
@@ -33,14 +36,17 @@ public class RenderTestC {
 			/* Create png file */
 			page.saveAsPng(file, rotate, zoom, type, gamma);
 
-			/* dispose native resources */
-			page.dispose();
-			doc.dispose();
-			
 		} catch (DocException e) {
 			e.printStackTrace();
 		} catch (DocSecurityException e) {
 			e.printStackTrace();
+		} catch (PageException e) {
+			e.printStackTrace();
+		} finally {
+			if (page != null)
+				page.dispose();
+			if (doc != null)
+				doc.dispose();
 		}
 
 	}

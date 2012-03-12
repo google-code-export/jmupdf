@@ -2,6 +2,7 @@ package com.examples.pdf.links;
 
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
+import com.jmupdf.exceptions.PageException;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.pdf.PdfDocument;
@@ -15,14 +16,16 @@ import com.jmupdf.pdf.PdfDocument;
 public class LinksTest {
 
 	public static void main(String[] args) {
-
+		PdfDocument doc = null;
+		Page page = null;
+		
 		try {
 			
 			/* Open document */ 
-			PdfDocument doc = new PdfDocument("d:\\tmp\\sources.pdf");
+			doc = new PdfDocument("d:\\tmp\\sources.pdf");
 
 			/* Get page */
-			Page page = new Page(doc, 1);
+			page = new Page(doc, 1);
 			
 			/* Get links, if any */
 			PageLinks[] links = page.getLinks(null);
@@ -59,6 +62,13 @@ public class LinksTest {
 			e.printStackTrace();
 		} catch (DocSecurityException e) {
 			e.printStackTrace();
+		} catch (PageException e) {
+			e.printStackTrace();
+		} finally {
+			if (page != null)
+				page.dispose();
+			if (doc != null)
+				doc.dispose();
 		}
 		
 	}

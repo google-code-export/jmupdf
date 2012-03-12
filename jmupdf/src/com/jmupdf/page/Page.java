@@ -12,6 +12,7 @@ import com.jmupdf.document.Document;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.enums.TifCompression;
 import com.jmupdf.enums.TifMode;
+import com.jmupdf.exceptions.PageException;
 
 /**
  * Page class.
@@ -39,11 +40,9 @@ public class Page extends JmuPdf {
 	 * Create a new page object
 	 * 
 	 * @param doc
-	 * @param page
-	 * 
-	 * TODO: Throw error here!
+	 * @param page 
 	 */
-	public Page(Document doc, int page) {
+	public Page(Document doc, int page) throws PageException {
 		this.document = doc;
 		this.pageNumber = page;
 		this.boundBox = new PageRect();
@@ -52,10 +51,10 @@ public class Page extends JmuPdf {
 		this.handle = newPage(doc.getHandle(), page);
 		if (handle > 0) {
 			if (!loadPageInfo()) {
-				// TODO: Throw error
+				throw new PageException("Error: Page could not be loaded.");
 			}
 		} else {
-			// TODO: Throw error
+			throw new PageException("Error: Page could not be created.");
 		}
 	}
 	
