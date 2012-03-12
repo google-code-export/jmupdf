@@ -26,7 +26,8 @@ public class Page extends JmuPdf {
 	private long handle;
 	private int pageNumber;
 	private int pageRotate;
-
+	private int antiAliasLevel;
+	
 	public static final int PAGE_ROTATE_AUTO = -1;
 	public static final int PAGE_ROTATE_NONE = 0;
 	public static final int PAGE_ROTATE_90 = 90;
@@ -47,6 +48,7 @@ public class Page extends JmuPdf {
 		this.pageNumber = page;
 		this.boundBox = new PageRect();
 		this.pageRotate = 0;
+		this.antiAliasLevel = 0;
 		this.handle = newPage(doc.getHandle(), page);
 		if (handle > 0) {
 			if (!loadPageInfo()) {
@@ -328,6 +330,7 @@ public class Page extends JmuPdf {
 			dispose();
 			return false;
 		}
+		antiAliasLevel = getAntiAliasLevel(handle);
 		boundBox = new PageRect(pageInfo[0], pageInfo[1], pageInfo[2], pageInfo[3]);
 		pageRotate = (int)pageInfo[4];
 		return true;
@@ -343,13 +346,52 @@ public class Page extends JmuPdf {
 		}
 	}
 
+	/* */
+	/* */
+	
+	/**
+	 * Set default anti-alias level to be used when rendering pages
+	 * 
+	 * @param antiAliasLevel
+	 */
+	public void setAntiAliasLevel(int antiAliasLevel) {
+		if (handle > 0) {
+			antiAliasLevel = validateAntiAliasLevel(antiAliasLevel);
+			if (antiAliasLevel != this.antiAliasLevel) {
+				this.antiAliasLevel = antiAliasLevel;
+				setAntiAliasLevel(handle, antiAliasLevel);
+			}
+		}
+	}
+
+	/**
+	 * Get default anti-alias level used when rendering pages
+	 * @return
+	 */
+	public int getAntiAliasLevel() {
+		if (handle > 0) {
+			return antiAliasLevel;
+		}
+		return -1;
+	}
+
+	/**
+	 * Validate Anti-alias level
+	 */
+	private static int validateAntiAliasLevel(int level) {
+		if (level < 0) {
+			return 0;
+		}
+		else if (level > 8) {
+			return 8;
+		}
+		return level;
+	}
 	
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	/* saveAsXXX() methods.                      */
-	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	/* We could encapsulate to another class?    */
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

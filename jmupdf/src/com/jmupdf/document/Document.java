@@ -27,8 +27,7 @@ public abstract class Document extends JmuPdf {
 	private String password;
 	private DocumentType documentType;
 	private long handle;
-	private int pageCount;		
-	private int antiAliasLevel;
+	private int pageCount;	
 	private int maxStore;
 	private boolean isCached;		
 	private Outline outline;
@@ -57,12 +56,10 @@ public abstract class Document extends JmuPdf {
 			throw new DocException("Document " + document + " does not exist.");
 		}
 
-		// TODO: Might need to pass aa level here. Currently setting aa level is broke.
 		this.handle = open(getDocumentType().getIntValue(), getDocumentName().getBytes(), getPassWord().getBytes(), getMaxStore());
 
 		if (getHandle() > 0) {
-			this.pageCount = getPageCount(getHandle());
-			this.antiAliasLevel = getAntiAliasLevel(getHandle());
+			this.pageCount = getPageCount(getHandle());			
 		} else {
 			if (getHandle() == -3) {
 				throw new DocSecurityException("Error " + getHandle() + ": Document requires authentication");
@@ -134,7 +131,8 @@ public abstract class Document extends JmuPdf {
 	}
 	
 	/**
-	 * Get max memory used to store information.
+	 * Get max memory used to store information.</br>
+	 * The default value will be 20mb
 	 * @return
 	 */
 	public int getMaxStore() {
@@ -151,17 +149,6 @@ public abstract class Document extends JmuPdf {
 	public int getVersion() {
 		if (handle > 0) {
 			return getVersion(handle);
-		}
-		return 0;
-	}
-
-	/**
-	 * Get total pages in document
-	 * @return 
-	 */
-	public int getPageCount() {
-		if (handle > 0) {
-			return pageCount;
 		}
 		return 0;
 	}
@@ -187,20 +174,7 @@ public abstract class Document extends JmuPdf {
 		}
 		return password;
 	}
-	
-	/**
-	 * Get a page object.  
-	 * 
-	 * @param page
-	 * @return
-	 */
-	public Page getPage(int page) {
-		if (handle > 0) {
-			return new Page(this, page);
-		}
-		return null;
-	}
-	
+
 	/**
 	 * Get document outline
 	 * @return
@@ -216,42 +190,27 @@ public abstract class Document extends JmuPdf {
 	}
 	
 	/**
-	 * Set default anti-alias level to be used when rendering pages
-	 * 
-	 * @param antiAliasLevel
+	 * Get total pages in document
+	 * @return 
 	 */
-	public void setAntiAliasLevel(int antiAliasLevel) {
+	public int getPageCount() {
 		if (handle > 0) {
-			antiAliasLevel = validateAntiAliasLevel(antiAliasLevel);
-			if (antiAliasLevel != this.antiAliasLevel) {
-				this.antiAliasLevel = antiAliasLevel;
-				setAntiAliasLevel(handle, antiAliasLevel);
-			}
+			return pageCount;
 		}
+		return 0;
 	}
-
+	
 	/**
-	 * Get default anti-alias level used when rendering pages
+	 * Get a page object.  
+	 * 
+	 * @param page
 	 * @return
 	 */
-	public int getAntiAliasLevel() {
+	public Page getPage(int page) {
 		if (handle > 0) {
-			return antiAliasLevel;
+			return new Page(this, page);
 		}
-		return -1;
-	}
-
-	/**
-	 * Validate Anti-alias level
-	 */
-	private static int validateAntiAliasLevel(int level) {
-		if (level < 0) {
-			return 0;
-		}
-		else if (level > 8) {
-			return 8;
-		}
-		return level;
+		return null;
 	}
 
 	/**

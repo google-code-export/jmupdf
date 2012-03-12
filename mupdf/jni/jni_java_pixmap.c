@@ -104,30 +104,34 @@ static fz_rect jni_normalize_rect(jni_page *page, float x0, float y0, float x1, 
 }
 
 /**
+ * Set anti alias level
+ */
+static void jni_set_aa_level(jni_page *page)
+{
+	if (fz_get_aa_level(page->ctx) != page->anti_alias)
+	{
+		fz_drop_glyph_cache_context(page->ctx);
+		fz_set_aa_level(page->ctx, page->anti_alias);
+		fz_new_glyph_cache_context(page->ctx);
+	}
+}
+
+/**
  * Get an RGB, ARGB, Gray scale pixel data
  */
 static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int color, float gamma, float x0, float y0, float x1, float y1)
 {
 	fz_pixmap *pix = NULL;
 	fz_device *dev = NULL;
-
-	//  Set anti alias level
-	// TODO: Move this out
-	// TODO: Fix, this is now broken, yikes!
-	if (fz_get_aa_level(page->ctx) != page->anti_alias)
-	{
-		fz_set_aa_level(page->ctx, page->anti_alias);
-	}
-
-	// Get Current Transformation Matrix
-	fz_matrix ctm = jni_get_view_ctm(zoom, rotate);
-
-	// Create new bounding box for page
-	fz_bbox bbox = fz_round_rect(fz_transform_rect(ctm, jni_normalize_rect(page, x0, y0, x1, y1)));
+	fz_matrix ctm;
+	fz_bbox bbox;
 
 	// Try to get pixel buffer
 	fz_try(page->ctx)
 	{
+		jni_set_aa_level(page);
+		ctm = jni_get_view_ctm(zoom, rotate);
+		bbox = fz_round_rect(fz_transform_rect(ctm, jni_normalize_rect(page, x0, y0, x1, y1)));
 		pix = fz_new_pixmap_with_rect(page->ctx, jni_get_color_space(color), bbox);
 	}
 	fz_catch(page->ctx)
@@ -158,11 +162,6 @@ static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int col
 	// Render image
 	fz_try(page->ctx)
 	{
-		//if (!page->doc->ctx->glyph_cache)
-		//{
-		//	fz_new_glyph_cache_context(page->doc->ctx);
-		//	page->ctx->glyph_cache = fz_keep_glyph_cache(page->doc->ctx);
-		//}
 		dev = fz_new_draw_device(page->ctx, pix);
 		fz_run_display_list(page->list, dev, ctm, bbox, NULL);
 		if (gamma != 1 && gamma > 0)
@@ -516,7 +515,7 @@ Java_com_jmupdf_JmuPdf_freeByteBuffer(JNIEnv *env, jclass obj, jlong handle, job
  * Set Default Anti Alias Level
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_setAntiAliasLevel(JNIEnv *env, jclass obj, jlong handle, jint anti_alias_level)
+Java_com_jmupdf_JmuPdf_setAntiAliasLevel(JNIEnv *env, jclass obj, jlong handle, jint anti_alias)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -525,14 +524,7 @@ Java_com_jmupdf_JmuPdf_setAntiAliasLevel(JNIEnv *env, jclass obj, jlong handle, 
 		return -1;
 	}
 
-	//if (page->anti_alias != anti_alias_level)
-	//{
-		page->anti_alias = anti_alias_level;
-		//if (page->doc->ctx->glyph_cache)
-		//{
-		//	fz_drop_glyph_cache_context(page->doc->ctx);
-		//}
-	//}
+	page->anti_alias = anti_alias;
 
 	return 0;
 }

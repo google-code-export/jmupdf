@@ -33,7 +33,7 @@ public class PageRenderer implements Runnable {
 	private int rotation;
 	private ImageType color;
 	private float gamma;
-//	private int antiAlias;
+	private int antiAlias;
 	
 	/**
 	 * Create renderer instance with default values. 
@@ -284,33 +284,33 @@ public class PageRenderer implements Runnable {
 		}
 	}
 
-//	/**
-//	 * Get anti-alias level.
-//	 * @return
-//	 */
-//	public int getAntiAliasLevel() {
-//		return antiAlias;
-//	}
-//	
-//	/**
-//	 * Set anti-alias level.</br>
-//	 * This value is used to determine what bit level is used when 
-//	 * applying anti-aliasing while rendering page images.</br>
-//	 * A value of zero turns off anti-aliasing. Maximum value is 8.
-//	 * @param level
-//	 */
-//	public void setAntiAliasLevel(int level) {
-//		if (getAntiAliasLevel() == level) {
-//			return;
-//		}
-//		if (!isPageRendering()) {
-//			this.antiAlias = level;
-//			if (getPagePixels() != null) {
-//				getPagePixels().setAntiAliasLevel(level);
-//			}
-//			needsRendering();
-//		}
-//	}
+	/**
+	 * Get anti-alias level.
+	 * @return
+	 */
+	public int getAntiAliasLevel() {
+		return antiAlias;
+	}
+	
+	/**
+	 * Set anti-alias level.</br>
+	 * This value is used to determine what bit level is used when 
+	 * applying anti-aliasing while rendering page images.</br>
+	 * A value of zero turns off anti-aliasing. Maximum value is 8.
+	 * @param level
+	 */
+	public void setAntiAliasLevel(int level) {
+		if (getAntiAliasLevel() == level) {
+			return;
+		}
+		if (!isPageRendering()) {
+			this.antiAlias = level;
+			if (getPagePixels() != null) {
+				getPagePixels().setAntiAliasLevel(level);
+			}
+			needsRendering();
+		}
+	}
 
 	/**
 	 * Get resolution
@@ -377,7 +377,7 @@ public class PageRenderer implements Runnable {
 			}
 			if (page != null) {
 				pagePixels = new PagePixels(page);
-//				pagePixels.setAntiAliasLevel(getAntiAliasLevel());
+				pagePixels.setAntiAliasLevel(getAntiAliasLevel());
 				pagePixels.setColor(getColorType());
 				pagePixels.setGamma(getGamma());
 				pagePixels.setRotation(getRotation());

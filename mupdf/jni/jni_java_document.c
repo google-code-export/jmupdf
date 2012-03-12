@@ -46,11 +46,6 @@ static void jni_free_document(jni_document *doc)
 		return;
 	}
 
-	if (doc->ctx->glyph_cache)
-	{
-		fz_drop_glyph_cache_context(doc->ctx);
-	}
-
 	if (doc->doc)
 	{
 		fz_close_document(doc->doc);
@@ -214,7 +209,7 @@ Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jbyteArray docum
 
     if (!doc)
     {
-            return -1;
+    	return -1;
     }
 
     char * file = jni_jbyte_to_char(env, doc->ctx, document);
@@ -227,8 +222,8 @@ Java_com_jmupdf_JmuPdf_open(JNIEnv *env, jclass obj, jint type, jbyteArray docum
 
     if (rc != 0)
     {
-            jni_free_document(doc);
-            return rc;
+    	jni_free_document(doc);
+    	return rc;
     }
 
     return jni_ptr_to_jlong(doc);
