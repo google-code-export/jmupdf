@@ -5,7 +5,8 @@
  */
 static jni_page *jni_new_page(jni_document *doc, int pagen)
 {
-	jni_page *page = fz_malloc_no_throw(doc->ctx, sizeof(jni_page));
+	fz_context *ctx = fz_clone_context(doc->ctx);
+	jni_page *page = fz_malloc_no_throw(ctx, sizeof(jni_page));
 
 	if (!page)
 	{
@@ -16,9 +17,9 @@ static jni_page *jni_new_page(jni_document *doc, int pagen)
 	page->page = NULL;
 	page->list = NULL;
 	page->page_number = pagen;
-	page->ctx = fz_clone_context(doc->ctx);
-	page->anti_alias = fz_get_aa_level(page->ctx);
+	page->anti_alias = fz_get_aa_level(ctx);
 	page->gamma = 1.0f;
+	page->ctx = ctx;
 
 	return page;
 }
@@ -34,6 +35,7 @@ static void jni_free_page(jni_page *page)
 	}
 
 	fz_context *ctx = page->ctx;
+	jni_document *doc = page->doc;
 
 	if (page->list)
 	{
@@ -42,105 +44,55 @@ static void jni_free_page(jni_page *page)
 
 	if (page->page)
 	{
-		fz_free_page(page->doc->doc, page->page);
+		fz_free_page(doc->doc, page->page);
 	}
-
-	fz_flush_warnings(ctx);
-
-	page->page = NULL;
-	page->list = NULL;
-	page->page_number = 0;
 
 	fz_free(ctx, page);
 	fz_free_context(ctx);
+	page = NULL;
 }
-
-///**
-// * Load a page
-// */
-//static void jni_load_page(jni_page *page)
-//{
-//	fz_try(page->ctx)
-//	{
-//		page->page = fz_load_page(page->doc->doc, page->page_number-1);
-//		page->bbox = fz_bound_page(page->doc->doc, page->page);
-//	}
-//	fz_catch(page->ctx)
-//	{
-//		page->page = NULL;
-//	}
-//}
 
 /**
  * Draw a page
  */
-static void jni_draw_page(jni_page *page)
+static void jni_load_page(jni_page *page)
 {
 	fz_device *dev = NULL;
-	fz_try(page->ctx)
+	fz_lock(page->ctx, FZ_LOCK_FILE);
 	{
-		page->page = fz_load_page(page->doc->doc, page->page_number-1);
-		page->list = fz_new_display_list(page->ctx);
-		dev = fz_new_list_device(page->ctx, page->list);
-		fz_run_page(page->doc->doc, page->page, dev, fz_identity, NULL);
-		page->bbox = fz_bound_page(page->doc->doc, page->page);
+		fz_try(page->ctx)
+		{
+			page->page = fz_load_page(page->doc->doc, page->page_number-1);
+			page->list = fz_new_display_list(page->ctx);
+			dev = fz_new_list_device(page->ctx, page->list);
+			fz_run_page(page->doc->doc, page->page, dev, fz_identity, NULL);
+			page->bbox = fz_bound_page(page->doc->doc, page->page);
+		}
+		fz_always(page->ctx)
+		{
+			fz_free_device(dev);
+		}
+		fz_catch(page->ctx)
+		{
+			fz_unlock(page->ctx, FZ_LOCK_FILE);
+			fz_throw(page->ctx, "Could not create page.");
+		}
 	}
-	fz_always(page->ctx)
-	{
-		fz_free_device(dev);
-	}
-	fz_catch(page->ctx)
-	{
-		jni_free_page(page);
-		fz_rethrow(page->ctx);
-	}
+	fz_unlock(page->ctx, FZ_LOCK_FILE);
 }
-
-///**
-// * Load page text
-// */
-//static fz_text_span * jni_load_text(jni_page *page)
-//{
-//	fz_matrix ctm = jni_get_view_ctm(1, 0);
-//
-//	fz_text_span *page_text = NULL;
-//	fz_device *dev = NULL;
-//
-//	fz_try(page->ctx)
-//	{
-//		page_text = fz_new_text_span(page->ctx);
-//		dev = fz_new_text_device(page->ctx, page_text);
-//		fz_run_display_list(page->list, dev, ctm, fz_infinite_bbox, NULL);
-//	}
-//	fz_always(page->ctx)
-//	{
-//		fz_free_device(dev);
-//	}
-//	fz_catch(page->ctx)
-//	{
-//		if(page_text)
-//		{
-//			fz_free_text_span(page->ctx, page_text);
-//			page_text = NULL;
-//		}
-//	}
-//
-//	return page_text;
-//}
 
 /**
  * Load page text
  */
 static fz_text_page * jni_load_text(jni_page *page)
 {
-	fz_matrix ctm = jni_get_view_ctm(1, 0);
-
 	fz_text_page *page_text = NULL;
 	fz_text_sheet *page_sheet = NULL;
 	fz_device *dev = NULL;
 
 	fz_try(page->ctx)
 	{
+		fz_matrix ctm = jni_get_view_ctm(1, 0);
 		page_sheet = fz_new_text_sheet(page->ctx);
 		page_text = fz_new_text_page(page->ctx, page->bbox);
 		dev = fz_new_text_device(page->ctx, page_sheet, page_text);
@@ -204,7 +156,11 @@ static int jni_count_text_span(fz_text_page *page_text, int x0, int y0, int x1, 
  */
 jni_page *jni_get_page(jlong handle)
 {
-	return (jni_page *)jni_jlong_to_ptr(handle);
+	if (handle > 0)
+	{
+		return (jni_page *)jni_jlong_to_ptr(handle);
+	}
+	return NULL;
 }
 
 /**
@@ -220,33 +176,17 @@ Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle)
 		return NULL;
 	}
 
-//	fz_lock(page->ctx, FZ_LOCK_FILE);
-//	{
-//	 jni_load_page(page);
-//	}
-//	fz_unlock(page->ctx, FZ_LOCK_FILE);
-
-//	if(!page->page)
-//	{
-//		return NULL;
-//	}
-
-	int error = 0;
-
-	fz_lock(page->ctx, FZ_LOCK_FILE);
+	fz_try(page->ctx)
 	{
-		fz_try(page->ctx)
-		{
-			jni_draw_page(page);
-		}
-		fz_catch(page->ctx)
-		{
-			error = 1;
-		}
+		jni_load_page(page);
 	}
-	fz_unlock(page->ctx, FZ_LOCK_FILE);
+	fz_catch(page->ctx)
+	{
+		jni_free_page(page);
+		page = NULL;
+	}
 
-	if (error)
+	if (!page)
 	{
 		return NULL;
 	}
@@ -309,7 +249,7 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 	jobjectArray page_text_arr = NULL;
 
 	int totspan = jni_count_text_span(page_text, x0, y0, x1, y1);
-	printf("Total span %i\n", totspan);
+
 	if (totspan > 0)
 	{
 		page_text_arr = jni_new_object_array(totspan, cls);
@@ -336,7 +276,6 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 				{
 					for (span = line->spans; span < line->spans + line->len; span++)
 					{
-						printf("Im here #1\n");
 						seen = 0;
 						p = 0;
 						for (i = 0; i < span->len; i++)
@@ -353,35 +292,27 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 								txtptr[p++] = span->text[i].c;
 							}
 						}
-						printf("Im here #2\n");
 						if (seen == 1)
 						{
-							printf("Im here #3\n");
 							int eol = 0;
 							if (span + 1 == line->spans + line->len)
 							{
 								eol = 1;
 							}
-							printf("Im here #4\n");
 							jni_release_int_array(txtarr, txtptr);
-							printf("Im here #5\n");
 							fz_bbox b = hitbox = fz_round_rect(span->text[0].bbox);
 							new_page = jni_new_page_text_obj(
 											   cls, init,
 											   b.x0, b.y0, hitbox.x1, hitbox.y1, eol, txtarr);
-							printf("Im here #6\n");
 							jni_set_object_array_el(page_text_arr, e++, new_page);
-							printf("Im here #7\n");
 						}
 					}
 				}
 			}
 		}
 	}
-printf("Im here #7\n");
 	jni_free_ref(cls);
 	fz_free_text_page(page->ctx, page_text);
-printf("Im here #8\n");
 	return page_text_arr;
 }
 

@@ -20,21 +20,20 @@ public class RenderTestB {
 		try {
 
 			/* Open document */
-			doc = new PdfDocument("c:\\tmp\\test-1.pdf");
+			doc = new PdfDocument("d:\\tmp\\iTextinAction.pdf");
 
 			/* Get page */
 			page = new Page(doc, 1);
 			
 			/* Set parameter values */
-			String file = "c:\\tmp\\test-1.png";
-			int rotate = Page.PAGE_ROTATE_90;
-			float zoom = 2f;
+			String file = "d:\\tmp\\test1.png";
+			int rotate = Page.PAGE_ROTATE_NONE;
+			float zoom = 1f;
 			ImageType type = ImageType.IMAGE_TYPE_RGB;
 			float gamma = 1f;
 			
 			/* Create png file */
 			page.saveAsPng(file, rotate, zoom, type, gamma);
-
 		} catch (DocException e) {
 			e.printStackTrace();
 		} catch (DocSecurityException e) {
@@ -50,4 +49,12 @@ public class RenderTestB {
 		
 	}
 
+    /**
+     * Print test messages
+     * @param text
+     */
+    protected static void log(String text) {
+    	System.out.println(text);
+    }
+    
 }

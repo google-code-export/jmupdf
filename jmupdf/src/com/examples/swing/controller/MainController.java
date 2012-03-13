@@ -254,9 +254,9 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 				}
 			}
 		}
-		isZooming = false;
+		isZooming = false;	
 	}
-	
+
 	/**
 	 * Open Document
 	 */

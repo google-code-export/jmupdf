@@ -99,9 +99,9 @@ public abstract class Document extends JmuPdf {
 	/**
 	 * Close document
 	 */
-	public void close() {
-		if (handle > 0) {
-			close(handle);
+	public synchronized void close() {
+		if (getHandle() > 0) {
+			close(getHandle());
 			if (isCached) {
 				File file = new File(document);
 				if (file.exists()) {
@@ -117,12 +117,13 @@ public abstract class Document extends JmuPdf {
 
 	/**
 	 * Get document handle
+	 * 
 	 * @return
 	 */
-	public long getHandle() {
+	public synchronized long getHandle() {
 		return handle;
 	}
-
+	
 	/**
 	 * Get document type
 	 * @return
@@ -148,8 +149,8 @@ public abstract class Document extends JmuPdf {
 	 * @return
 	 */
 	public int getVersion() {
-		if (handle > 0) {
-			return getVersion(handle);
+		if (getHandle() > 0) {
+			return getVersion(getHandle());
 		}
 		return 0;
 	}
@@ -180,10 +181,10 @@ public abstract class Document extends JmuPdf {
 	 * Get document outline
 	 * @return
 	 */
-	public Outline getOutline() {
-		if (handle > 0) {
+	public synchronized Outline getOutline() {
+		if (getHandle() > 0) {
 			if (outline == null) {
-				outline = getOutline(handle);	
+				outline = getOutline(getHandle());	
 			}
 			return outline;
 		}
@@ -194,8 +195,8 @@ public abstract class Document extends JmuPdf {
 	 * Get total pages in document
 	 * @return 
 	 */
-	public int getPageCount() {
-		if (handle > 0) {
+	public synchronized int getPageCount() {
+		if (getHandle() > 0) {
 			return pageCount;
 		}
 		return 0;
@@ -207,13 +208,13 @@ public abstract class Document extends JmuPdf {
 	 * @param page
 	 * @return
 	 */
-	public Page getPage(int page) throws PageException {
-		if (handle > 0) {
+	public synchronized Page getPage(int page) throws PageException {
+		if (getHandle() > 0) {
 			return new Page(this, page);
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Release all references to outline objects
 	 * 

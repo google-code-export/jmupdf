@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
+import com.jmupdf.xps.XpsDocument;
 
 public class TestMutexA {
 
@@ -16,10 +17,11 @@ public class TestMutexA {
 		int maxMemory = 30;		
 		PdfDocument doc1 = new PdfDocument("d:\\tmp\\pdf_reference_1-7.pdf", maxMemory);
 		PdfDocument doc2 = new PdfDocument("d:\\tmp\\iTextinAction.pdf", maxMemory);
-
-		// Let's process up to 10 concurrent pages
+		XpsDocument doc3 = new XpsDocument("d:\\tmp\\Windows_Vista_Product_Guide.xps", maxMemory);
+		
+		// Let's process up to 12 concurrent pages
 		ExecutorService jobPool;
-		jobPool = Executors.newFixedThreadPool(10);
+		jobPool = Executors.newFixedThreadPool(12);
 
 		// Loop thru pages and queue up for rendering
 		boolean more = true;
@@ -31,7 +33,10 @@ public class TestMutexA {
 			if (i <= doc2.getPageCount()) {
 				jobPool.execute( new TestMutexB(doc2, i) );
 			}
-			if ((i >= doc1.getPageCount()) && (i >= doc2.getPageCount())) {
+			if (i <= doc3.getPageCount()) {
+				jobPool.execute( new TestMutexB(doc3, i) );
+			}
+			if ((i >= doc1.getPageCount()) && (i >= doc2.getPageCount()) && (i >= doc3.getPageCount())) {
 				more = false;
 			}
 			i++;

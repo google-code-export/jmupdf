@@ -41,10 +41,11 @@ void fz_new_aa_context(fz_context *ctx)
 #endif
 }
 
+// XXX: JMuPDF fix
 void fz_copy_aa_context(fz_context *dst, fz_context *src)
 {
 	if (dst && src)
-		memcpy(dst, src, sizeof(*src));
+		memcpy(dst->aa, src->aa, sizeof(*src->aa));
 }
 
 void fz_free_aa_context(fz_context *ctx)

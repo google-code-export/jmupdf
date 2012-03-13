@@ -43,19 +43,44 @@ public class Page extends JmuPdf {
 	 * @param page 
 	 */
 	public Page(Document doc, int page) throws PageException {
-		this.document = doc;
-		this.pageNumber = page;
-		this.boundBox = new PageRect();
-		this.pageRotate = 0;
-		this.antiAliasLevel = 0;
-		this.handle = newPage(doc.getHandle(), page);
-		if (handle > 0) {
-			if (!loadPageInfo()) {
+		document = doc;
+		pageNumber = page;
+		boundBox = new PageRect();
+		pageRotate = 0;
+		antiAliasLevel = 0;
+		handle = newPage(doc.getHandle(), page);
+		if (getHandle() > 0) {
+			loadPageInfo();
+			if (getHandle() <= 0) {
 				throw new PageException("Error: Page could not be loaded.");
 			}
 		} else {
 			throw new PageException("Error: Page could not be created.");
 		}
+	}
+	
+	/**
+	 * Load page information
+	 */
+	private boolean loadPageInfo() {
+		float[] pageInfo = loadPage(getHandle());
+		if (pageInfo == null) {
+			handle = 0;
+			return false;
+		}
+		antiAliasLevel = getAntiAliasLevel(getHandle());
+		boundBox = new PageRect(pageInfo[0], pageInfo[1], pageInfo[2], pageInfo[3]);
+		pageRotate = (int)pageInfo[4];
+		return true;
+	}
+	
+	/**
+	 * Get document handle
+	 * 
+	 * @return
+	 */
+	public synchronized long getHandle() {
+		return handle;
 	}
 	
 	/**
@@ -128,7 +153,7 @@ public class Page extends JmuPdf {
 	 * @return
 	 */
 	public String getText() {
-		if (handle > 0) {
+		if (getHandle() > 0) {
 			return getText(null, getX(), getY(), getWidth(), getHeight());
 		}
 		return null;
@@ -148,8 +173,8 @@ public class Page extends JmuPdf {
 	 * @param h
 	 * @return
 	 */
-	public String getText(PagePixels pagePixels, int x, int y, int w, int h) {
-		if (handle <= 0) {
+	public synchronized String getText(PagePixels pagePixels, int x, int y, int w, int h) {
+		if (getHandle() <= 0) {
 			return null;
 		}
 		
@@ -198,8 +223,8 @@ public class Page extends JmuPdf {
 	 * @param h
 	 * @return
 	 */
-	public PageText[] getTextSpan(PagePixels pagePixels, int x, int y, int w, int h) {
-		if (handle <= 0) {
+	public synchronized PageText[] getTextSpan(PagePixels pagePixels, int x, int y, int w, int h) {
+		if (getHandle() <= 0) {
 			return null;
 		}
 		
@@ -215,9 +240,9 @@ public class Page extends JmuPdf {
 		pr.setRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);		
 		pr = pr.rotate(getBoundBox(), rotate, PAGE_ROTATE_NONE);
 
-		return getPageText((int)pr.getX0(), (int)pr.getY0(), (int)pr.getX1(), (int)pr.getY1());
+		return getPageText(getHandle(), (int)pr.getX0(), (int)pr.getY0(), (int)pr.getX1(), (int)pr.getY1());
 	}
-
+	
 	/**
 	 * Get PageLinks Array Object </br>
 	 * Optionally pass in a PagePixel object to determine how to extract links. </br>
@@ -225,12 +250,12 @@ public class Page extends JmuPdf {
 	 * @param pagePixels : can be null
 	 * @return
 	 */
-	public PageLinks[] getLinks(PagePixels pagePixels) {
-		if (handle <= 0) {
+	public synchronized PageLinks[] getLinks(PagePixels pagePixels) {
+		if (getHandle() <= 0) {
 			return null;
 		}
 		if (pageLinks == null) {
-			pageLinks = getPageLinks();
+			pageLinks = getPageLinks(getHandle());
 			if (pageLinks == null) {
 				pageLinks = new PageLinks[1];
 				pageLinks[0] = new PageLinks(0, 0, 0, 0, 0, "");
@@ -254,7 +279,7 @@ public class Page extends JmuPdf {
 		}
 		return pageLinks;
 	}
-
+	
 	/**
 	 * Get a page as a byte buffer
 	 * 
@@ -269,9 +294,9 @@ public class Page extends JmuPdf {
 	 * @param y1
 	 * @return
 	 */
-	public ByteBuffer getByteBuffer(float zoom, int rotate, ImageType color, float gamma, int[] bbox, float x0, float y0, float x1, float y1) {
-		if (handle > 0) {
-			return getByteBuffer(handle, zoom, rotate, color.getIntValue(), gamma, bbox, x0, y0, x1, y1);
+	public synchronized ByteBuffer getByteBuffer(float zoom, int rotate, ImageType color, float gamma, int[] bbox, float x0, float y0, float x1, float y1) {
+		if (getHandle() > 0) {
+			return getByteBuffer(getHandle(), zoom, rotate, color.getIntValue(), gamma, bbox, x0, y0, x1, y1);
 		}
 		return null;
 	}
@@ -281,66 +306,23 @@ public class Page extends JmuPdf {
 	 * 
 	 * @param buffer
 	 */
-	public void freeByteBuffer(ByteBuffer buffer) {
-		if (handle > 0) {
+	public synchronized void freeByteBuffer(ByteBuffer buffer) {
+		if (getHandle() > 0) {
 			if (buffer != null) {
 				if (buffer.isDirect()) {
 					buffer.clear();
-					freeByteBuffer(handle, buffer);
+					freeByteBuffer(getHandle(), buffer);
 				}
 			}
 		}
-	}
-	
-	/**
-	 * Get page text
-	 * 
-	 * @param x0
-	 * @param y0
-	 * @param x1
-	 * @param y1
-	 * @return
-	 */
-	private PageText[] getPageText(int x0, int y0, int x1, int y1) {
-		if (handle > 0) {
-			return getPageText(handle, x0, y0, x1, y1);
-		}
-		return null;
-	}
-	
-	/**
-	 * Get page links
-	 * 
-	 * @return
-	 */
-	private PageLinks[] getPageLinks() {
-		if (handle > 0) {
-			return getPageLinks(handle);
-		}
-		return null;
-	}
-	
-	/**
-	 * Load page information
-	 */
-	private boolean loadPageInfo() {
-		float[] pageInfo = loadPage(handle);
-		if (pageInfo == null) {
-			dispose();
-			return false;
-		}
-		antiAliasLevel = getAntiAliasLevel(handle);
-		boundBox = new PageRect(pageInfo[0], pageInfo[1], pageInfo[2], pageInfo[3]);
-		pageRotate = (int)pageInfo[4];
-		return true;
 	}
 
 	/**
 	 * Dispose of page resources
 	 */
-	public void dispose() {
-		if (handle > 0) {
-			freePage(handle);
+	public synchronized void dispose() {
+		if (getHandle() > 0) {
+			freePage(getHandle());
 			handle = 0;
 		}
 	}
@@ -353,12 +335,12 @@ public class Page extends JmuPdf {
 	 * 
 	 * @param antiAliasLevel
 	 */
-	public void setAntiAliasLevel(int antiAliasLevel) {
-		if (handle > 0) {
+	public synchronized void setAntiAliasLevel(int antiAliasLevel) {
+		if (getHandle() > 0) {
 			antiAliasLevel = validateAntiAliasLevel(antiAliasLevel);
 			if (antiAliasLevel != this.antiAliasLevel) {
 				this.antiAliasLevel = antiAliasLevel;
-				setAntiAliasLevel(handle, antiAliasLevel);
+				setAntiAliasLevel(getHandle(), antiAliasLevel);
 			}
 		}
 	}
@@ -368,7 +350,7 @@ public class Page extends JmuPdf {
 	 * @return
 	 */
 	public int getAntiAliasLevel() {
-		if (handle > 0) {
+		if (getHandle() > 0) {
 			return antiAliasLevel;
 		}
 		return -1;
@@ -405,8 +387,8 @@ public class Page extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPng(String file, int rotate, float zoom, ImageType color, float gamma) {
-		if (handle > 0) {
+	public synchronized boolean saveAsPng(String file, int rotate, float zoom, ImageType color, float gamma) {
+		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB  	   || 
 				color == ImageType.IMAGE_TYPE_ARGB 	   ||
 				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
@@ -414,7 +396,7 @@ public class Page extends JmuPdf {
 				if (rotate == Page.PAGE_ROTATE_AUTO) {
 					rotate = Page.PAGE_ROTATE_NONE;
 				}
-				return writePng(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				return writePng(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -429,12 +411,12 @@ public class Page extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPbm(String file, int rotate, float zoom, float gamma) {
-		if (handle > 0) {
+	public synchronized boolean saveAsPbm(String file, int rotate, float zoom, float gamma) {
+		if (getHandle() > 0) {
 			if (rotate == Page.PAGE_ROTATE_AUTO) {
 				rotate = Page.PAGE_ROTATE_NONE;
 			}
-			return writePbm(handle, rotate, zoom, gamma, file.getBytes()) == 0;
+			return writePbm(getHandle(), rotate, zoom, gamma, file.getBytes()) == 0;
 		}
 		return false;
 	}
@@ -449,14 +431,14 @@ public class Page extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPnm(String file, int rotate, float zoom, ImageType color, float gamma) {
-		if (handle > 0) {
+	public synchronized boolean saveAsPnm(String file, int rotate, float zoom, ImageType color, float gamma) {
+		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB || 
 				color == ImageType.IMAGE_TYPE_GRAY) {
 				if (rotate == Page.PAGE_ROTATE_AUTO) {
 					rotate = Page.PAGE_ROTATE_NONE;
 				}
-				return writePnm(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				return writePnm(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -473,8 +455,8 @@ public class Page extends JmuPdf {
 	 * @param quality : quality levels are in the range 0-100 with a default value of 75.
 	 * @return
 	 */
-	public boolean saveAsJPeg(String file, int rotate, float zoom, ImageType color, float gamma, int quality) {
-		if (handle > 0) {
+	public synchronized boolean saveAsJPeg(String file, int rotate, float zoom, ImageType color, float gamma, int quality) {
+		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB || 
 				color == ImageType.IMAGE_TYPE_GRAY) {
 				if (!(quality >= 0 && quality <= 100)) {
@@ -483,7 +465,7 @@ public class Page extends JmuPdf {
 				if (rotate == Page.PAGE_ROTATE_AUTO) {
 					rotate = Page.PAGE_ROTATE_NONE;
 				}
-				return writeJPeg(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes(), quality) == 0;
+				return writeJPeg(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes(), quality) == 0;
 			}
 		}
 		return false;
@@ -499,8 +481,8 @@ public class Page extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsBmp(String file, int rotate, float zoom, ImageType color, float gamma) {
-		if (handle > 0) {
+	public synchronized boolean saveAsBmp(String file, int rotate, float zoom, ImageType color, float gamma) {
+		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB    || 
 				color == ImageType.IMAGE_TYPE_GRAY   ||
 				color == ImageType.IMAGE_TYPE_BINARY ||
@@ -508,7 +490,7 @@ public class Page extends JmuPdf {
 				if (rotate == Page.PAGE_ROTATE_AUTO) {
 					rotate = Page.PAGE_ROTATE_NONE;
 				}
-				return writeBmp(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				return writeBmp(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -524,8 +506,8 @@ public class Page extends JmuPdf {
 	 * @param gamma
 	 * @return
 	 */
-	public boolean saveAsPam(String file, int rotate, float zoom, ImageType color, float gamma) {
-		if (handle > 0) {
+	public synchronized boolean saveAsPam(String file, int rotate, float zoom, ImageType color, float gamma) {
+		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB  	 || 
 				color == ImageType.IMAGE_TYPE_ARGB 	 || 
 				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
@@ -533,7 +515,7 @@ public class Page extends JmuPdf {
 				if (rotate == Page.PAGE_ROTATE_AUTO) {
 					rotate = Page.PAGE_ROTATE_NONE;
 				}
-				return writePam(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				return writePam(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
 			}
 		}
 		return false;
@@ -565,8 +547,8 @@ public class Page extends JmuPdf {
 	 *        </blockquote>  
 	 * @return
 	 */
-	public boolean saveAsTif(String file, int rotate, float zoom, ImageType color, float gamma, TifCompression compression, TifMode mode, int quality) {
-		if (handle > 0) {
+	public synchronized boolean saveAsTif(String file, int rotate, float zoom, ImageType color, float gamma, TifCompression compression, TifMode mode, int quality) {
+		if (getHandle() > 0) {
 			
 			if (!(color == ImageType.IMAGE_TYPE_RGB      || 
 				  color == ImageType.IMAGE_TYPE_ARGB     ||
@@ -615,7 +597,7 @@ public class Page extends JmuPdf {
 				rotate = Page.PAGE_ROTATE_NONE;
 			}
 			
-			return writeTif(handle, rotate, zoom, color.getIntValue(), gamma, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
+			return writeTif(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
 		}
 
 		return false;

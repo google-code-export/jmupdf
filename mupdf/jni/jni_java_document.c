@@ -1,35 +1,6 @@
 #include "jmupdf.h"
 
 /**
- * Create a new document
- */
-static jni_document *jni_new_document(int max_store, jni_doc_type type)
-{
-	fz_context *ctx = fz_new_context(NULL, NULL, max_store);
-
-	if (!ctx)
-	{
-		return NULL;
-	}
-
-	jni_document *doc = fz_malloc_no_throw(ctx, sizeof(jni_document));
-
-	if (!doc)
-	{
-		fz_free_context(ctx);
-		return NULL;
-	}
-
-	doc->ctx = ctx;
-	doc->doc = NULL;
-	doc->type = type;
-
-	jni_new_locks(doc);
-
-	return doc;
-}
-
-/**
  * Free document resources
  */
 static void jni_free_document(jni_document *doc)
@@ -55,10 +26,44 @@ static void jni_free_document(jni_document *doc)
 
 	fz_free(ctx, doc);
 	fz_free_context(ctx);
-
 	jni_free_locks(lock);
 
 	return;
+}
+
+/**
+ * Create a new document
+ */
+static jni_document *jni_new_document(int max_store, jni_doc_type type)
+{
+	fz_context *ctx = fz_new_context(NULL, NULL, max_store);
+
+	if (!ctx)
+	{
+		return NULL;
+	}
+
+	jni_document *doc = fz_malloc_no_throw(ctx, sizeof(jni_document));
+
+	if (!doc)
+	{
+		fz_free_context(ctx);
+		return NULL;
+	}
+
+	doc->ctx = ctx;
+	doc->doc = NULL;
+	doc->type = type;
+
+	jni_new_locks(doc);
+
+	if (!doc->locks.user)
+	{
+		jni_free_document(doc);
+		return NULL;
+	}
+
+	return doc;
 }
 
 /**
@@ -196,7 +201,11 @@ static void jni_load_outline(JNIEnv *env, jclass cls, jobject obj,
  */
 jni_document *jni_get_document(jlong handle)
 {
-	return (jni_document *)jni_jlong_to_ptr(handle);
+	if (handle > 0)
+	{
+		return (jni_document *)jni_jlong_to_ptr(handle);
+	}
+	return NULL;
 }
 
 /**

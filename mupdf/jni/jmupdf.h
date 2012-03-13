@@ -37,7 +37,7 @@ typedef enum jni_doc_types
 	DOC_CBZ = 2
 } jni_doc_type;
 
-// Document Structure
+// Document structure
 typedef struct jni_document_s jni_document;
 struct jni_document_s {
 	fz_context *ctx;
@@ -46,7 +46,7 @@ struct jni_document_s {
 	fz_locks_context locks;
 };
 
-// Page Structure
+// Page structure
 typedef struct jni_page_s jni_page;
 struct jni_page_s {
 	fz_context *ctx;
@@ -57,6 +57,16 @@ struct jni_page_s {
 	int page_number;
 	int anti_alias;
 	float gamma;
+};
+
+// Lock objects structure
+typedef struct jni_locks_s jni_locks;
+struct jni_locks_s {
+	jclass lock_file;
+	jclass lock_alloc;
+	jclass lock_freetype;
+	jclass lock_glyphcache;
+	jclass lock_other;
 };
 
 // Default DPI
