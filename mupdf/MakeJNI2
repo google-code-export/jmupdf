@@ -24,8 +24,8 @@ else
 JNI_DLL := $(OUT)/jmupdf64.dll
 endif
 JNI_CMD := $(BIT) -Wl,-export-all,-kill-at -shared
-ifndef $(JVM_INCLUDES)
-JVM_INCLUDES := -I"C:\Program Files\Java\jdk1.6.0_31\include" -I"C:\Program Files\Java\jdk1.6.0_31\include\win32"
+ifndef JVM_INCLUDES
+JVM_INCLUDES := -I"C:\Program Files\Java\jdk1.6.0_26\include" -I"C:\Program Files\Java\jdk1.6.0_26\include\win32"
 endif
 endif
 
@@ -40,7 +40,7 @@ else
 JNI_DLL := $(OUT)/libjmupdf32.so
 endif
 JNI_CMD := -shared
-ifndef $(JVM_INCLUDES)
+ifndef JVM_INCLUDES
 JVM_INCLUDES := -I"/usr/lib/jvm/java-6-openjdk/include" -I"/usr/lib/jvm/java-6-openjdk/include/linux"
 endif
 endif

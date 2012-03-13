@@ -21,21 +21,36 @@ prefix  := build
 OUT 	:= $(prefix)/$(build)
 verbose := "Y"
 
-ifndef $(BIT)
-BIT     := "" 
+ifndef BIT
+BIT := ""
 endif
 
-ifndef $(CC)
+#
+# --- MINGW/MSYS has cc defined but is empty
+#
+ifndef CC
+CC := gcc
+else   
+ifeq "$(findstring MINGW,$(shell uname))" "MINGW"
 CC := gcc
 endif
+endif
 
 #
-# --- Set bit value when using TDM-GCC 
+# --- Set bit value when using TDM-GCC x64
+# --- Force -m32 on x86 systems 
 #
-TDMGCC  := $(shell $(CC) --version)
+TDMGCC := $(shell $(CC) --version)
 ifeq "$(findstring tdm64,$(TDMGCC))" "tdm64"
+ifeq "$(findstring x86,$(PROCESSOR_ARCHITECTURE))" "x86"
+ifneq "$(findstring -m,$(BIT))" "-m"
+BIT := -m32
+endif
+else
+ifneq "$(findstring -m,$(BIT))" "-m"
 BIT := -m64
-#BIT := -m32
+endif
+endif
 endif
 
 #
