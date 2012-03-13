@@ -421,10 +421,10 @@ Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, jclass obj, jlong handle)
 	data[6]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_ACCESSIBILITY);	// Extract text and graphics
 	data[7]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_ASSEMBLE);		// Document assembly
 	data[8]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_HIGH_RES_PRINT);	// Print quality
-	data[9]  = pdf_get_crypt_revision(((pdf_document*)doc->doc));						// Revision
-	data[10] = pdf_get_crypt_length(((pdf_document*)doc->doc));						// Length
+	data[9]  = pdf_crypt_revision(((pdf_document*)doc->doc));						// Revision
+	data[10] = pdf_crypt_length(((pdf_document*)doc->doc));						// Length
 
-	char *method = pdf_get_crypt_method(((pdf_document*)doc->doc));					// Method
+	char *method = pdf_crypt_method(((pdf_document*)doc->doc));					// Method
 
 	if (strcmp(method, "RC4") == 0)  			data[11] = 1;
 	else if (strcmp(method, "AES") == 0)  		data[11] = 2;

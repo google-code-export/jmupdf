@@ -118,7 +118,9 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 #endif
 
-/* Contexts */
+/*
+	Contexts
+*/
 
 typedef struct fz_alloc_context_s fz_alloc_context;
 typedef struct fz_error_context_s fz_error_context;
@@ -274,10 +276,10 @@ fz_context *fz_clone_context(fz_context *ctx);
 void fz_free_context(fz_context *ctx);
 
 /*
-	fz_get_aa_level: Get the number of bits of antialiasing we are
+	fz_aa_level: Get the number of bits of antialiasing we are
 	using. Between 0 and 8.
 */
-int fz_get_aa_level(fz_context *ctx);
+int fz_aa_level(fz_context *ctx);
 
 /*
 	fz_set_aa_level: Set the number of bits of antialiasing we should use.
@@ -467,7 +469,9 @@ void *fz_resize_array_no_throw(fz_context *ctx, void *p, unsigned int count, uns
 */
 char *fz_strdup_no_throw(fz_context *ctx, char *s);
 
-/* safe string functions */
+/*
+	Safe string functions
+*/
 /*
 	fz_strsep: Given a pointer to a C string (or a pointer to NULL) break
 	it at the first occurence of a delimiter char (from a given set).
@@ -1084,7 +1088,7 @@ typedef struct fz_colorspace_s fz_colorspace;
 	fz_find_device_colorspace: Find a standard colorspace based upon
 	it's name.
 */
-fz_colorspace *fz_find_device_colorspace(char *name);
+fz_colorspace *fz_find_device_colorspace(fz_context *ctx, char *name);
 
 /*
 	fz_device_gray: Abstract colorspace representing device specific
@@ -1119,11 +1123,21 @@ extern fz_colorspace *fz_device_cmyk;
 typedef struct fz_pixmap_s fz_pixmap;
 
 /*
-	fz_bound_pixmap: Return a bounding box for a pixmap.
+	fz_pixmap_bbox: Return a bounding box for a pixmap.
 
 	Returns an exact bounding box for the supplied pixmap.
 */
-fz_bbox fz_bound_pixmap(fz_pixmap *pix);
+fz_bbox fz_pixmap_bbox(fz_context *ctx, fz_pixmap *pix);
+
+/*
+	fz_pixmap_width: Return the width of the pixmap in pixels.
+*/
+int fz_pixmap_width(fz_context *ctx, fz_pixmap *pix);
+
+/*
+	fz_pixmap_height: Return the height of the pixmap in pixels.
+*/
+int fz_pixmap_height(fz_context *ctx, fz_pixmap *pix);
 
 /*
 	fz_new_pixmap: Create a new pixmap, with it's origin at (0,0)
@@ -1141,7 +1155,7 @@ fz_bbox fz_bound_pixmap(fz_pixmap *pix);
 fz_pixmap *fz_new_pixmap(fz_context *ctx, fz_colorspace *cs, int w, int h);
 
 /*
-	fz_new_pixmap_with_rect: Create a pixmap of a given size,
+	fz_new_pixmap_with_bbox: Create a pixmap of a given size,
 	location and pixel format.
 
 	The bounding box specifies the size of the created pixmap and
@@ -1153,8 +1167,50 @@ fz_pixmap *fz_new_pixmap(fz_context *ctx, fz_colorspace *cs, int w, int h);
 	pixmap will keep a reference to the colorspace.
 
 	bbox: Bounding box specifying location/size of created pixmap.
+
+	Returns a pointer to the new pixmap. Throws exception on failure to
+	allocate.
 */
-fz_pixmap *fz_new_pixmap_with_rect(fz_context *ctx, fz_colorspace *colorspace, fz_bbox bbox);
+fz_pixmap *fz_new_pixmap_with_bbox(fz_context *ctx, fz_colorspace *colorspace, fz_bbox bbox);
+
+/*
+	fz_new_pixmap_with_data: Create a new pixmap, with it's origin at
+	(0,0) using the supplied data block.
+
+	cs: The colorspace to use for the pixmap, or NULL for an alpha
+	plane/mask.
+
+	w: The width of the pixmap (in pixels)
+
+	h: The height of the pixmap (in pixels)
+
+	samples: The data block to keep the samples in.
+
+	Returns a pointer to the new pixmap. Throws exception on failure to
+	allocate.
+*/
+fz_pixmap *fz_new_pixmap_with_data(fz_context *ctx, fz_colorspace *colorspace, int w, int h, unsigned char *samples);
+
+/*
+	fz_new_pixmap_with_bbox_and_data: Create a pixmap of a given size,
+	location and pixel format, using the supplied data block.
+
+	The bounding box specifies the size of the created pixmap and
+	where it will be located. The colorspace determines the number
+	of components per pixel. Alpha is always present. Pixmaps are
+	reference counted, so drop references using fz_drop_pixmap.
+
+	colorspace: Colorspace format used for the created pixmap. The
+	pixmap will keep a reference to the colorspace.
+
+	bbox: Bounding box specifying location/size of created pixmap.
+
+	samples: The data block to keep the samples in.
+
+	Returns a pointer to the new pixmap. Throws exception on failure to
+	allocate.
+*/
+fz_pixmap *fz_new_pixmap_with_bbox_and_data(fz_context *ctx, fz_colorspace *colorspace, fz_bbox bbox, unsigned char *samples);
 
 /*
 	fz_keep_pixmap: Take a reference to a pixmap.
@@ -1190,11 +1246,11 @@ fz_colorspace *fz_pixmap_colorspace(fz_context *ctx, fz_pixmap *pix);
 int fz_pixmap_components(fz_context *ctx, fz_pixmap *pix);
 
 /*
-	fz_pixmap_pixels: Returns a pointer to the pixel data of a pixmap.
+	fz_pixmap_samples: Returns a pointer to the pixel data of a pixmap.
 
 	Returns the pointer. Does not throw exceptions.
 */
-unsigned char *fz_pixmap_pixels(fz_context *ctx, fz_pixmap *pix);
+unsigned char *fz_pixmap_samples(fz_context *ctx, fz_pixmap *pix);
 
 /*
 	fz_clear_pixmap_with_value: Clears a pixmap with the given value.
@@ -1265,7 +1321,7 @@ void fz_unmultiply_pixmap(fz_context *ctx, fz_pixmap *pix);
 void fz_convert_pixmap(fz_context *ctx, fz_pixmap *dst, fz_pixmap *src);
 
 /*
-	fz_save_pixmap: Save a pixmap out.
+	fz_write_pixmap: Save a pixmap out.
 
 	name: The prefix for the name of the pixmap. The pixmap will be saved
 	as "name.png" if the pixmap is RGB or Greyscale, "name.pam" otherwise.
@@ -1273,7 +1329,7 @@ void fz_convert_pixmap(fz_context *ctx, fz_pixmap *dst, fz_pixmap *src);
 	rgb: If non zero, the pixmap is converted to rgb (if possible) before
 	saving.
 */
-void fz_save_pixmap(fz_context *ctx, fz_pixmap *img, char *name, int rgb);
+void fz_write_pixmap(fz_context *ctx, fz_pixmap *img, char *name, int rgb);
 
 /*
 	fz_write_pnm: Save a pixmap as a pnm
@@ -1424,7 +1480,7 @@ fz_device *fz_new_bbox_device(fz_context *ctx, fz_bbox *bboxp);
 fz_device *fz_new_draw_device(fz_context *ctx, fz_pixmap *dest);
 
 /*
- * Text extraction device
+	Text extraction device: Used for searching, format conversion etc.
  */
 
 typedef struct fz_text_style_s fz_text_style;
@@ -1516,10 +1572,10 @@ void fz_free_text_sheet(fz_context *ctx, fz_text_sheet *sheet);
 fz_text_page *fz_new_text_page(fz_context *ctx, fz_rect mediabox);
 void fz_free_text_page(fz_context *ctx, fz_text_page *page);
 
-void fz_print_text_sheet(FILE *out, fz_text_sheet *sheet);
-void fz_print_text_page_html(FILE *out, fz_text_page *page);
-void fz_print_text_page_xml(FILE *out, fz_text_page *page);
-void fz_print_text_page(FILE *out, fz_text_page *page);
+void fz_print_text_sheet(fz_context *ctx, FILE *out, fz_text_sheet *sheet);
+void fz_print_text_page_html(fz_context *ctx, FILE *out, fz_text_page *page);
+void fz_print_text_page_xml(fz_context *ctx, FILE *out, fz_text_page *page);
+void fz_print_text_page(fz_context *ctx, FILE *out, fz_text_page *page);
 
 /*
  * Cookie support - simple communication channel between app/library.
@@ -1713,8 +1769,6 @@ struct fz_link_dest_s
 			fz_point rb;
 			char *file_spec;
 			int new_window;
-			/* SumatraPDF: allow to resolve against remote documents */
-			char *rname;
 		}
 		gotor;
 		struct
@@ -1727,8 +1781,6 @@ struct fz_link_dest_s
 		{
 			char *file_spec;
 			int new_window;
-			/* SumatraPDF: support launching embedded files */
-			int embeddedNum, embeddedGen;
 		}
 		launch;
 		struct
@@ -1809,15 +1861,22 @@ struct fz_outline_s
 };
 
 /*
-	fz_debug_outline_xml: Dump the given outlines to stdout as (pseudo)
-	XML.
+	fz_print_outline_xml: Dump the given outlines as (pseudo) XML.
+
+	out: The file handle to output to.
+
+	outline: The outlines to output.
 */
-void fz_debug_outline_xml(fz_context *ctx, fz_outline *outline);
+void fz_print_outline_xml(fz_context *ctx, FILE *out, fz_outline *outline);
 
 /*
-	fz_debug_outline: Dump the given outlines to stdout as text.
+	fz_print_outline: Dump the given outlines to as text.
+
+	out: The file handle to output to.
+
+	outline: The outlines to output.
 */
-void fz_debug_outline(fz_context *ctx, fz_outline *outline);
+void fz_print_outline(fz_context *ctx, FILE *out, fz_outline *outline);
 
 /*
 	fz_free_outline: Free hierarchical outline.

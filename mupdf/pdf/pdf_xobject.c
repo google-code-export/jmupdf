@@ -110,16 +110,3 @@ pdf_load_xobject(pdf_document *xref, pdf_obj *dict)
 
 	return form;
 }
-
-/* SumatraPDF: allow to synthesize XObjects (cf. pdf_create_annot) */
-pdf_xobject *
-pdf_create_xobject(fz_context *ctx, pdf_obj *dict)
-{
-        pdf_xobject *form = fz_malloc_struct(ctx, pdf_xobject);
-
-        FZ_INIT_STORABLE(form, 1, pdf_free_xobject_imp);
-        form->matrix = fz_identity;
-        form->me = pdf_keep_obj(dict);
-
-        return form;
-}

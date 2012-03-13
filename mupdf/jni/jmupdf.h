@@ -6,7 +6,7 @@
 
 #include "fitz-internal.h"
 #include "mupdf-internal.h"
-#include "muxps.h"
+#include "muxps-internal.h"
 #include "mucbz.h"
 #include "jni.h"
 

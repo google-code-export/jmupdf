@@ -108,7 +108,7 @@ static fz_rect jni_normalize_rect(jni_page *page, float x0, float y0, float x1, 
  */
 static void jni_set_aa_level(jni_page *page)
 {
-	if (fz_get_aa_level(page->ctx) != page->anti_alias)
+	if (fz_aa_level(page->ctx) != page->anti_alias)
 	{
 		fz_drop_glyph_cache_context(page->ctx);
 		fz_set_aa_level(page->ctx, page->anti_alias);
@@ -132,7 +132,7 @@ static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int col
 		jni_set_aa_level(page);
 		ctm = jni_get_view_ctm(zoom, rotate);
 		bbox = fz_round_rect(fz_transform_rect(ctm, jni_normalize_rect(page, x0, y0, x1, y1)));
-		pix = fz_new_pixmap_with_rect(page->ctx, jni_get_color_space(color), bbox);
+		pix = fz_new_pixmap_with_bbox(page->ctx, jni_get_color_space(color), bbox);
 	}
 	fz_catch(page->ctx)
 	{
@@ -723,7 +723,7 @@ Java_com_jmupdf_JmuPdf_writePbm(JNIEnv *env, jclass obj, jlong handle, jint rota
 	char * file = jni_jbyte_to_char(env, page->ctx, out);
 	int rc = -3;
 
-	fz_halftone *ht = fz_get_default_halftone(page->ctx, 1);
+	fz_halftone *ht = fz_default_halftone(page->ctx, 1);
 	fz_bitmap *bit = NULL;
 
 	if (ht)

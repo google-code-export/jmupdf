@@ -17,7 +17,7 @@ static jni_page *jni_new_page(jni_document *doc, int pagen)
 	page->page = NULL;
 	page->list = NULL;
 	page->page_number = pagen;
-	page->anti_alias = fz_get_aa_level(ctx);
+	page->anti_alias = fz_aa_level(ctx);
 	page->gamma = 1.0f;
 	page->ctx = ctx;
 
