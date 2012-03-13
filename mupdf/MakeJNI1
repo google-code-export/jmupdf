@@ -7,20 +7,32 @@
 # Set some defaults needed in order to create DLL file
 # --------------------------------------------------------------
 
+ifndef $(OS)
 OS ?= $(shell uname)
 OS := $(OS:MINGW%=MINGW)
+endif
 
+ifndef $(build)
 #build   := debug
 build   := release
+endif
+
 prefix  := build
 OUT 	:= $(prefix)/$(build)
-BIT     := "" 
 verbose := "Y"
+
+ifndef $(BIT)
+BIT     := "" 
+endif
+
+ifndef $(CC)
+CC := gcc
+endif
 
 #
 # --- Set bit value when using TDM-GCC 
 #
-TDMGCC  := $(shell gcc --version)
+TDMGCC  := $(shell $(CC) --version)
 ifeq "$(findstring tdm64,$(TDMGCC))" "tdm64"
 BIT := -m64
 #BIT := -m32
@@ -30,7 +42,7 @@ endif
 # --- Windows
 #
 ifeq "$(findstring Windows,$(OS))" "Windows"
-CC  	:= gcc.exe $(BIT)
+CC  	:= $(CC) $(BIT)
 WINDRES := windres.exe
 CFLAGS  += -std=c99
 endif
@@ -48,3 +60,4 @@ endif
 ifeq "$(build)" "release"
 CC += -s 
 endif
+
