@@ -1,6 +1,8 @@
 # GNU Makefile
 
-build ?= debug
+ifndef $(build)
+build := debug
+endif
 
 OUT := build/$(build)
 GEN := generated

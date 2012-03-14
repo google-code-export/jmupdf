@@ -12,11 +12,6 @@ OS ?= $(shell uname)
 OS := $(OS:MINGW%=MINGW)
 endif
 
-ifndef $(build)
-#build   := debug
-build   := release
-endif
-
 prefix  := build
 OUT 	:= $(prefix)/$(build)
 verbose := "Y"
@@ -30,10 +25,9 @@ endif
 #
 ifndef CC
 CC := gcc
-else   
+endif   
 ifeq "$(findstring MINGW,$(shell uname))" "MINGW"
 CC := gcc
-endif
 endif
 
 #
@@ -42,13 +36,11 @@ endif
 #
 TDMGCC := $(shell $(CC) --version)
 ifeq "$(findstring tdm64,$(TDMGCC))" "tdm64"
-ifeq "$(findstring x86,$(PROCESSOR_ARCHITECTURE))" "x86"
 ifneq "$(findstring -m,$(BIT))" "-m"
-BIT := -m32
-endif
+ifeq "$(findstring 64,$(PROCESSOR_ARCHITEW6432))" "64"
+BIT := -m64			
 else
-ifneq "$(findstring -m,$(BIT))" "-m"
-BIT := -m64
+BIT := -m32
 endif
 endif
 endif
