@@ -106,7 +106,7 @@ int jni_pix_to_black_white(fz_context*, fz_pixmap*, int, unsigned char* );
 int jni_pix_to_binary(fz_context*, fz_pixmap*, int, unsigned char*);
 
 // jni_write_xxx.c
-int jni_write_png(fz_context*, fz_pixmap*, const char*, float, int);
+void jni_write_png(fz_context*, fz_pixmap*, const char*, int, float);
 int jni_write_tif(fz_context*, fz_pixmap*, const char*, float, int, int, int, int);
 int jni_write_jpg(fz_context*, fz_pixmap*, const char*, float, int, int);
 int jni_write_bmp(fz_context*, fz_pixmap*, const char*, float, int);

@@ -33,12 +33,11 @@ static void putchunk(char *tag, unsigned char *data, int size, FILE *fp)
 	put32(sum, fp);
 }
 
-int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *file, float zoom, int savealpha)
+void jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *filename, int savealpha, float zoom)
 {
 	static const unsigned char pngsig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
 	FILE *fp;
 	unsigned char head[13];
-	unsigned char phys[9];	// Added by PJR
 	unsigned char *udata = NULL;
 	unsigned char *cdata = NULL;
 	unsigned char *sp, *dp;
@@ -78,8 +77,8 @@ int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *file, float zo
 	{
 		fz_free(ctx, udata);
 		fz_free(ctx, cdata);
-		//fz_rethrow(ctx);
-		return -1;
+		fz_throw(ctx, "Could not allocate memory");
+		/* JMuPDF: fz_rethrow(ctx); */
 	}
 
 	sp = pixmap->samples;
@@ -106,17 +105,15 @@ int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *file, float zo
 	{
 		fz_free(ctx, udata);
 		fz_free(ctx, cdata);
-		//fz_throw(ctx, "cannot compress image data");
-		return -1;
+		fz_throw(ctx, "cannot compress image data");
 	}
 
-	fp = fopen(file, "wb");
+	fp = fopen(filename, "wb");
 	if (!fp)
 	{
 		fz_free(ctx, udata);
 		fz_free(ctx, cdata);
-		//fz_throw(ctx, "cannot open file '%s': %s", filename, strerror(errno));
-		return -1;
+		fz_throw(ctx, "cannot open file '%s': %s", filename, strerror(errno));
 	}
 
 	big32(head+0, pixmap->w);
@@ -130,10 +127,11 @@ int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *file, float zo
 	fwrite(pngsig, 1, 8, fp);
 	putchunk("IHDR", head, 13, fp);
 
-	// ~~~~~~~~~~~~~~~~~~~~~~~
-	// ~~~ Begin: Added by PJR
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	/* JMuPDF: Add pixel information               */
 	if (zoom > 0)
 	{
+		unsigned char phys[9];
 		float factor = 0.0254; 	// <= 1 inch = 0.0254 meters
 		float dpi = jni_resolution(zoom);
 		float px = dpi / factor;
@@ -142,8 +140,8 @@ int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *file, float zo
 		phys[8] = 1;			// PixelUnits 1 = Meters
 		putchunk("pHYs", phys, 9, fp);
 	}
-	// ~~~~ End: Added by PJR
-	// ~~~~~~~~~~~~~~~~~~~~~~~
+	/* JMuPDF: The End :-)                         */
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	putchunk("IDAT", cdata, csize, fp);
 	putchunk("IEND", head, 0, fp);
@@ -151,6 +149,4 @@ int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *file, float zo
 
 	fz_free(ctx, udata);
 	fz_free(ctx, cdata);
-
-	return 0;
 }

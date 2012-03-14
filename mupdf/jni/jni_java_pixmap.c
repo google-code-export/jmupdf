@@ -559,13 +559,19 @@ Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint rota
 	}
 
 	char * file = jni_jbyte_to_char(env, page->ctx, out);
+	int rc = -3;
 
-	int rc = jni_write_png(page->ctx, pix, (const char*)file, jni_save_alpha(color), zoom);
+	fz_try(page->ctx)
+	{
+		jni_write_png(page->ctx, pix, (const char*)file, jni_save_alpha(color), zoom);
+		rc = 0;
+	}
+	fz_catch(page->ctx){}
 
 	fz_free(page->ctx, file);
 	fz_drop_pixmap(page->ctx, pix);
 
-	return rc==0?0:-3;
+	return rc;
 }
 
 /**
