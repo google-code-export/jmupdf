@@ -287,8 +287,12 @@ ZLIB_SRC := \
 	trees.c \
 	uncompr.c \
 	zutil.c \
+	gzread.c \
+	gzwrite.c \
+	gzclose.c \
+	gzlib.c \
 
 $(ZLIB_LIB): $(addprefix $(OUT)/zlib_, $(ZLIB_SRC:%.c=%.o))
 $(OUT)/zlib_%.o: $(ZLIB_DIR)/%.c | $(OUT)
-	$(CC_CMD)
+	$(CC_CMD) -Dverbose=-1
 endif
