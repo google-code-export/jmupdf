@@ -21,6 +21,11 @@
 
 static JavaVM *jvm;
 
+enum
+{
+	JNI_LOCK_INTERNAL = 99
+};
+
 /**
  * Get "env" for current thread
  */
@@ -34,7 +39,7 @@ static JNIEnv * jni_get_env()
 /**
  * Enter critical section
  */
-static void jni_lock(void *user, int lock)
+static void jni_lock_internal(void *user, int lock)
 {
 	JNIEnv *env = jni_get_env();
 	jni_locks *locks = (jni_locks*)user;
@@ -52,6 +57,9 @@ static void jni_lock(void *user, int lock)
 		case FZ_LOCK_GLYPHCACHE:
 			r = (*env)->MonitorEnter(env, locks->lock_glyphcache);
 			break;
+		case JNI_LOCK_INTERNAL:
+			r = (*env)->MonitorEnter(env, locks->lock_internal);
+			break;
 		default:
 			r = (*env)->MonitorEnter(env, locks->lock_other);
 			break;
@@ -65,7 +73,7 @@ static void jni_lock(void *user, int lock)
 /**
  * Exit critical section
  */
-static void jni_unlock(void *user, int lock)
+static void jni_unlock_internal(void *user, int lock)
 {
 	JNIEnv *env = jni_get_env();
 	jni_locks *locks = (jni_locks*)user;
@@ -82,6 +90,9 @@ static void jni_unlock(void *user, int lock)
 			break;
 		case FZ_LOCK_GLYPHCACHE:
 			r = (*env)->MonitorExit(env, locks->lock_glyphcache);
+			break;
+		case JNI_LOCK_INTERNAL:
+			r = (*env)->MonitorExit(env, locks->lock_internal);
 			break;
 		default:
 			r = (*env)->MonitorExit(env, locks->lock_other);
@@ -112,18 +123,21 @@ static void * jni_new_lock_obj(fz_context *ctx)
 	jclass l3 = (*env)->FindClass(env, "java/lang/Boolean");
 	jclass l4 = (*env)->FindClass(env, "java/lang/Boolean");
 	jclass l5 = (*env)->FindClass(env, "java/lang/Boolean");
+	jclass l6 = (*env)->FindClass(env, "java/lang/Boolean");
 
 	locks->lock_file = (*env)->NewGlobalRef(env, l1);
 	locks->lock_alloc = (*env)->NewGlobalRef(env, l2);
 	locks->lock_freetype = (*env)->NewGlobalRef(env, l3);
 	locks->lock_glyphcache = (*env)->NewGlobalRef(env, l4);
-	locks->lock_other = (*env)->NewGlobalRef(env, l5);
+	locks->lock_internal = (*env)->NewGlobalRef(env, l5);
+	locks->lock_other = (*env)->NewGlobalRef(env, l6);
 
 	(*env)->DeleteLocalRef(env, l1);
 	(*env)->DeleteLocalRef(env, l2);
 	(*env)->DeleteLocalRef(env, l3);
 	(*env)->DeleteLocalRef(env, l4);
 	(*env)->DeleteLocalRef(env, l5);
+	(*env)->DeleteLocalRef(env, l6);
 
 	return locks;
 }
@@ -134,8 +148,8 @@ static void * jni_new_lock_obj(fz_context *ctx)
 void jni_new_locks(jni_document *doc)
 {
 	doc->locks.user = jni_new_lock_obj(doc->ctx);
-	doc->locks.lock = jni_lock;
-	doc->locks.unlock = jni_unlock;
+	doc->locks.lock = jni_lock_internal;
+	doc->locks.unlock = jni_unlock_internal;
 	doc->ctx->locks = &doc->locks;
 }
 
@@ -148,19 +162,29 @@ void jni_free_locks(void *locks)
 	{
 		jni_locks *l = (jni_locks*)locks;
 		JNIEnv *env = jni_get_env();
-
-		jobject l1 = (jobject)l->lock_file;
-		jobject l2 = (jobject)l->lock_alloc;
-		jobject l3 = (jobject)l->lock_freetype;
-		jobject l4 = (jobject)l->lock_glyphcache;
-		jobject l5 = (jobject)l->lock_other;
-
-		(*env)->DeleteGlobalRef(env, l1);
-		(*env)->DeleteGlobalRef(env, l2);
-		(*env)->DeleteGlobalRef(env, l3);
-		(*env)->DeleteGlobalRef(env, l4);
-		(*env)->DeleteGlobalRef(env, l5);
+		(*env)->DeleteGlobalRef(env, l->lock_file);
+		(*env)->DeleteGlobalRef(env, l->lock_alloc);
+		(*env)->DeleteGlobalRef(env, l->lock_freetype);
+		(*env)->DeleteGlobalRef(env, l->lock_glyphcache);
+		(*env)->DeleteGlobalRef(env, l->lock_internal);
+		(*env)->DeleteGlobalRef(env, l->lock_other);
 	}
+}
+
+/**
+ * Enter critical section
+ */
+void jni_lock(fz_context *ctx)
+{
+	jni_lock_internal(ctx->locks->user, JNI_LOCK_INTERNAL);
+}
+
+/**
+ * Exit critical section
+ */
+void jni_unlock(fz_context *ctx)
+{
+	jni_unlock_internal(ctx->locks->user, JNI_LOCK_INTERNAL);
 }
 
 /**

@@ -55,16 +55,16 @@ static void jni_free_page(jni_page *page)
 /**
  * Draw a page
  */
-static void jni_load_page(jni_page *page)
+static void jni_load_page(JNIEnv *env, jni_page *page)
 {
 	fz_device *dev = NULL;
-	fz_lock(page->ctx, FZ_LOCK_MAX);
+	jni_lock(page->ctx);
 	{
 		fz_try(page->ctx)
 		{
-			page->page = fz_load_page(page->doc->doc, page->page_number-1);
 			page->list = fz_new_display_list(page->ctx);
 			dev = fz_new_list_device(page->ctx, page->list);
+			page->page = fz_load_page(page->doc->doc, page->page_number-1);
 			fz_run_page(page->doc->doc, page->page, dev, fz_identity, NULL);
 			page->bbox = fz_bound_page(page->doc->doc, page->page);
 		}
@@ -74,11 +74,11 @@ static void jni_load_page(jni_page *page)
 		}
 		fz_catch(page->ctx)
 		{
-			fz_unlock(page->ctx, FZ_LOCK_MAX);
+			jni_unlock(page->ctx);
 			fz_throw(page->ctx, "Could not create page.");
 		}
 	}
-	fz_unlock(page->ctx, FZ_LOCK_MAX);
+	jni_unlock(page->ctx);
 }
 
 /**
@@ -178,7 +178,7 @@ Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle)
 
 	fz_try(page->ctx)
 	{
-		jni_load_page(page);
+		jni_load_page(env, page);
 	}
 	fz_catch(page->ctx)
 	{

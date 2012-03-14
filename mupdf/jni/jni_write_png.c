@@ -79,10 +79,6 @@ int jni_write_png(fz_context *ctx, fz_pixmap *pixmap, const char *file, float zo
 		fz_free(ctx, udata);
 		fz_free(ctx, cdata);
 		//fz_rethrow(ctx);
-	}
-
-	if (!udata || !cdata)
-	{
 		return -1;
 	}
 

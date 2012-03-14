@@ -23,7 +23,10 @@ int jni_write_bmp(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom,
 		depth = 1;
 	}
 
+	/* control access here */
+	fz_lock(ctx, FZ_LOCK_ALLOC);
 	bmp = bmp_create(pix->w, pix->h, depth);
+	fz_unlock(ctx, FZ_LOCK_ALLOC);
 
 	if (bmp == NULL)
 	{
@@ -89,8 +92,11 @@ int jni_write_bmp(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom,
 		}
 	}
 
+	/* control access here */
+	fz_lock(ctx, FZ_LOCK_ALLOC);
 	bmp_save(bmp, file);
 	bmp_destroy(bmp);
+	fz_unlock(ctx, FZ_LOCK_ALLOC);
 
 	return rc;
 }
