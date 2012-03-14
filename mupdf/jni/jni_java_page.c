@@ -58,7 +58,7 @@ static void jni_free_page(jni_page *page)
 static void jni_load_page(jni_page *page)
 {
 	fz_device *dev = NULL;
-	fz_lock(page->ctx, FZ_LOCK_FILE);
+	fz_lock(page->ctx, FZ_LOCK_MAX);
 	{
 		fz_try(page->ctx)
 		{
@@ -74,11 +74,11 @@ static void jni_load_page(jni_page *page)
 		}
 		fz_catch(page->ctx)
 		{
-			fz_unlock(page->ctx, FZ_LOCK_FILE);
+			fz_unlock(page->ctx, FZ_LOCK_MAX);
 			fz_throw(page->ctx, "Could not create page.");
 		}
 	}
-	fz_unlock(page->ctx, FZ_LOCK_FILE);
+	fz_unlock(page->ctx, FZ_LOCK_MAX);
 }
 
 /**
