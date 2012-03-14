@@ -1,5 +1,14 @@
 #include "muxps-internal.h"
 
+#define REL_START_PART \
+	"http://schemas.microsoft.com/xps/2005/06/fixedrepresentation"
+#define REL_DOC_STRUCTURE \
+	"http://schemas.microsoft.com/xps/2005/06/documentstructure"
+#define REL_REQUIRED_RESOURCE \
+	"http://schemas.microsoft.com/xps/2005/06/required-resource"
+#define REL_REQUIRED_RESOURCE_RECURSIVE \
+	"http://schemas.microsoft.com/xps/2005/06/required-resource#recursive"
+
 static void
 xps_rels_for_part(char *buf, char *name, int buflen)
 {
@@ -278,6 +287,8 @@ xps_parse_metadata_imp(xps_document *doc, xml_element *item, xps_fixdoc *fixdoc)
 					doc->start_part = fz_strdup(doc->ctx, tgtbuf);
 				if (!strcmp(type, REL_DOC_STRUCTURE) && fixdoc)
 					fixdoc->outline = fz_strdup(doc->ctx, tgtbuf);
+				if (!xml_att(item, "Id"))
+					fz_warn(doc->ctx, "missing relationship id for %s", target);
 			}
 		}
 
@@ -408,17 +419,41 @@ xps_load_fixed_page(xps_document *doc, xps_page *page)
 	part = xps_read_part(doc, page->name);
 	root = xml_parse_document(doc->ctx, part->data, part->size);
 	xps_free_part(doc, part);
+	if (!root)
+		fz_throw(doc->ctx, "FixedPage missing root element");
+
+	if (!strcmp(xml_tag(root), "mc:AlternateContent"))
+	{
+		xml_element *node = xps_lookup_alternate_content(root);
+		if (!node)
+		{
+			xml_free_element(doc->ctx, root);
+			fz_throw(doc->ctx, "FixedPage missing alternate root element");
+		}
+		xml_detach(node);
+		xml_free_element(doc->ctx, root);
+		root = node;
+	}
 
 	if (strcmp(xml_tag(root), "FixedPage"))
-		fz_throw(doc->ctx, "expected FixedPage element (found %s)", xml_tag(root));
+	{
+		xml_free_element(doc->ctx, root);
+		fz_throw(doc->ctx, "expected FixedPage element");
+	}
 
 	width_att = xml_att(root, "Width");
 	if (!width_att)
+	{
+		xml_free_element(doc->ctx, root);
 		fz_throw(doc->ctx, "FixedPage missing required attribute: Width");
+	}
 
 	height_att = xml_att(root, "Height");
 	if (!height_att)
+	{
+		xml_free_element(doc->ctx, root);
 		fz_throw(doc->ctx, "FixedPage missing required attribute: Height");
+	}
 
 	page->width = atoi(width_att);
 	page->height = atoi(height_att);

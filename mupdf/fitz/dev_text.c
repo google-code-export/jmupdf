@@ -17,6 +17,7 @@ struct fz_text_device_s
 	fz_text_line cur_line;
 	fz_text_span cur_span;
 	fz_point point;
+	int lastchar;
 };
 
 fz_text_sheet *
@@ -39,6 +40,7 @@ fz_free_text_sheet(fz_context *ctx, fz_text_sheet *sheet)
 		fz_free(ctx, style);
 		style = next;
 	}
+	fz_free(ctx, sheet);
 }
 
 static fz_text_style *
@@ -303,7 +305,6 @@ fz_text_extract(fz_context *ctx, fz_text_device *dev, fz_text *text, fz_matrix c
 	float descender = 0;
 	int multi;
 	int i, j, err;
-	int lastchar = ' ';
 
 	if (text->len == 0)
 		return;
@@ -317,6 +318,11 @@ fz_text_extract(fz_context *ctx, fz_text_device *dev, fz_text *text, fz_matrix c
 		ascender = (float)face->ascender / face->units_per_EM;
 		descender = (float)face->descender / face->units_per_EM;
 		fz_unlock(ctx, FZ_LOCK_FREETYPE);
+	}
+	else if (font->t3procs && !fz_is_empty_rect(font->bbox))
+	{
+		ascender = font->bbox.y1;
+		descender = font->bbox.y0;
 	}
 
 	rect = fz_empty_rect;
@@ -367,18 +373,18 @@ fz_text_extract(fz_context *ctx, fz_text_device *dev, fz_text *text, fz_matrix c
 			if (dist > size * LINE_DIST)
 			{
 				fz_flush_text_line(ctx, dev, style);
-				lastchar = ' ';
+				dev->lastchar = ' ';
 			}
-			else if (fabsf(dot) > 0.95f && dist > size * SPACE_DIST && lastchar != ' ')
+			else if (fabsf(dot) > 0.95f && dist > size * SPACE_DIST && dev->lastchar != ' ')
 			{
 				fz_rect spacerect;
 				spacerect.x0 = -0.2f;
-				spacerect.y0 = 0;
+				spacerect.y0 = descender;
 				spacerect.x1 = 0;
-				spacerect.y1 = 1;
+				spacerect.y1 = ascender;
 				spacerect = fz_transform_rect(trm, spacerect);
 				fz_add_text_char(ctx, dev, style, ' ', spacerect);
-				lastchar = ' ';
+				dev->lastchar = ' ';
 			}
 		}
 
@@ -432,11 +438,12 @@ fz_text_extract(fz_context *ctx, fz_text_device *dev, fz_text *text, fz_matrix c
 			for (j = 0; j < multi; j++)
 			{
 				fz_rect part = fz_split_bbox(rect, j, multi);
-				fz_add_text_char(ctx, dev, style, text->items[i].ucs, part);
+				fz_add_text_char(ctx, dev, style, text->items[i + j].ucs, part);
 			}
+			i += j - 1;
 		}
 
-		lastchar = text->items[i].ucs;
+		dev->lastchar = text->items[i].ucs;
 	}
 }
 
@@ -523,6 +530,7 @@ fz_new_text_device(fz_context *ctx, fz_text_sheet *sheet, fz_text_page *page)
 	tdev->page = page;
 	tdev->point.x = -1;
 	tdev->point.y = -1;
+	tdev->lastchar = ' ';
 
 	init_line(ctx, &tdev->cur_line);
 	init_span(ctx, &tdev->cur_span, NULL);
@@ -651,7 +659,8 @@ fz_print_text_page_html(fz_context *ctx, FILE *out, fz_text_page *page)
 						fprintf(out, "&#x%x;", ch->c);
 				}
 			}
-			fz_print_style_end(out, style);
+			if (style != NULL)
+				fz_print_style_end(out, style);
 			fprintf(out, "</p>\n");
 		}
 		fprintf(out, "</div>\n");

@@ -229,6 +229,10 @@ fz_bound_path(fz_context *ctx, fz_path *path, fz_stroke_state *stroke, fz_matrix
 	 * for it to be expanded in the stroked case below. */
 	if (path->len == 0)
 		return fz_empty_rect;
+        /* A path must start with a moveto - and if that's all there is
+         * then the path is empty. */
+	if (path->len == 3)
+		return fz_empty_rect;
 
 	p.x = path->items[1].v;
 	p.y = path->items[2].v;
@@ -252,6 +256,13 @@ fz_bound_path(fz_context *ctx, fz_path *path, fz_stroke_state *stroke, fz_matrix
 			r = bound_expand(r, fz_transform_point(ctm, p));
 			break;
 		case FZ_MOVETO:
+			if (i + 2 == path->len)
+			{
+				/* Trailing Moveto - cannot affect bbox */
+				i += 2;
+				break;
+			}
+			/* fallthrough */
 		case FZ_LINETO:
 			p.x = path->items[i++].v;
 			p.y = path->items[i++].v;
@@ -268,7 +279,7 @@ fz_bound_path(fz_context *ctx, fz_path *path, fz_stroke_state *stroke, fz_matrix
 		if (expand == 0)
 			expand = 1.0f;
 		expand *= fz_matrix_max_expansion(ctm);
-		if (stroke->miterlimit > 1)
+		if ((stroke->linejoin == FZ_LINEJOIN_MITER || stroke->linejoin == FZ_LINEJOIN_MITER_XPS) && stroke->miterlimit > 1)
 			expand *= stroke->miterlimit;
 		r.x0 -= expand;
 		r.y0 -= expand;
