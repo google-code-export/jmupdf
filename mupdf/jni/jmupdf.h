@@ -62,12 +62,7 @@ struct jni_page_s {
 // Lock objects structure
 typedef struct jni_locks_s jni_locks;
 struct jni_locks_s {
-	jobject lock_file;
-	jobject lock_alloc;
-	jobject lock_freetype;
-	jobject lock_glyphcache;
-	jobject lock_internal;
-	jobject lock_other;
+	jobject lock;
 };
 
 // Default DPI

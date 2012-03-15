@@ -23,7 +23,8 @@ static JavaVM *jvm;
 
 enum
 {
-	JNI_LOCK_INTERNAL = 99
+	JNI_LOCK_INTERNAL = FZ_LOCK_MAX,
+	JNI_MAX_LOCKS
 };
 
 /**
@@ -41,32 +42,14 @@ static JNIEnv * jni_get_env()
  */
 static void jni_lock_internal(void *user, int lock)
 {
-	JNIEnv *env = jni_get_env();
-	jni_locks *locks = (jni_locks*)user;
-	int r =0;
-	switch (lock) {
-		case FZ_LOCK_FILE:
-			r = (*env)->MonitorEnter(env, locks->lock_file);
-			break;
-		case FZ_LOCK_ALLOC:
-			r = (*env)->MonitorEnter(env, locks->lock_alloc);
-			break;
-		case FZ_LOCK_FREETYPE:
-			r = (*env)->MonitorEnter(env, locks->lock_freetype);
-			break;
-		case FZ_LOCK_GLYPHCACHE:
-			r = (*env)->MonitorEnter(env, locks->lock_glyphcache);
-			break;
-		case JNI_LOCK_INTERNAL:
-			r = (*env)->MonitorEnter(env, locks->lock_internal);
-			break;
-		default:
-			r = (*env)->MonitorEnter(env, locks->lock_other);
-			break;
-	}
-	if (r != JNI_OK)
+	if (user)
 	{
-		// TODO: error handling here
+		jni_locks *locks = (jni_locks*)user;
+		JNIEnv *env = jni_get_env();
+		if ((*env)->MonitorEnter(env, locks[lock].lock) != JNI_OK)
+		{
+			fprintf(stderr, "JMuPDF: could not obtain a lock on object %i \n", lock);
+		}
 	}
 }
 
@@ -75,71 +58,36 @@ static void jni_lock_internal(void *user, int lock)
  */
 static void jni_unlock_internal(void *user, int lock)
 {
-	JNIEnv *env = jni_get_env();
-	jni_locks *locks = (jni_locks*)user;
-	int r = 0;
-	switch (lock) {
-		case FZ_LOCK_FILE:
-			r = (*env)->MonitorExit(env, locks->lock_file);
-			break;
-		case FZ_LOCK_ALLOC:
-			r = (*env)->MonitorExit(env, locks->lock_alloc);
-			break;
-		case FZ_LOCK_FREETYPE:
-			r = (*env)->MonitorExit(env, locks->lock_freetype);
-			break;
-		case FZ_LOCK_GLYPHCACHE:
-			r = (*env)->MonitorExit(env, locks->lock_glyphcache);
-			break;
-		case JNI_LOCK_INTERNAL:
-			r = (*env)->MonitorExit(env, locks->lock_internal);
-			break;
-		default:
-			r = (*env)->MonitorExit(env, locks->lock_other);
-			break;
-	}
-	if (r != JNI_OK)
+	if (user)
 	{
-		// TODO: error handling here
+		jni_locks *locks = (jni_locks*)user;
+		JNIEnv *env = jni_get_env();
+		if ((*env)->MonitorExit(env, locks[lock].lock) != JNI_OK)
+		{
+			fprintf(stderr, "JMuPDF: could not exit lock on object %i \n", lock);
+		}
 	}
 }
 
 /**
  * Create new lock object
  */
-static void * jni_new_lock_obj(fz_context *ctx)
+static void * jni_new_lock_obj()
 {
-	jni_locks *locks = fz_malloc_no_throw(ctx, sizeof(jni_locks));
-
-	if (!locks)
+	jni_locks *locks = malloc(sizeof(jni_locks) * JNI_MAX_LOCKS);
+	if (locks)
 	{
-		return NULL;
+		JNIEnv *env = jni_get_env();
+		int i = 0;
+		for (i = 0; i < JNI_MAX_LOCKS; i++)
+		{
+			jclass c = (*env)->FindClass(env, "java/lang/Boolean");
+			locks[i].lock = (*env)->NewGlobalRef(env, c);
+			(*env)->DeleteLocalRef(env, c);
+		}
+		return locks;
 	}
-
-	JNIEnv *env = jni_get_env();
-
-	jclass l1 = (*env)->FindClass(env, "java/lang/Boolean");
-	jclass l2 = (*env)->FindClass(env, "java/lang/Boolean");
-	jclass l3 = (*env)->FindClass(env, "java/lang/Boolean");
-	jclass l4 = (*env)->FindClass(env, "java/lang/Boolean");
-	jclass l5 = (*env)->FindClass(env, "java/lang/Boolean");
-	jclass l6 = (*env)->FindClass(env, "java/lang/Boolean");
-
-	locks->lock_file = (*env)->NewGlobalRef(env, l1);
-	locks->lock_alloc = (*env)->NewGlobalRef(env, l2);
-	locks->lock_freetype = (*env)->NewGlobalRef(env, l3);
-	locks->lock_glyphcache = (*env)->NewGlobalRef(env, l4);
-	locks->lock_internal = (*env)->NewGlobalRef(env, l5);
-	locks->lock_other = (*env)->NewGlobalRef(env, l6);
-
-	(*env)->DeleteLocalRef(env, l1);
-	(*env)->DeleteLocalRef(env, l2);
-	(*env)->DeleteLocalRef(env, l3);
-	(*env)->DeleteLocalRef(env, l4);
-	(*env)->DeleteLocalRef(env, l5);
-	(*env)->DeleteLocalRef(env, l6);
-
-	return locks;
+	return NULL;
 }
 
 /**
@@ -147,7 +95,7 @@ static void * jni_new_lock_obj(fz_context *ctx)
  */
 void jni_new_locks(jni_document *doc)
 {
-	doc->locks.user = jni_new_lock_obj(doc->ctx);
+	doc->locks.user = jni_new_lock_obj();
 	doc->locks.lock = jni_lock_internal;
 	doc->locks.unlock = jni_unlock_internal;
 	doc->ctx->locks = &doc->locks;
@@ -156,18 +104,18 @@ void jni_new_locks(jni_document *doc)
 /**
  * Free lock object
  */
-void jni_free_locks(void *locks)
+void jni_free_locks(void *user)
 {
-	if (locks)
+	if (user)
 	{
-		jni_locks *l = (jni_locks*)locks;
+		jni_locks *locks = (jni_locks*)user;
 		JNIEnv *env = jni_get_env();
-		(*env)->DeleteGlobalRef(env, l->lock_file);
-		(*env)->DeleteGlobalRef(env, l->lock_alloc);
-		(*env)->DeleteGlobalRef(env, l->lock_freetype);
-		(*env)->DeleteGlobalRef(env, l->lock_glyphcache);
-		(*env)->DeleteGlobalRef(env, l->lock_internal);
-		(*env)->DeleteGlobalRef(env, l->lock_other);
+		int i = 0;
+		for (i = 0; i < JNI_MAX_LOCKS; i++)
+		{
+			(*env)->DeleteGlobalRef(env, locks[i].lock);
+		}
+		free(locks);
 	}
 }
 

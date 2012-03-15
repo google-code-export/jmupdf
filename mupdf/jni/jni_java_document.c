@@ -22,11 +22,11 @@ static void jni_free_document(jni_document *doc)
 		fz_close_document(doc->doc);
 	}
 
-	void *lock = doc->locks.user;
+	void *locks = doc->locks.user;
 
 	fz_free(ctx, doc);
 	fz_free_context(ctx);
-	jni_free_locks(lock);
+	jni_free_locks(locks);
 
 	return;
 }
