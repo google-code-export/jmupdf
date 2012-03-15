@@ -87,7 +87,7 @@ public class JMuPDFShowCase
             if (pageList.isEmpty())
             {
                 instanciatedPages++;
-                return pdfDocument.getPage(pageNumber); // XXX ---
+                return new Page(pdfDocument, pageNumber); //pdfDocument.getPage(pageNumber); // XXX ---
             }
 
             Page page = pageList.get(0);
@@ -115,7 +115,7 @@ public class JMuPDFShowCase
     private static void processFile(final String file, final int rdCount) throws DocException, DocSecurityException
     {
         long startup = System.currentTimeMillis();
-        PdfDocument pdfDocument = new PdfDocument(file);
+        PdfDocument pdfDocument = new PdfDocument(file, 20);
 
         DocumentTrace documentTrace = new DocumentTrace();
         documentTrace.setPdfDocument(pdfDocument);
@@ -140,7 +140,7 @@ public class JMuPDFShowCase
         {
             for (int pageNumber = 1; pageNumber <= pdfDocument.getPageCount(); pageNumber++)
             {
-                final String imagePath = "c:/tmp/images/jmupdf_" + pageNumber + "_" + desc + "_" + Math.random() + ".png";
+                final String imagePath = "d:/tmp/images/jmupdf_" + pageNumber + "_" + desc + "_" + Math.random() + ".png";
                 System.out.println("Page : " + pageNumber + " => file " + imagePath);
                 final float zoom = ((float) desc) / 595f;
                 final int fPageNumber = pageNumber;
@@ -203,7 +203,7 @@ public class JMuPDFShowCase
     {
         System.out.println("Jmupdf version : " + JmuPdf.getLibVersion());
 
-        BufferedReader br = new BufferedReader(new FileReader("c:\\tmp\\filelist.txt"));
+        BufferedReader br = new BufferedReader(new FileReader("d:\\tmp\\filelist.txt"));
 
         int documentCount = 0;
 

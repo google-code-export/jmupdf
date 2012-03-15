@@ -1,5 +1,7 @@
 package com.examples.pdf.concurrent;
 
+import java.io.File;
+
 import com.jmupdf.document.Document;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.PageException;
@@ -16,9 +18,13 @@ public class TestMutexB implements Runnable {
 	
 	public void run() {
 		Page p = null;
+		String s;
 		try {
+			log("Processing page " + n + " of " + doc.getDocumentName());
 			p = new Page(doc, n);
-			p.saveAsPng("d:\\tmp\\images\\" + doc.getHandle() + "_page_"+n+".png", Page.PAGE_ROTATE_NONE, 3f, ImageType.IMAGE_TYPE_ARGB, 1f);			
+			s = "d:\\tmp\\images\\" + doc.getHandle() + "_page_"+n+".png";			
+			p.saveAsPng(s, Page.PAGE_ROTATE_NONE, 3f, ImageType.IMAGE_TYPE_ARGB, 1f);
+			new File(s).delete();
 		} catch (PageException e) {
 			e.printStackTrace();
 		} finally {
@@ -28,4 +34,7 @@ public class TestMutexB implements Runnable {
 		}
 	}		
 
+    protected static void log(String text) {
+    	System.out.println(text);
+    }
 }
