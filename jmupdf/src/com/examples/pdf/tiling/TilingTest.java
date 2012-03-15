@@ -33,7 +33,7 @@ public class TilingTest {
 			doc = new PdfDocument("d:\\tmp\\itextinaction.pdf", 10);
 
 			// Get page object
-			page = new Page(doc, 1);
+			page = doc.getPage(1);
 
 			// setup zoom, rotation, color, and tile info
 			float zoom = 3f;

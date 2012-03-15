@@ -12,7 +12,6 @@ import com.jmupdf.document.Document;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.enums.TifCompression;
 import com.jmupdf.enums.TifMode;
-import com.jmupdf.exceptions.PageException;
 
 /**
  * Page class.
@@ -20,14 +19,14 @@ import com.jmupdf.exceptions.PageException;
  * @author Pedro J Rivera
  *
  */
-public class Page extends JmuPdf {
-	private Document document;
-	private PageRect boundBox;
-	private PageLinks[] pageLinks;
-	private long handle;
-	private int pageNumber;
-	private int pageRotate;
-	private int antiAliasLevel;
+public abstract class Page extends JmuPdf {
+	protected Document document;
+	protected PageRect boundBox = new PageRect();
+	protected PageLinks[] pageLinks;
+	protected long handle = 0;
+	protected int pageNumber = 0;
+	protected int pageRotate = 0;
+	protected int antiAliasLevel = 0;
 	
 	public static final int PAGE_ROTATE_AUTO = -1;
 	public static final int PAGE_ROTATE_NONE = 0;
@@ -35,34 +34,11 @@ public class Page extends JmuPdf {
 	public static final int PAGE_ROTATE_180 = 180;
 	public static final int PAGE_ROTATE_270 = 270;
 	public static final int PAGE_ROTATE_360 = 360;
-
-	/**
-	 * Create a new page object
-	 * 
-	 * @param doc
-	 * @param page 
-	 */
-	public Page(Document doc, int page) throws PageException {
-		document = doc;
-		pageNumber = page;
-		boundBox = new PageRect();
-		pageRotate = 0;
-		antiAliasLevel = 0;
-		handle = newPage(doc.getHandle(), page);
-		if (getHandle() > 0) {
-			loadPageInfo();
-			if (getHandle() <= 0) {
-				throw new PageException("Error: Page could not be loaded.");
-			}
-		} else {
-			throw new PageException("Error: Page could not be created.");
-		}
-	}
 	
 	/**
 	 * Load page information
 	 */
-	private boolean loadPageInfo() {
+	protected boolean loadPageInfo() {
 		float[] pageInfo = loadPage(getHandle());
 		if (pageInfo == null) {
 			handle = 0;

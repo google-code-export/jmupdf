@@ -24,7 +24,7 @@ public class TextTest {
 			doc = new PdfDocument("d:\\tmp\\iTextinAction.pdf");
 
 			/* Get page */
-			page = new Page(doc, 5);
+			page = doc.getPage(5);
 			
 			/* Get text, if any */
 			String text = page.getText();

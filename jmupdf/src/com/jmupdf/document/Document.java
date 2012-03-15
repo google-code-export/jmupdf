@@ -8,7 +8,6 @@ package com.jmupdf.document;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-//import java.nio.ByteBuffer;
 
 import com.jmupdf.JmuPdf;
 import com.jmupdf.enums.DocumentType;
@@ -201,20 +200,20 @@ public abstract class Document extends JmuPdf {
 		}
 		return 0;
 	}
-	
+
 	/**
-	 * Get a page object.  
+	 * Create a new page object.  
 	 * 
 	 * @param page
 	 * @return
 	 */
 	public synchronized Page getPage(int page) throws PageException {
 		if (getHandle() > 0) {
-			return new Page(this, page);
+			return new DocumentPage(this, page);
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Release all references to outline objects
 	 * 

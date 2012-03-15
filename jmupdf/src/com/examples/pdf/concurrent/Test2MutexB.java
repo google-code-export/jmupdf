@@ -21,7 +21,7 @@ public class Test2MutexB implements Runnable {
 			d = new PdfDocument(doc);
 			log("Processing " + doc);
 			for (int i=0; i<d.getPageCount(); i++) {
-				p = new Page(d, i+1);
+				p = d.getPage(i+1);
 				p.dispose();
 			}
 		} catch (DocException e) {

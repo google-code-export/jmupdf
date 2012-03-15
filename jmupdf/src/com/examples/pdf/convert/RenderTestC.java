@@ -23,7 +23,7 @@ public class RenderTestC {
 			doc = new PdfDocument("C:\\tmp\\test-aa.pdf", "");			
 			
 			/* Get page object */
-			page = new Page(doc, 1);
+			page = doc.getPage(1);
 			page.setAntiAliasLevel(0);
 			
 			/* Set parameter values */

@@ -9,8 +9,8 @@ public class OutlineTest {
 	
 	public static void main(String[] args) {
 		try {
-			PdfDocument doc = new PdfDocument("d:\\tmp\\iTextinAction.pdf");
-			Outline o = doc.getOutline();;	
+			PdfDocument doc = new PdfDocument("c:\\tmp\\Introduction.pdf");
+			Outline o = doc.getOutline();
 			debug_outline(o, 0);			
 			doc.dispose();
 		} catch (DocException e) {

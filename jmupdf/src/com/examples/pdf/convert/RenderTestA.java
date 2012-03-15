@@ -29,8 +29,8 @@ public class RenderTestA {
 			doc = new PdfDocument("C:\\Users\\Pedro\\Downloads\\test-2.pdf", "");
 			
 			/* Get page object */
-			page = new Page(doc, 1);
-			
+			page = doc.getPage(1);
+
 			/* Get pixel object */
 			pix = new PagePixels(page);
 			pix.setRotation(Page.PAGE_ROTATE_NONE);			

@@ -295,7 +295,7 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 				page.dispose();
 			}
 			try {
-				page = new Page(document, currentPage);
+				page = document.getPage(currentPage);
 			} catch (PageException e) {
 				return NO_SUCH_PAGE;
 			}

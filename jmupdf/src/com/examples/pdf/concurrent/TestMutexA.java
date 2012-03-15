@@ -15,9 +15,9 @@ public class TestMutexA {
 		
 		// Limit each opened doc to a max of 30mb
 		int maxMemory = 30;		
-		PdfDocument doc1 = new PdfDocument("d:\\tmp\\test1.pdf", maxMemory);
-		PdfDocument doc2 = new PdfDocument("d:\\tmp\\test3.pdf", maxMemory);
-		XpsDocument doc3 = new XpsDocument("d:\\tmp\\Windows_Vista_Product_Guide.xps", maxMemory);
+		PdfDocument doc1 = new PdfDocument("c:\\tmp\\test2.pdf", maxMemory);
+		PdfDocument doc2 = new PdfDocument("c:\\tmp\\test3.pdf", maxMemory);
+		PdfDocument doc3 = new PdfDocument("c:\\tmp\\test4.pdf", maxMemory);
 		
 		// Let's process up to 12 concurrent pages
 		ExecutorService jobPool;

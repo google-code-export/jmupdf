@@ -25,7 +25,7 @@ public class LinksTest {
 			doc = new PdfDocument("d:\\tmp\\sources.pdf");
 
 			/* Get page */
-			page = new Page(doc, 1);
+			page = doc.getPage(1);
 			
 			/* Get links, if any */
 			PageLinks[] links = page.getLinks(null);

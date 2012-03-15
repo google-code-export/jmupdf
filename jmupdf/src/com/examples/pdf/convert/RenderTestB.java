@@ -23,7 +23,7 @@ public class RenderTestB {
 			doc = new PdfDocument("d:\\tmp\\iTextinAction.pdf");
 
 			/* Get page */
-			page = new Page(doc, 1);
+			page = doc.getPage(1);
 			
 			/* Set parameter values */
 			String file = "d:\\tmp\\test1.png";

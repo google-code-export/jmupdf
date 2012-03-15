@@ -58,27 +58,22 @@ static void jni_free_page(jni_page *page)
 static void jni_load_page(JNIEnv *env, jni_page *page)
 {
 	fz_device *dev = NULL;
-	jni_lock(page->ctx);
+	fz_try(page->ctx)
 	{
-		fz_try(page->ctx)
-		{
-			page->list = fz_new_display_list(page->ctx);
-			dev = fz_new_list_device(page->ctx, page->list);
-			page->page = fz_load_page(page->doc->doc, page->page_number-1);
-			fz_run_page(page->doc->doc, page->page, dev, fz_identity, NULL);
-			page->bbox = fz_bound_page(page->doc->doc, page->page);
-		}
-		fz_always(page->ctx)
-		{
-			fz_free_device(dev);
-		}
-		fz_catch(page->ctx)
-		{
-			jni_unlock(page->ctx);
-			fz_throw(page->ctx, "Could not create page.");
-		}
+		page->list = fz_new_display_list(page->ctx);
+		dev = fz_new_list_device(page->ctx, page->list);
+		page->page = fz_load_page(page->doc->doc, page->page_number-1);
+		fz_run_page(page->doc->doc, page->page, dev, fz_identity, NULL);
+		page->bbox = fz_bound_page(page->doc->doc, page->page);
 	}
-	jni_unlock(page->ctx);
+	fz_always(page->ctx)
+	{
+		fz_free_device(dev);
+	}
+	fz_catch(page->ctx)
+	{
+		fz_throw(page->ctx, "Could not create page.");
+	}
 }
 
 /**

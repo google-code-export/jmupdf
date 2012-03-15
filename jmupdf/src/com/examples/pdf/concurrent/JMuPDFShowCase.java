@@ -87,7 +87,7 @@ public class JMuPDFShowCase
             if (pageList.isEmpty())
             {
                 instanciatedPages++;
-                return new Page(pdfDocument, pageNumber); //pdfDocument.getPage(pageNumber); // XXX ---
+                return pdfDocument.getPage(pageNumber); // XXX ---
             }
 
             Page page = pageList.get(0);

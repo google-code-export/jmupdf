@@ -21,8 +21,8 @@ public class TestMutexB implements Runnable {
 		String s;
 		try {
 			log("Processing page " + n + " of " + doc.getDocumentName());
-			p = new Page(doc, n);
-			s = "d:\\tmp\\images\\" + doc.getHandle() + "_page_"+n+".png";			
+			p = doc.getPage(n);
+			s = "c:\\tmp\\images\\" + doc.getHandle() + "_page_"+n+".png";			
 			p.saveAsPng(s, Page.PAGE_ROTATE_NONE, 3f, ImageType.IMAGE_TYPE_ARGB, 1f);
 			new File(s).delete();
 		} catch (PageException e) {
