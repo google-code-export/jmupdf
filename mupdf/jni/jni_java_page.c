@@ -142,11 +142,14 @@ static int jni_count_text_span(fz_text_page *page_text, int x0, int y0, int x1, 
 			{
 				for (i = 0; i < span->len; i++)
 				{
-					hitbox = fz_round_rect(span->text[i].bbox);
+					hitbox = fz_bbox_covering_rect(span->text[i].bbox);
 					if (hitbox.x1 >= x0 && hitbox.x0 <= x1 && hitbox.y1 >= y0 && hitbox.y0 <= y1)
 					{
-						++totspan;
-						break;
+						//if(x1 >= hitbox.x1 && x0 <= hitbox.x0 && y0 <= hitbox.y0 && y1 >= hitbox.y1)
+						//{
+							++totspan;
+							break;
+						//}
 					}
 				}
 			}
@@ -269,16 +272,19 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 						p = 0;
 						for (i = 0; i < span->len; i++)
 						{
-							hitbox = fz_round_rect(span->text[i].bbox);
+							hitbox = fz_bbox_covering_rect(span->text[i].bbox);
 							if (hitbox.x1 >= x0 && hitbox.x0 <= x1 && hitbox.y1 >= y0 && hitbox.y0 <= y1)
 							{
-								if (seen == 0)
-								{
-									txtarr = jni_new_int_array(span->len);
-									txtptr = jni_get_int_array(txtarr);
-									seen = 1;
-								}
-								txtptr[p++] = span->text[i].c;
+								//if(x1 >= hitbox.x1 && x0 <= hitbox.x0 && y0 <= hitbox.y0 && y1 >= hitbox.y1)
+								//{
+									if (seen == 0)
+									{
+										txtarr = jni_new_int_array(span->len);
+										txtptr = jni_get_int_array(txtarr);
+										seen = 1;
+									}
+									txtptr[p++] = span->text[i].c;
+								//}
 							}
 						}
 						if (seen == 1)
@@ -289,7 +295,7 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 								eol = 1;
 							}
 							jni_release_int_array(txtarr, txtptr);
-							fz_bbox b = hitbox = fz_round_rect(span->text[0].bbox);
+							fz_bbox b = fz_bbox_covering_rect(span->text[0].bbox);
 							new_page = jni_new_page_text_obj(
 											   cls, init,
 											   b.x0, b.y0, hitbox.x1, hitbox.y1, eol, txtarr);
