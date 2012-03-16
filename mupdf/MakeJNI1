@@ -7,7 +7,7 @@
 # Set some defaults needed in order to create DLL file
 # --------------------------------------------------------------
 
-ifndef $(OS)
+ifndef OS
 OS ?= $(shell uname)
 OS := $(OS:MINGW%=MINGW)
 endif

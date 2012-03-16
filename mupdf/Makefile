@@ -1,7 +1,9 @@
 # GNU Makefile
 
-ifndef $(build)
+ifndef BUILD
 build := debug
+else
+build := $(BUILD)
 endif
 
 OUT := build/$(build)
