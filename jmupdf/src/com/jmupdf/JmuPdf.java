@@ -45,7 +45,7 @@ public abstract class JmuPdf {
 	/* page level */
 	protected native long newPage(long handle, int page);
 	protected native long freePage(long handle);
-	protected native float[] loadPage(long handle);
+	protected native float[] getPageInfo(long handle);
 	protected native PageText[] getPageText(long handle, int x0, int y0, int x1, int y1);
 	protected native PageLinks[] getPageLinks(long handle);
 	

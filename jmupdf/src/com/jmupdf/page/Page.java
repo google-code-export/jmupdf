@@ -39,7 +39,7 @@ public abstract class Page extends JmuPdf {
 	 * Load page information
 	 */
 	protected boolean loadPageInfo() {
-		float[] pageInfo = loadPage(getHandle());
+		float[] pageInfo = getPageInfo(getHandle());
 		if (pageInfo == null) {
 			handle = 0;
 			return false;

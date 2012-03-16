@@ -10,7 +10,7 @@ static jni_page *jni_new_page(jni_document *doc, int pagen)
 
 	if (!page)
 	{
-		return NULL;
+		fz_throw(doc->ctx, "Could not create page object.");
 	}
 
 	page->doc = doc;
@@ -39,7 +39,7 @@ static void jni_free_page(jni_page *page)
 
 	if (page->list)
 	{
-		fz_free_display_list(ctx, page->list);
+		fz_free_display_list(doc->ctx, page->list);
 	}
 
 	if (page->page)
@@ -53,26 +53,35 @@ static void jni_free_page(jni_page *page)
 }
 
 /**
- * Draw a page
+ * Initiate and load page
+ *
+ * NOTE #1: When initiating a new page the doc->ctx must be used or
+ *          else some documents will cause the application to experience
+ *          a horrible death.
+ *
+ * NOTE #2: This function *must* be syncronized. Syncronization is controlled
+ *          in the Java code.
  */
-static void jni_load_page(JNIEnv *env, jni_page *page)
+static void jni_load_page(jni_page *page)
 {
 	fz_device *dev = NULL;
-	fz_try(page->ctx)
+	fz_context *ctx = page->doc->ctx;
+	fz_document *doc = page->doc->doc;
+	fz_try(ctx)
 	{
-		page->list = fz_new_display_list(page->ctx);
-		dev = fz_new_list_device(page->ctx, page->list);
-		page->page = fz_load_page(page->doc->doc, page->page_number-1);
-		fz_run_page(page->doc->doc, page->page, dev, fz_identity, NULL);
-		page->bbox = fz_bound_page(page->doc->doc, page->page);
+		page->list = fz_new_display_list(ctx);
+		dev = fz_new_list_device(ctx, page->list);
+		page->page = fz_load_page(doc, page->page_number-1);
+		fz_run_page(doc, page->page, dev, fz_identity, NULL);
+		page->bbox = fz_bound_page(doc, page->page);
 	}
-	fz_always(page->ctx)
+	fz_always(ctx)
 	{
 		fz_free_device(dev);
 	}
-	fz_catch(page->ctx)
+	fz_catch(ctx)
 	{
-		fz_throw(page->ctx, "Could not create page.");
+		fz_throw(ctx, "Could not load page.");
 	}
 }
 
@@ -162,24 +171,9 @@ jni_page *jni_get_page(jlong handle)
  * Get page dimensions
  */
 JNIEXPORT jfloatArray JNICALL
-Java_com_jmupdf_JmuPdf_loadPage(JNIEnv *env, jclass obj, jlong handle)
+Java_com_jmupdf_JmuPdf_getPageInfo(JNIEnv *env, jclass obj, jlong handle)
 {
 	jni_page *page = jni_get_page(handle);
-
-	if (!page)
-	{
-		return NULL;
-	}
-
-	fz_try(page->ctx)
-	{
-		jni_load_page(env, page);
-	}
-	fz_catch(page->ctx)
-	{
-		jni_free_page(page);
-		page = NULL;
-	}
 
 	if (!page)
 	{
@@ -434,16 +428,21 @@ JNIEXPORT jlong JNICALL
 Java_com_jmupdf_JmuPdf_newPage(JNIEnv *env, jclass obj, jlong handle, jint pagen)
 {
 	jni_document *doc = jni_get_document(handle);
+	jni_page *page;
 
 	if (!doc)
 	{
 		return -1;
 	}
 
-	jni_page *page = jni_new_page(doc, pagen);
-
-	if (!page)
+	fz_try(doc->ctx)
 	{
+		page = jni_new_page(doc, pagen);
+		jni_load_page(page);
+	}
+	fz_catch(doc->ctx)
+	{
+		jni_free_page(page);
 		return -2;
 	}
 

@@ -99,7 +99,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	// ChangedListener Interface
 	// ----------------------------------------------------
 
-	public void stateChanged(ChangeEvent e) {
+	public void stateChanged(ChangeEvent e) {		
 		Object source = e.getSource();
 		
 		if (source == null || !isOpened) {
@@ -121,9 +121,8 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 						view.getPageNumber().setValue(Integer.valueOf(page.getPageNumber()));
 					}
 				}
-			}
+			}	
 		}
-		
 	}
 
 	// ----------------------------------------------------
