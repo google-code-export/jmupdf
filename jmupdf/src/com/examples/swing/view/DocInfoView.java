@@ -30,8 +30,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
 import com.jmupdf.pdf.PdfDocument;
-import com.jmupdf.pdf.PdfEncrypt;
-import com.jmupdf.pdf.PdfInformation;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -145,8 +143,6 @@ public class DocInfoView extends JDialog {
 		// First Tab - Properties
 		//
 		
-		PdfInformation pi = pdfDoc.getInformation();
-		
 		this.panelProperties = new JPanel();
 		this.tabbedPane.addTab("Properties", null, this.panelProperties, null);
 		GridBagLayout gbl_panelProperties = new GridBagLayout();
@@ -165,7 +161,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblFile.gridy = 1;
 		this.panelProperties.add(this.lblFile, gbc_lblFile);
 				
-		this.textFile = new JLabel(pi.getFileName());
+		this.textFile = new JLabel(pdfDoc.getFileName());
 		GridBagConstraints gbc_textFile = new GridBagConstraints();
 		gbc_textFile.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textFile.insets = new Insets(0, 0, 5, 5);
@@ -182,7 +178,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblLocation.gridy = 2;
 		this.panelProperties.add(this.lblLocation, gbc_lblLocation);
 		
-		this.textLocation = new JTextField(pi.getPath());
+		this.textLocation = new JTextField(pdfDoc.getPath());
 		this.textLocation.setEditable(false);
 		this.textLocation.setCaretPosition(0);
 		GridBagConstraints gbc_textLocation = new GridBagConstraints();
@@ -201,7 +197,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblTitle.gridy = 3;
 		this.panelProperties.add(this.lblTitle, gbc_lblTitle);
 		
-		this.textTitle = new JTextField(pi.getTitle());
+		this.textTitle = new JTextField(pdfDoc.getTitle());
 		this.textTitle.setEditable(false);
 		this.textTitle.setCaretPosition(0);
 		GridBagConstraints gbc_textTitle = new GridBagConstraints();
@@ -220,7 +216,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblAuthor.gridy = 4;
 		this.panelProperties.add(this.lblAuthor, gbc_lblAuthor);
 		
-		this.textAuthor = new JTextField(pi.getAuthor());
+		this.textAuthor = new JTextField(pdfDoc.getAuthor());
 		this.textAuthor.setEditable(false);
 		this.textAuthor.setCaretPosition(0);
 		GridBagConstraints gbc_textAuthor = new GridBagConstraints();
@@ -239,7 +235,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblProducer.gridy = 5;
 		this.panelProperties.add(this.lblProducer, gbc_lblProducer);
 		
-		this.textProducer = new JTextField(pi.getProducer());
+		this.textProducer = new JTextField(pdfDoc.getProducer());
 		this.textProducer.setEditable(false);
 		this.textProducer.setCaretPosition(0);
 		GridBagConstraints gbc_textProducer = new GridBagConstraints();
@@ -258,7 +254,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblCreator.gridy = 6;
 		this.panelProperties.add(this.lblCreator, gbc_lblCreator);
 		
-		this.textCreator = new JTextField(pi.getCreator());
+		this.textCreator = new JTextField(pdfDoc.getCreator());
 		this.textCreator.setEditable(false);
 		this.textCreator.setCaretPosition(0);
 		GridBagConstraints gbc_textCreator = new GridBagConstraints();
@@ -277,7 +273,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblKeywords.gridy = 7;
 		this.panelProperties.add(this.lblKeywords, gbc_lblKeywords);
 		
-		this.textKeywords = new JTextField(pi.getKeywords());
+		this.textKeywords = new JTextField(pdfDoc.getKeywords());
 		this.textKeywords.setEditable(false);
 		this.textKeywords.setCaretPosition(0);
 		GridBagConstraints gbc_textKeywords = new GridBagConstraints();
@@ -296,7 +292,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblSubject.gridy = 8;
 		this.panelProperties.add(this.lblSubject, gbc_lblSubject);
 		
-		this.textSubject = new JTextField(pi.getSubject());
+		this.textSubject = new JTextField(pdfDoc.getSubject());
 		this.textSubject.setEditable(false);
 		this.textSubject.setCaretPosition(0);
 		GridBagConstraints gbc_textSubject = new GridBagConstraints();
@@ -315,7 +311,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblCreationDate.gridy = 9;
 		this.panelProperties.add(this.lblCreationDate, gbc_lblCreationDate);
 		
-		this.textCreateDate = new JLabel(pi.getCreatedDate());
+		this.textCreateDate = new JLabel(pdfDoc.getCreatedDate());
 		GridBagConstraints gbc_textCreateDate = new GridBagConstraints();
 		gbc_textCreateDate.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textCreateDate.insets = new Insets(0, 0, 5, 5);
@@ -332,7 +328,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblModifiedDate.gridy = 10;
 		this.panelProperties.add(this.lblModifiedDate, gbc_lblModifiedDate);
 		
-		this.textModifiedDate = new JLabel(pi.getModifiedDate());
+		this.textModifiedDate = new JLabel(pdfDoc.getModifiedDate());
 		GridBagConstraints gbc_textModifiedDate = new GridBagConstraints();
 		gbc_textModifiedDate.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textModifiedDate.insets = new Insets(0, 0, 5, 5);
@@ -349,7 +345,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblVersion.gridy = 11;
 		this.panelProperties.add(this.lblVersion, gbc_lblVersion);
 		
-		this.textVersion = new JLabel(pi.getVersion());
+		this.textVersion = new JLabel(pdfDoc.getPdfVersion());
 		GridBagConstraints gbc_textVersion = new GridBagConstraints();
 		gbc_textVersion.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textVersion.insets = new Insets(0, 0, 0, 5);
@@ -360,8 +356,6 @@ public class DocInfoView extends JDialog {
 		//
 		// Second Tab - Security
 		//
-		
-		PdfEncrypt e = pdfDoc.getEncryptInfo();
 		
 		this.panelSecurity = new JPanel();
 		this.tabbedPane.addTab("Security", null, this.panelSecurity, null);
@@ -381,7 +375,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblSecurityMethod.gridy = 1;
 		this.panelSecurity.add(this.lblSecurityMethod, gbc_lblSecurityMethod);
 		
-		if(e.isEncrypted()) {
+		if(pdfDoc.isEncrypted()) {
 			this.textSecurity = new JLabel("Encrypted");
 		} else {
 			this.textSecurity = new JLabel("None");
@@ -402,8 +396,8 @@ public class DocInfoView extends JDialog {
 		gbc_lblEncryptionLevel.gridy = 2;
 		this.panelSecurity.add(this.lblEncryptionLevel, gbc_lblEncryptionLevel);
 		
-		if (e.getLength() > 0) {
-			this.textEncryptionLevel = new JLabel(e.getLength() + "-bit " + e.getMethod());
+		if (pdfDoc.getLength() > 0) {
+			this.textEncryptionLevel = new JLabel(pdfDoc.getLength() + "-bit " + pdfDoc.getMethod());
 		} else {
 			this.textEncryptionLevel = new JLabel("None");
 		}		
@@ -423,8 +417,8 @@ public class DocInfoView extends JDialog {
 		gbc_lblPrinting.gridy = 3;
 		this.panelSecurity.add(this.lblPrinting, gbc_lblPrinting);
 		
-		if (e.getCanPrint()){
-			if(e.getCanPrintQuality()) {
+		if (pdfDoc.getCanPrint()){
+			if(pdfDoc.getCanPrintQuality()) {
 				this.textPrinting = new JLabel("Fully Allowed");
 			} else {
 				this.textPrinting = new JLabel("Low Resolution");
@@ -448,7 +442,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblChangingTheDocument.gridy = 4;
 		this.panelSecurity.add(this.lblChangingTheDocument, gbc_lblChangingTheDocument);
 		
-		this.textChange = new JLabel(e.getCanModify()?"Allow":"Not Allowed");
+		this.textChange = new JLabel(pdfDoc.getCanModify()?"Allow":"Not Allowed");
 		GridBagConstraints gbc_textChange = new GridBagConstraints();
 		gbc_textChange.anchor = GridBagConstraints.WEST;
 		gbc_textChange.insets = new Insets(0, 0, 5, 0);
@@ -465,7 +459,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblDocumentAssembly.gridy = 5;
 		this.panelSecurity.add(this.lblDocumentAssembly, gbc_lblDocumentAssembly);
 		
-		this.textAssembly = new JLabel(e.getCanAssemble()?"Allow":"Not Allowed");
+		this.textAssembly = new JLabel(pdfDoc.getCanAssemble()?"Allow":"Not Allowed");
 		GridBagConstraints gbc_textAssembly = new GridBagConstraints();
 		gbc_textAssembly.anchor = GridBagConstraints.WEST;
 		gbc_textAssembly.insets = new Insets(0, 0, 5, 0);
@@ -482,7 +476,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblContentCopying.gridy = 6;
 		this.panelSecurity.add(this.lblContentCopying, gbc_lblContentCopying);
 		
-		this.textCopying = new JLabel(e.getCanCopy()?"Allow":"Not Allowed");
+		this.textCopying = new JLabel(pdfDoc.getCanCopy()?"Allow":"Not Allowed");
 		GridBagConstraints gbc_textCopying = new GridBagConstraints();
 		gbc_textCopying.anchor = GridBagConstraints.WEST;
 		gbc_textCopying.insets = new Insets(0, 0, 5, 0);
@@ -499,7 +493,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblContentAccessibility.gridy = 7;
 		this.panelSecurity.add(this.lblContentAccessibility, gbc_lblContentAccessibility);
 		
-		this.textAccessibility = new JLabel(e.getCanAccessibility()?"Allow":"Not Allowed");
+		this.textAccessibility = new JLabel(pdfDoc.getCanAccessibility()?"Allow":"Not Allowed");
 		GridBagConstraints gbc_textAccessibility = new GridBagConstraints();
 		gbc_textAccessibility.anchor = GridBagConstraints.WEST;
 		gbc_textAccessibility.insets = new Insets(0, 0, 5, 0);
@@ -516,7 +510,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblFormFieldFillin.gridy = 8;
 		this.panelSecurity.add(this.lblFormFieldFillin, gbc_lblFormFieldFillin);
 		
-		this.textFillForm = new JLabel(e.getCanFillForm()?"Allow":"Not Allowed");
+		this.textFillForm = new JLabel(pdfDoc.getCanFillForm()?"Allow":"Not Allowed");
 		GridBagConstraints gbc_textFillForm = new GridBagConstraints();
 		gbc_textFillForm.anchor = GridBagConstraints.WEST;
 		gbc_textFillForm.insets = new Insets(0, 0, 5, 0);
@@ -533,7 +527,7 @@ public class DocInfoView extends JDialog {
 		gbc_lblAuthoringComments.gridy = 9;
 		this.panelSecurity.add(this.lblAuthoringComments, gbc_lblAuthoringComments);
 		
-		this.textComments = new JLabel(e.getCanNotes()?"Allow":"Not Allowed");
+		this.textComments = new JLabel(pdfDoc.getCanNotes()?"Allow":"Not Allowed");
 		GridBagConstraints gbc_textComments = new GridBagConstraints();
 		gbc_textComments.anchor = GridBagConstraints.WEST;
 		gbc_textComments.gridx = 2;

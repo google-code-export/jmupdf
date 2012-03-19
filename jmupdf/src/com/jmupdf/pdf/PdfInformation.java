@@ -5,20 +5,15 @@
  */
 package com.jmupdf.pdf;
 
-import java.io.File;
-
 import com.jmupdf.enums.DictionaryType;
 
 /**
- * This is a convenience class that contains commonly
- * used document information
+ * Document Information
  * 
  * @author Pedro Rivera
  *
  */
-public class PdfInformation {
-	private String fileName;
-	private String path;
+class PdfInformation {
 	private String title;
 	private String author;
 	private String producer;
@@ -35,11 +30,6 @@ public class PdfInformation {
 	 * @param pdfDoc
 	 */
 	public PdfInformation(PdfDocument pdfDoc) {
-		File pdfFile = new File(pdfDoc.getDocumentName());
-
-		fileName = pdfFile.getName();
-		path = pdfFile.getParent();
-		
 		title = pdfDoc.getInfo(DictionaryType.INFO_TITLE);
 		author = pdfDoc.getInfo(DictionaryType.INFO_AUTHOR);
 		producer = pdfDoc.getInfo(DictionaryType.INFO_PRODUCER);
@@ -52,22 +42,6 @@ public class PdfInformation {
 		
 		int v = pdfDoc.getVersion();
 		version = (v/10) + "." +  (v%10);
-	}
-	
-	/**
-	 * Get document file name
-	 * @return
-	 */
-	public String getFileName() {
-		return fileName;
-	}
-
-	/**
-	 * Get document path
-	 * @return
-	 */
-	public String getPath() {
-		return path;
 	}
 
 	/**

@@ -49,6 +49,18 @@ public interface Document {
 	String getDocumentName();
 
 	/**
+	 * Get document file name
+	 * @return
+	 */
+	String getFileName();
+
+	/**
+	 * Get document path
+	 * @return
+	 */
+	String getPath();
+
+	/**
 	 * Get document password
 	 * @return
 	 */

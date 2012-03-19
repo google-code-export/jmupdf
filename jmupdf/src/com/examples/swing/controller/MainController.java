@@ -341,7 +341,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 			DocInfoView div = new DocInfoView((PdfDocument)document);
 			div.setVisible(true);
 		} else if (document.getType() == DocumentType.DOC_XPS) {
-
+		} else if (document.getType() == DocumentType.DOC_CBZ) {
 		}
 	}
 	

@@ -25,6 +25,8 @@ import com.jmupdf.interfaces.Page;
  */
 public abstract class DocumentImp extends JmuPdf implements Document {
 	private String document;
+	private String fileName;
+	private String path;
 	private String password;
 	private DocumentType type;
 	private long handle;
@@ -56,12 +58,14 @@ public abstract class DocumentImp extends JmuPdf implements Document {
 
 		if (!file.exists()) {
 			throw new DocException("Document " + document + " does not exist.");
-		}
+		} 
 
-		this.handle = open(getType().getIntValue(), getDocumentName().getBytes(), getPassWord().getBytes(), getMaxStore());
+		handle = open(getType().getIntValue(), getDocumentName().getBytes(), getPassWord().getBytes(), getMaxStore());
 
 		if (getHandle() > 0) {
-			this.pageCount = getPageCount(getHandle());			
+			pageCount = getPageCount(getHandle());
+			fileName = file.getName();
+			path = file.getParent();
 		} else {
 			if (getHandle() == -3) {
 				throw new DocSecurityException("Error " + getHandle() + ": Document requires authentication");
@@ -149,6 +153,22 @@ public abstract class DocumentImp extends JmuPdf implements Document {
 		return document;
 	}
 
+	/* */
+	public String getFileName() {
+		if (fileName == null) {
+			fileName = "";
+		}
+		return fileName;
+	}
+
+	/* */
+	public String getPath() {
+		if (path == null) {
+			path = "";
+		}
+		return path;
+	}
+	
 	/* */
 	public String getPassWord() {
 		if (password == null) {

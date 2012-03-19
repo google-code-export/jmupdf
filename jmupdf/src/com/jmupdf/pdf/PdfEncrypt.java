@@ -13,7 +13,7 @@ import com.jmupdf.enums.EncryptType;
  * @author Pedro J Rivera
  *
  */
-public class PdfEncrypt {
+class PdfEncrypt {
 	private boolean isEncrypted;
 	private boolean canPrint;
 	private boolean canModify;	
