@@ -4,7 +4,7 @@ import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 import com.jmupdf.pdf.PdfDocument;
 
 /**
@@ -24,7 +24,6 @@ public class RenderTestC {
 			
 			/* Get page object */
 			page = doc.getPage(1);
-			page.setAntiAliasLevel(0);
 			
 			/* Set parameter values */
 			String file = "c:\\tmp\\test-aa-0.png";

@@ -5,7 +5,7 @@ import java.io.File;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.PageException;
 import com.jmupdf.interfaces.Document;
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 
 public class TestMutexB implements Runnable {
 	Document doc;

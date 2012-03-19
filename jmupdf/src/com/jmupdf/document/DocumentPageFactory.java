@@ -7,7 +7,7 @@ package com.jmupdf.document;
 
 import com.jmupdf.exceptions.PageException;
 import com.jmupdf.interfaces.Document;
-import com.jmupdf.page.Page;
+import com.jmupdf.page.PageImp;
 
 /**
  * Class to create a page object
@@ -15,7 +15,7 @@ import com.jmupdf.page.Page;
  * @author Pedro J Rivera
  *
  */
-class DocumentPageFactory extends Page {
+class DocumentPageFactory extends PageImp {
 	
 	/**
 	 * Create a new page object

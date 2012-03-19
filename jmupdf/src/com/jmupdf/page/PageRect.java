@@ -5,6 +5,8 @@
  */
 package com.jmupdf.page;
 
+import com.jmupdf.interfaces.Page;
+
 /**
  * PageRect Class
  * 

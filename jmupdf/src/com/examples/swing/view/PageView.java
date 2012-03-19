@@ -32,7 +32,7 @@ import java.awt.image.WritableRaster;
 import javax.swing.JComponent;
 
 import com.jmupdf.enums.ImageType;
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 import com.jmupdf.page.PageRenderer;
 
 /**

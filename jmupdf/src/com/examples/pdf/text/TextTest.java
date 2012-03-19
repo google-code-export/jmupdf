@@ -3,7 +3,8 @@ package com.examples.pdf.text;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
+import com.jmupdf.page.PageText;
 import com.jmupdf.pdf.PdfDocument;
 
 /**
@@ -27,7 +28,7 @@ public class TextTest {
 			page = doc.getPage(5);
 			
 			/* Get text, if any */
-			String text = page.getText();
+			String text = PageText.getStringFromArray(page.getTextSpan(page.getBoundBox()));
 			
 			/* Display out data */
 			System.out.println(text);

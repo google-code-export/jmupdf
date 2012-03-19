@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 
 import com.jmupdf.enums.ImageType;
+import com.jmupdf.interfaces.Page;
 
 /**
  * PdfRenderer class.</br></br>

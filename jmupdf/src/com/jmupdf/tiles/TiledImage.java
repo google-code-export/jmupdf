@@ -7,7 +7,7 @@ package com.jmupdf.tiles;
 
 import java.awt.image.BufferedImage;
 
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 import com.jmupdf.page.PagePixels;
 import com.jmupdf.page.PageRect;
 

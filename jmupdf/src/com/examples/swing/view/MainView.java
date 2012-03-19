@@ -52,7 +52,7 @@ import javax.swing.event.ChangeListener;
 import com.examples.swing.resources.Images;
 import com.jmupdf.JmuPdf;
 import com.jmupdf.enums.ImageType;
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 
 /**
  * Main View

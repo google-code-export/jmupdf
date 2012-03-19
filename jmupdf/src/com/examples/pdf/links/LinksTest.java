@@ -3,7 +3,7 @@ package com.examples.pdf.links;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.pdf.PdfDocument;
 

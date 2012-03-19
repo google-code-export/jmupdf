@@ -8,7 +8,6 @@ package com.jmupdf.interfaces;
 import com.jmupdf.document.DocumentOutline;
 import com.jmupdf.enums.DocumentType;
 import com.jmupdf.exceptions.PageException;
-import com.jmupdf.page.Page;
 
 /**
  * Document Interface

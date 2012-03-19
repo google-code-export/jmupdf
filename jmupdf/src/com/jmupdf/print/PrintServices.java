@@ -42,7 +42,7 @@ import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
 import com.jmupdf.interfaces.Document;
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 import com.jmupdf.page.PageRect;
 import com.jmupdf.pdf.PdfDocument;
 import com.jmupdf.tiles.TileCache;

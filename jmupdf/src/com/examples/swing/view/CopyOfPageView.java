@@ -29,7 +29,7 @@ import java.awt.Rectangle;
 
 import javax.swing.JComponent;
 
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 import com.jmupdf.page.PageRenderer;
 
 /**

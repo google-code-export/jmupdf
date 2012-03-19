@@ -5,7 +5,9 @@ import java.awt.image.WritableRaster;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import com.jmupdf.JmuPdf;
 import com.jmupdf.enums.ImageType;
+import com.jmupdf.interfaces.Page;
 
 /**
  * PagePixels Class
@@ -15,13 +17,14 @@ import com.jmupdf.enums.ImageType;
  * @author Pedro J Rivera
  *
  */
-public class PagePixels {
+public class PagePixels extends JmuPdf {
 	private Page page;
 	private PageRect boundBox;
 	private BufferedImage image;	
 	private ByteBuffer buffer;
 	private Object pixels;
 
+	private int aaLevel;
 	private float gamma;
 	private float zoom;
 	private float resolution;
@@ -36,6 +39,7 @@ public class PagePixels {
 	public PagePixels(Page page) {
 		this.page = page;
 		this.boundBox = new PageRect();
+		this.aaLevel = getAntiAliasLevel(page.getHandle());
 		this.gamma = 1f;
 		this.zoom = 1f;
 		this.rotate = Page.PAGE_ROTATE_NONE;
@@ -151,7 +155,7 @@ public class PagePixels {
 	 * @return
 	 */
 	public int getAntiAliasLevel() {
-		return getPage().getAntiAliasLevel();
+		return aaLevel;
 	}
 	
 	/**
@@ -159,16 +163,17 @@ public class PagePixels {
 	 * This value is used to determine what bit level is used when </br> 
 	 * applying anti-aliasing while rendering page images.</br>
 	 * A value of zero turns off anti-aliasing. Maximum value is 8. </br>
+	 * 
 	 * @param level
 	 */
 	public void setAntiAliasLevel(int level) {
-		if (getAntiAliasLevel() == level) {
-			return;
+		level = validateAntiAliasLevel(level);
+		if (level != this.aaLevel) {
+			aaLevel = level;				
+			setDirty(true);
 		}
-		getPage().setAntiAliasLevel(level);
-		setDirty(true);
 	}
-
+	
 	/**
 	 * Get resolution
 	 * @return
@@ -277,7 +282,7 @@ public class PagePixels {
 	 * Get buffered image
 	 * @return
 	 */
-	public BufferedImage getImage() {
+	public synchronized BufferedImage getImage() {
 		if (!isDirty()) {
 			if (image == null) {
 				createBufferedImage();
@@ -291,22 +296,10 @@ public class PagePixels {
 	 * @return
 	 */
 	public Object getPixels() {
-		if (!isDirty()) {
-			if (pixels == null) { 
-				if (buffer != null) {			
-					if (isByteData()) {
-						pixels = new byte[buffer.order(ByteOrder.nativeOrder()).capacity()];
-						buffer.order(ByteOrder.nativeOrder()).get((byte[])pixels);
-					} else {
-						pixels = new int[buffer.order(ByteOrder.nativeOrder()).asIntBuffer().capacity()];
-						buffer.order(ByteOrder.nativeOrder()).asIntBuffer().get((int[])pixels);
-					}
-					getPage().freeByteBuffer(buffer);
-					buffer = null;
-				}
-			}
+		if (pixels != null) { 
+			return pixels;
 		}
-		return pixels;
+		return null;
 	}
 
 	/**
@@ -322,7 +315,7 @@ public class PagePixels {
 	 * @param x1
 	 * @param y1
 	 */
-	public void drawPage(PagePixels pagePixels, float x0, float y0, float x1, float y1) {
+	public synchronized void drawPage(PagePixels pagePixels, float x0, float y0, float x1, float y1) {
 		
 		if (!isDirty()) {
 			return;
@@ -338,25 +331,23 @@ public class PagePixels {
 		}
 		
 		int[] bbox = new int[4];
-		
-		buffer = getPage().getByteBuffer( 
-				 getZoom(), 
-				 getRotation(), 
-				 getColor(),
-				 getGamma(),
-				 bbox, 
-				 getX0(), 
-				 getY0(), 
-				 getX1(), 
-				 getY1());
 
-		if (buffer != null || pixels != null) {
-			getBoundBox().setRect(bbox[0], bbox[1], bbox[2], bbox[3]);			
+		buffer = getByteBuffer(bbox);
+
+		if (buffer != null) {
+			if (isByteData()) {
+				pixels = new byte[buffer.order(ByteOrder.nativeOrder()).capacity()];
+				buffer.order(ByteOrder.nativeOrder()).get((byte[])pixels);
+			} else {
+				pixels = new int[buffer.order(ByteOrder.nativeOrder()).asIntBuffer().capacity()];
+				buffer.order(ByteOrder.nativeOrder()).asIntBuffer().get((int[])pixels);
+			}
+			freeByteBuffer();
+			getBoundBox().setRect(bbox[0], bbox[1], bbox[2], bbox[3]);
 			setDirty(false);
 		} else {
 			System.gc();
 		}
-
 	}
 
 	/**
@@ -428,6 +419,54 @@ public class PagePixels {
 		        getColor() == ImageType.IMAGE_TYPE_GRAY);
 	}
 
+	/**
+	 * Get a page as a byte buffer
+	 * 
+	 * @param bbox
+	 * @return
+	 */
+	private ByteBuffer getByteBuffer(int[] bbox) {
+		if (getPage().getHandle() > 0) {
+			if (buffer == null) {
+				setAntiAliasLevel(getPage().getHandle(), getAntiAliasLevel());
+				return getByteBuffer(getPage().getHandle(), getZoom(), getRotation(), getColor().getIntValue(), getGamma(), bbox, getX0(), getY0(), getX1(), getY1());
+			} else {
+				return buffer;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Free a byte buffer resource
+	 * 
+	 * @param buffer
+	 */
+	private void freeByteBuffer() {
+		if (getPage().getHandle() > 0) {
+			if (buffer != null) {
+				if (buffer.isDirect()) {
+					buffer.clear();
+					freeByteBuffer(getPage().getHandle(), buffer);
+					buffer = null;
+				}
+			}
+		}
+	}	
+	
+	/**
+	 * Validate Anti-alias level
+	 */
+	private static int validateAntiAliasLevel(int level) {
+		if (level < 0) {
+			return 0;
+		}
+		else if (level > 8) {
+			return 8;
+		}
+		return level;
+	}
+	
 	/**
 	 * Return a new copy of PagePixels object
 	 */

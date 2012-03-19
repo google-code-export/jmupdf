@@ -1,6 +1,6 @@
 package com.examples.pdf.outline;
 
-import com.jmupdf.document.Outline;
+import com.jmupdf.document.DocumentOutline;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
@@ -10,7 +10,7 @@ public class OutlineTest {
 	public static void main(String[] args) {
 		try {
 			PdfDocument doc = new PdfDocument("c:\\tmp\\Introduction.pdf");
-			Outline o = doc.getOutline();
+			DocumentOutline o = doc.getOutline();
 			debug_outline(o, 0);			
 			doc.dispose();
 		} catch (DocException e) {
@@ -21,7 +21,7 @@ public class OutlineTest {
 	}
 
 	/* Print out outline data structure */
-	static void debug_outline(Outline o, int level) {
+	static void debug_outline(DocumentOutline o, int level) {
 		String t = "";
 		
 		for (int i=0; i<level; i++)

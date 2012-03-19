@@ -42,6 +42,8 @@ import com.examples.swing.view.PageView;
 import com.jmupdf.enums.LinkType;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.page.PagePixels;
+import com.jmupdf.page.PageRect;
+import com.jmupdf.page.PageText;
 
 /**
  * Mouse Panning Controller for View Port
@@ -287,7 +289,9 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 			cb.setContents(is, null);
 			r.dispose();
 		} else {
-			String text = pageView.getPage().getText(pageView.getRenderer().getPagePixels(), x0, y0, x1, y1);
+			float zoom = pageView.getRenderer().getPagePixels().getZoom();
+			PageRect rect = new PageRect(x0/zoom, y0/zoom, x1/zoom, y1/zoom);
+			String text = PageText.getStringFromArray(pageView.getPage().getTextSpan(rect));
 			StringSelection ss = new StringSelection(text);
 			cb.setContents(ss, null);
 		}

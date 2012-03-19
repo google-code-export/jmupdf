@@ -15,7 +15,7 @@ import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
 import com.jmupdf.interfaces.Document;
-import com.jmupdf.page.Page;
+import com.jmupdf.interfaces.Page;
 
 /**
  * Document Implementation Class

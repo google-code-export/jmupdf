@@ -103,6 +103,49 @@ public class PageText {
 		}
 	}
 	
+	/* */
+	/* */
+	
+	/**
+	 * Helper method to return a single string from PageText array
+	 * 
+	 * @param textArr
+	 * @param x0
+	 * @param y0
+	 * @param x1
+	 * @param y1
+	 * @return
+	 */
+	public static String getStringFromArray(PageText[] textArr) {
+		String text = "";
+		
+		if (textArr == null) {
+			return text;
+		}
+		
+		float len;
+		
+		for(int i=0; i<textArr.length; i++) {
+			text += textArr[i].getText();
+			if (textArr[i].isEndOfLine()) {
+				if (i == textArr.length-1) {
+					text += "\n";
+				} else {
+					 if ((textArr[i].getY0() == textArr[i+1].getY0())) {
+						 len = textArr[i+1].getX1() - textArr[i].getX1();
+						 if (len > 1) {
+							 text += " ";
+						 }
+					 } else {
+						 text += "\n";
+					 }
+				}
+			}	
+		}
+
+		return text;
+	}
+	
     /**
      * Print test messages
      * @param text
