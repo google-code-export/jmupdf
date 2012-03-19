@@ -36,12 +36,12 @@ import javax.print.attribute.standard.PrintQuality;
 import javax.print.event.PrintJobEvent;
 import javax.print.event.PrintJobListener;
 
-import com.jmupdf.document.Document;
 import com.jmupdf.enums.DocumentType;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
+import com.jmupdf.interfaces.Document;
 import com.jmupdf.page.Page;
 import com.jmupdf.page.PageRect;
 import com.jmupdf.pdf.PdfDocument;
@@ -107,9 +107,9 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	 * @throws DocException 
 	 */
 	public PrintServices(Document document) throws DocException {
-		if (document.getDocumentType() == DocumentType.DOC_PDF) {
+		if (document.getType() == DocumentType.DOC_PDF) {
 			this.document = ((PdfDocument)document).clone();		
-		} else if (document.getDocumentType() == DocumentType.DOC_XPS) {
+		} else if (document.getType() == DocumentType.DOC_XPS) {
 			this.document = ((XpsDocument)document).clone();
 		}
 		if(this.document == null) {
@@ -545,7 +545,7 @@ public class PrintServices implements Printable, PrintJobListener, Runnable {
 	 * Cleanup resources
 	 */
 	private void dispose() {            
-       	document.close();
+       	document.dispose();
        	printJobDone = true;
 	}
 	

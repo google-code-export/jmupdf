@@ -6,15 +6,16 @@
 package com.jmupdf.document;
 
 import com.jmupdf.exceptions.PageException;
+import com.jmupdf.interfaces.Document;
 import com.jmupdf.page.Page;
 
 /**
- * Private package class to create a page object
+ * Class to create a page object
  * 
  * @author Pedro J Rivera
  *
  */
-class DocumentPage extends Page{
+class DocumentPageFactory extends Page {
 	
 	/**
 	 * Create a new page object
@@ -23,7 +24,7 @@ class DocumentPage extends Page{
 	 * @param page
 	 * @throws PageException
 	 */
-	public DocumentPage(Document doc, int page) throws PageException {
+	public DocumentPageFactory(Document doc, int page) throws PageException {
 		document = doc;
 		pageNumber = page;
 		handle = newPage(doc.getHandle(), page);
@@ -33,4 +34,5 @@ class DocumentPage extends Page{
 			throw new PageException("Error: Page could not be created.");
 		}
 	}
+	
 }

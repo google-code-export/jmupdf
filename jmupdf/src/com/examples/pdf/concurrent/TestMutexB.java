@@ -2,9 +2,9 @@ package com.examples.pdf.concurrent;
 
 import java.io.File;
 
-import com.jmupdf.document.Document;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.exceptions.PageException;
+import com.jmupdf.interfaces.Document;
 import com.jmupdf.page.Page;
 
 public class TestMutexB implements Runnable {

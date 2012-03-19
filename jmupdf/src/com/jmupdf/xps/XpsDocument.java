@@ -5,7 +5,7 @@
  */
 package com.jmupdf.xps;
 
-import com.jmupdf.document.Document;
+import com.jmupdf.document.DocumentImp;
 import com.jmupdf.enums.DocumentType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
@@ -16,7 +16,7 @@ import com.jmupdf.exceptions.DocSecurityException;
  * @author Pedro J Rivera
  *
  */
-public class XpsDocument extends Document  {
+public final class XpsDocument extends DocumentImp  {
 	private static final DocumentType DOC_TYPE = DocumentType.DOC_XPS; 
 	
 	/**
@@ -59,14 +59,6 @@ public class XpsDocument extends Document  {
 	 */
 	public XpsDocument(byte[] document) throws DocException, DocSecurityException {
 		this(document, 0);
-	}
-	
-	/**
-	 * Close document and free native resources
-	 * 
-	 */
-	public void dispose() {
-		close();
 	}
 
 	/**

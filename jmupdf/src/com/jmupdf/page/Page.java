@@ -8,10 +8,10 @@ package com.jmupdf.page;
 import java.nio.ByteBuffer;
 
 import com.jmupdf.JmuPdf;
-import com.jmupdf.document.Document;
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.enums.TifCompression;
 import com.jmupdf.enums.TifMode;
+import com.jmupdf.interfaces.Document;
 
 /**
  * Page class.

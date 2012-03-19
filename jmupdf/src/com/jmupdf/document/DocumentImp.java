@@ -14,23 +14,24 @@ import com.jmupdf.enums.DocumentType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
+import com.jmupdf.interfaces.Document;
 import com.jmupdf.page.Page;
 
 /**
- * Document class
+ * Document Implementation Class
  * 
  * @author Pedro J Rivera
  *
  */
-public abstract class Document extends JmuPdf {
+public abstract class DocumentImp extends JmuPdf implements Document {
 	private String document;
 	private String password;
-	private DocumentType documentType;
+	private DocumentType type;
 	private long handle;
 	private int pageCount;	
 	private int maxStore;
 	private boolean isCached;		
-	private Outline outline;
+	private DocumentOutline outline;
 	
 	/**
 	 * Open a document
@@ -40,11 +41,12 @@ public abstract class Document extends JmuPdf {
 	 * @param type
 	 * @param maxStore
 	 * @throws DocException
+	 * @throws DocSecurityException
 	 */
-	public void open(String document, String password, DocumentType type, int maxStore) throws DocException, DocSecurityException  {
+	protected void open(String document, String password, DocumentType type, int maxStore) throws DocException, DocSecurityException  {
 		this.document = document;
 		this.password = password;
-		this.documentType = type;
+		this.type = type;
 		this.maxStore = maxStore << 20;
 		this.handle = 0;
 		this.pageCount = 0;
@@ -56,7 +58,7 @@ public abstract class Document extends JmuPdf {
 			throw new DocException("Document " + document + " does not exist.");
 		}
 
-		this.handle = open(getDocumentType().getIntValue(), getDocumentName().getBytes(), getPassWord().getBytes(), getMaxStore());
+		this.handle = open(getType().getIntValue(), getDocumentName().getBytes(), getPassWord().getBytes(), getMaxStore());
 
 		if (getHandle() > 0) {
 			this.pageCount = getPageCount(getHandle());			
@@ -77,8 +79,9 @@ public abstract class Document extends JmuPdf {
 	 * @param type
 	 * @param maxStore
 	 * @throws DocException
+	 * @throws DocSecurityException
 	 */
-	public void open(byte[] document, String password, DocumentType type, int maxStore) throws DocException, DocSecurityException  {
+	protected void open(byte[] document, String password, DocumentType type, int maxStore) throws DocException, DocSecurityException  {
 		try {
 			File tmp = File.createTempFile("jmupdf" + getClass().hashCode(), ".tmp");
 			tmp.deleteOnExit();
@@ -95,10 +98,8 @@ public abstract class Document extends JmuPdf {
 		}
 	}
 
-	/**
-	 * Close document
-	 */
-	public synchronized void close() {
+	/* */
+	public synchronized void dispose() {
 		if (getHandle() > 0) {
 			close(getHandle());
 			if (isCached) {
@@ -114,28 +115,17 @@ public abstract class Document extends JmuPdf {
 		}
 	}
 
-	/**
-	 * Get document handle
-	 * 
-	 * @return
-	 */
+	/* */
 	public synchronized long getHandle() {
 		return handle;
 	}
 	
-	/**
-	 * Get document type
-	 * @return
-	 */
-	public DocumentType getDocumentType() {
-		return documentType;
+	/* */
+	public DocumentType getType() {
+		return type;
 	}
 	
-	/**
-	 * Get max memory used to store information.</br>
-	 * The default value will be 20mb
-	 * @return
-	 */
+	/* */
 	public int getMaxStore() {
 		if (maxStore <= 0) {
 			maxStore = 60 << 20;
@@ -143,10 +133,7 @@ public abstract class Document extends JmuPdf {
 		return maxStore;
 	}
 	
-	/**
-	 * Get document version
-	 * @return
-	 */
+	/* */
 	public int getVersion() {
 		if (getHandle() > 0) {
 			return getVersion(getHandle());
@@ -154,10 +141,7 @@ public abstract class Document extends JmuPdf {
 		return 0;
 	}
 
-	/**
-	 * Get document full path plus name
-	 * @return
-	 */
+	/* */
 	public String getDocumentName() {
 		if (document == null) {
 			document = "";
@@ -165,10 +149,7 @@ public abstract class Document extends JmuPdf {
 		return document;
 	}
 
-	/**
-	 * Get document password
-	 * @return
-	 */
+	/* */
 	public String getPassWord() {
 		if (password == null) {
 			password = "";
@@ -176,11 +157,8 @@ public abstract class Document extends JmuPdf {
 		return password;
 	}
 
-	/**
-	 * Get document outline
-	 * @return
-	 */
-	public synchronized Outline getOutline() {
+	/* */
+	public synchronized DocumentOutline getOutline() {
 		if (getHandle() > 0) {
 			if (outline == null) {
 				outline = getOutline(getHandle());	
@@ -190,10 +168,7 @@ public abstract class Document extends JmuPdf {
 		return null;
 	}
 	
-	/**
-	 * Get total pages in document
-	 * @return 
-	 */
+	/* */
 	public synchronized int getPageCount() {
 		if (getHandle() > 0) {
 			return pageCount;
@@ -201,15 +176,10 @@ public abstract class Document extends JmuPdf {
 		return 0;
 	}
 
-	/**
-	 * Create a new page object.  
-	 * 
-	 * @param page
-	 * @return
-	 */
+	/* */
 	public synchronized Page getPage(int page) throws PageException {
 		if (getHandle() > 0) {
-			return new DocumentPage(this, page);
+			return new DocumentPageFactory(this, page);
 		}
 		return null;
 	}
@@ -219,7 +189,7 @@ public abstract class Document extends JmuPdf {
 	 * 
 	 * @param o 
 	 */
-	private static void disposeOutline(Outline o) {
+	private static void disposeOutline(DocumentOutline o) {
 		while (o != null) {
 			if (o.getChild() != null) {
 				disposeOutline(o.getChild());
@@ -230,5 +200,5 @@ public abstract class Document extends JmuPdf {
 			o = null;
 		}
 	}
-
+	
 }

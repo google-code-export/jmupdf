@@ -5,7 +5,7 @@
  */
 package com.jmupdf.pdf;
 
-import com.jmupdf.document.Document;
+import com.jmupdf.document.DocumentImp;
 import com.jmupdf.enums.DictionaryType;
 import com.jmupdf.enums.DocumentType;
 import com.jmupdf.exceptions.DocException;
@@ -17,7 +17,7 @@ import com.jmupdf.exceptions.DocSecurityException;
  * @author Pedro J Rivera
  *
  */
-public class PdfDocument extends Document {
+public final class PdfDocument extends DocumentImp {
 	private static final DocumentType DOC_TYPE = DocumentType.DOC_PDF;
 	private PdfInformation pdfInformation;
 	private PdfEncrypt pdfEncrypt;
@@ -150,22 +150,11 @@ public class PdfDocument extends Document {
 		}
 		return null;
 	}
-
-	/**
-	 * Close document and free native resources
-	 * 
-	 */
-	public void dispose() {
-		pdfInformation = null;
-		pdfEncrypt = null;		
-		close();
-	}
 	
 	/**
 	 * Clone current document.
 	 * This will create a new handle to document. </br>
-	 * If document could not be cloned a null value will be returned.
-	 * 
+	 * If document could not be cloned a null value will be returned. 
 	 */
 	public PdfDocument clone() {
 		PdfDocument doc = null;

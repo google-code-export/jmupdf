@@ -16,9 +16,9 @@ import com.jmupdf.enums.LinkType;
  * @author Pedro J Rivera
  *
  */
-public class Outline {
-	private Outline next;
-	private Outline child;
+public class DocumentOutline {
+	private DocumentOutline next;
+	private DocumentOutline child;
 	private LinkType type;
 	private String destination;
 	private String title;	
@@ -34,7 +34,7 @@ public class Outline {
 	 * @param page
 	 * 
 	 */
-	public Outline(int type, String title, String destination) {
+	public DocumentOutline(int type, String title, String destination) {
 		this.next = null;
 		this.child = null;
 		this.type = LinkType.setType(type);
@@ -54,25 +54,25 @@ public class Outline {
 	 * Constructor
 	 * 
 	 */
-	public Outline() {
+	public DocumentOutline() {
 		this(0, "", "");
 	}
 	
-	public Outline addChild() {		
-		child = new Outline(0, "", "");
+	public DocumentOutline addChild() {		
+		child = new DocumentOutline(0, "", "");
 		return child;
 	}
 
-	public Outline getChild() {		
+	public DocumentOutline getChild() {		
 		return child;
 	}
 	
-	public Outline addNext() {		
-		next = new Outline(0, "", "");
+	public DocumentOutline addNext() {		
+		next = new DocumentOutline(0, "", "");
 		return next;
 	}
 	
-	public Outline getNext() {		
+	public DocumentOutline getNext() {		
 		return next;
 	}
 

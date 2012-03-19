@@ -5,7 +5,7 @@
  */
 package com.jmupdf.cbz;
 
-import com.jmupdf.document.Document;
+import com.jmupdf.document.DocumentImp;
 import com.jmupdf.enums.DocumentType;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
@@ -16,7 +16,7 @@ import com.jmupdf.exceptions.DocSecurityException;
  * @author Pedro J Rivera
  *
  */
-public class CbzDocument extends Document  {
+public final class CbzDocument extends DocumentImp  {
 	private static final DocumentType DOC_TYPE = DocumentType.DOC_CBZ;
 	
 	/**
@@ -60,20 +60,11 @@ public class CbzDocument extends Document  {
 	public CbzDocument(byte[] document) throws DocException, DocSecurityException {
 		this(document, 0);
 	}
-	
-	/**
-	 * Close document and free native resources
-	 * 
-	 */
-	public void dispose() {
-		close();
-	}
 
 	/**
 	 * Clone current document.
 	 * This will create a new handle to document. </br>
-	 * If document could not be cloned a null value will be returned.
-	 * 
+	 * If document could not be cloned a null value will be returned. 
 	 */
 	public CbzDocument clone() {
 		CbzDocument doc = null;

@@ -8,7 +8,7 @@ package com.jmupdf;
 
 import java.nio.ByteBuffer;
 
-import com.jmupdf.document.Outline;
+import com.jmupdf.document.DocumentOutline;
 import com.jmupdf.page.PageLinks;
 import com.jmupdf.page.PageText;
 
@@ -37,7 +37,7 @@ public abstract class JmuPdf {
 	protected native long open(int type, byte[] pdf, byte[] password, int maxStore);
 	protected native void close(long handle);
 	protected native int getVersion(long handle);
-	protected native Outline getOutline(long handle);
+	protected native DocumentOutline getOutline(long handle);
 	protected native int getPageCount(long handle);
 	protected native int getAntiAliasLevel(long handle);
 	protected native int setAntiAliasLevel(long handle, int antiAliasLevel);

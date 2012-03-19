@@ -140,12 +140,12 @@ int jni_write_bmp(fz_context*, fz_pixmap*, const char*, float, int);
 #define jni_get_buffer_address(buf) (*env)->GetDirectBufferAddress(env, buf)
 #define jni_get_buffer_capacity(buf) (*env)->GetDirectBufferCatpacity(env, buf)
 
-// Outline class and methods: Strong Typing
-#define jni_new_outline_class() (*env)->FindClass(env, "com/jmupdf/document/Outline");
+// DocumentOutline class and methods: Strong Typing
+#define jni_new_outline_class() (*env)->FindClass(env, "com/jmupdf/document/DocumentOutline");
 #define jni_new_outline_obj(cls, method) (*env)->NewObject(env, cls, method);
 #define jni_get_outline_init(cls) (*env)->GetMethodID(env, cls, "<init>",   "()V");
-#define jni_get_outline_add_next(cls) (*env)->GetMethodID(env, cls, "addNext",  "()Lcom/jmupdf/document/Outline;");
-#define jni_get_outline_add_child(cls) (*env)->GetMethodID(env, cls, "addChild", "()Lcom/jmupdf/document/Outline;");
+#define jni_get_outline_add_next(cls) (*env)->GetMethodID(env, cls, "addNext",  "()Lcom/jmupdf/document/DocumentOutline;");
+#define jni_get_outline_add_child(cls) (*env)->GetMethodID(env, cls, "addChild", "()Lcom/jmupdf/document/DocumentOutline;");
 #define jni_get_outline_set_page(cls) (*env)->GetMethodID(env, cls, "setPage",  "(I)V");
 #define jni_get_outline_set_rect(cls) (*env)->GetMethodID(env, cls, "setRect",  "(FFFF)V");
 #define jni_get_outline_set_title(cls) (*env)->GetMethodID(env, cls, "setTitle", "(Ljava/lang/String;)V");
