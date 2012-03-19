@@ -86,9 +86,78 @@ static void jni_load_page(jni_page *page)
 }
 
 /**
+ * Determine if a character is within an acceptable clipbox region.
+ */
+static int jni_char_is_in_box(fz_text_char *text, fz_rect clipbox, float threshold)
+{
+	fz_rect hitbox = text->bbox;
+	int seen = 0;
+	float d, w, h, p;
+
+	/* valid threshold is 0 to 1*/
+	if (threshold < 0)
+		threshold = 0;
+
+	if (hitbox.x1 >= clipbox.x0 && hitbox.x0 <= clipbox.x1 && hitbox.y1 >= clipbox.y0 && hitbox.y0 <= clipbox.y1)
+	{
+		/* default is seen */
+		seen = 1;
+
+		/* if >=1 value return all text */
+		if (threshold >= 1)
+			return seen;
+
+		/* if somewhere in the middle, bypass */
+		if (!(hitbox.y0 < clipbox.y0 && hitbox.y1 > clipbox.y1))
+		{
+			/* check bottom */
+			if (hitbox.y0 < clipbox.y0)
+			{
+				d = clipbox.y0 - hitbox.y0;
+				h = hitbox.y1 - hitbox.y0;
+				p = d / h;
+				if (p > threshold)
+					seen = 0;
+			}
+
+			/* check top */
+			else if (hitbox.y1 > clipbox.y1)
+			{
+				d = hitbox.y1 - clipbox.y1;
+				h = hitbox.y1 - hitbox.y0;
+				p = d / h;
+				if (p > threshold)
+					seen = 0;
+			}
+		}
+
+		/* check left */
+		if (hitbox.x1 > clipbox.x1)
+		{
+			d = hitbox.x1 - clipbox.x1;
+			w = hitbox.x1 - hitbox.x0;
+			p = d / w;
+			if (p > threshold)
+				seen = 0;
+		}
+
+		/* check right */
+		else if (hitbox.x0 < clipbox.x0)
+		{
+			d = clipbox.x0 - hitbox.x0;
+			w = hitbox.x1 - hitbox.x0;
+			p = d / w;
+			if (p > threshold)
+				seen = 0;
+		}
+	}
+	return seen;
+}
+
+/**
  * Load page text
  */
-static fz_text_page * jni_load_text(jni_page *page)
+static fz_text_page * jni_load_text(jni_page *page, fz_rect clipbox)
 {
 	fz_text_page *page_text = NULL;
 	fz_text_sheet *page_sheet = NULL;
@@ -100,7 +169,8 @@ static fz_text_page * jni_load_text(jni_page *page)
 		page_sheet = fz_new_text_sheet(page->ctx);
 		page_text = fz_new_text_page(page->ctx, page->bbox);
 		dev = fz_new_text_device(page->ctx, page_sheet, page_text);
-		fz_run_display_list(page->list, dev, ctm, fz_infinite_bbox, NULL);
+		fz_bbox bb = fz_bbox_covering_rect(clipbox);
+		fz_run_display_list(page->list, dev, ctm, bb, NULL);
 	}
 	fz_always(page->ctx)
 	{
@@ -125,9 +195,8 @@ static fz_text_page * jni_load_text(jni_page *page)
 /**
  * Count text span objects within given coordinates
  */
-static int jni_count_text_span(fz_text_page *page_text, int x0, int y0, int x1, int y1)
+static int jni_count_text_span(fz_text_page *page_text, fz_rect clipbox, float threshold)
 {
-	fz_bbox hitbox;
 	fz_text_block *block;
 	fz_text_line *line;
 	fz_text_span *span;
@@ -142,14 +211,10 @@ static int jni_count_text_span(fz_text_page *page_text, int x0, int y0, int x1, 
 			{
 				for (i = 0; i < span->len; i++)
 				{
-					hitbox = fz_bbox_covering_rect(span->text[i].bbox);
-					if (hitbox.x1 >= x0 && hitbox.x0 <= x1 && hitbox.y1 >= y0 && hitbox.y0 <= y1)
+					if (jni_char_is_in_box(&span->text[i], clipbox, threshold))
 					{
-						//if(x1 >= hitbox.x1 && x0 <= hitbox.x0 && y0 <= hitbox.y0 && y1 >= hitbox.y1)
-						//{
-							++totspan;
-							break;
-						//}
+						++totspan;
+						break;
 					}
 				}
 			}
@@ -213,7 +278,7 @@ Java_com_jmupdf_JmuPdf_getPageInfo(JNIEnv *env, jclass obj, jlong handle)
  * Coordinates are assumed to reflect a zoom factor of 1f and 0 rotation
  */
 JNIEXPORT jobjectArray JNICALL
-Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x0, jint y0, jint x1, jint y1)
+Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jfloat threshold, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -222,7 +287,13 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 		return NULL;
 	}
 
-	fz_text_page *page_text = jni_load_text(page);
+	fz_rect clipbox = fz_empty_rect;
+	clipbox.x0 = x0;
+	clipbox.y0 = y0;
+	clipbox.x1 = x1;
+	clipbox.y1 = y1;
+
+	fz_text_page *page_text = jni_load_text(page, clipbox);
 
 	if (!page_text)
 	{
@@ -240,7 +311,7 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 	jmethodID init = jni_get_page_text_init(cls);
 	jobjectArray page_text_arr = NULL;
 
-	int totspan = jni_count_text_span(page_text, x0, y0, x1, y1);
+	int totspan = jni_count_text_span(page_text, clipbox, threshold);
 
 	if (totspan > 0)
 	{
@@ -257,7 +328,6 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 			jint *txtptr = NULL;
 			jobject new_page;
 
-			fz_bbox hitbox;
 			fz_text_block *block;
 			fz_text_line *line;
 			fz_text_span *span;
@@ -272,19 +342,15 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 						p = 0;
 						for (i = 0; i < span->len; i++)
 						{
-							hitbox = fz_bbox_covering_rect(span->text[i].bbox);
-							if (hitbox.x1 >= x0 && hitbox.x0 <= x1 && hitbox.y1 >= y0 && hitbox.y0 <= y1)
+							if (jni_char_is_in_box(&span->text[i], clipbox, threshold))
 							{
-								//if(x1 >= hitbox.x1 && x0 <= hitbox.x0 && y0 <= hitbox.y0 && y1 >= hitbox.y1)
-								//{
-									if (seen == 0)
-									{
-										txtarr = jni_new_int_array(span->len);
-										txtptr = jni_get_int_array(txtarr);
-										seen = 1;
-									}
-									txtptr[p++] = span->text[i].c;
-								//}
+								if (seen == 0)
+								{
+									txtarr = jni_new_int_array(span->len);
+									txtptr = jni_get_int_array(txtarr);
+									seen = 1;
+								}
+								txtptr[p++] = span->text[i].c;
 							}
 						}
 						if (seen == 1)
@@ -295,10 +361,9 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jint x
 								eol = 1;
 							}
 							jni_release_int_array(txtarr, txtptr);
-							fz_bbox b = fz_bbox_covering_rect(span->text[0].bbox);
-							new_page = jni_new_page_text_obj(
-											   cls, init,
-											   b.x0, b.y0, hitbox.x1, hitbox.y1, eol, txtarr);
+							fz_rect c = span->text[i].bbox;
+							fz_rect b = span->text[0].bbox;
+							new_page = jni_new_page_text_obj(cls, init, b.x0, b.y0, c.x1, c.y1, eol, txtarr);
 							jni_set_object_array_el(page_text_arr, e++, new_page);
 						}
 					}
@@ -434,7 +499,7 @@ JNIEXPORT jlong JNICALL
 Java_com_jmupdf_JmuPdf_newPage(JNIEnv *env, jclass obj, jlong handle, jint pagen)
 {
 	jni_document *doc = jni_get_document(handle);
-	jni_page *page;
+	jni_page *page = NULL;
 
 	if (!doc)
 	{

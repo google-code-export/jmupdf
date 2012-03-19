@@ -263,16 +263,16 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 
 		// Make sure we are not outside image area
 		p1.setLocation(
-				Math.min(Math.max(p1.x, 0), pageView.getImageWidth()), 
-				Math.min(Math.max(p1.y, 0), pageView.getImageHeight()) );
+				Math.min(Math.max(p1.getX(), 0), pageView.getImageWidth()), 
+				Math.min(Math.max(p1.getY(), 0), pageView.getImageHeight()) );
 		p2.setLocation(
-				Math.min(Math.max(p2.x, 0), pageView.getImageWidth()), 
-			    Math.min(Math.max(p2.y, 0), pageView.getImageHeight()) );
+				Math.min(Math.max(p2.getX(), 0), pageView.getImageWidth()), 
+			    Math.min(Math.max(p2.getY(), 0), pageView.getImageHeight()) );
 		
-		int x = Math.min(p1.x, p2.x);
-		int y = Math.min(p1.y, p2.y);
-		int w = Math.max(p1.x, p2.x) - x;
-		int h = Math.max(p1.y, p2.y) - y;
+		float x0 = (float)Math.min(p1.getX(), p2.getX());
+		float y0 = (float)Math.min(p1.getY(), p2.getY());
+		float x1 = (float)Math.max(p1.getX(), p2.getX());
+		float y1 = (float)Math.max(p1.getY(), p2.getY());
 		
 		// Create clip board object
 		Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -280,14 +280,14 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 		if (copyAsImage) {
 			// Render region
 			PagePixels r = pageView.getRenderer().getPagePixels().clone();
-			r.drawPage(pageView.getRenderer().getPagePixels(), x, y, x+w, y+h);
+			r.drawPage(pageView.getRenderer().getPagePixels(), x0, y0, x1, y1);
 
 			// Copy to clip board
 			ImageSelection is = new ImageSelection(r.getImage());			
 			cb.setContents(is, null);
 			r.dispose();
 		} else {
-			String text = pageView.getPage().getText(pageView.getRenderer().getPagePixels(), x, y, w, h);
+			String text = pageView.getPage().getText(pageView.getRenderer().getPagePixels(), x0, y0, x1, y1);
 			StringSelection ss = new StringSelection(text);
 			cb.setContents(ss, null);
 		}
@@ -321,9 +321,9 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 	 * @return
 	 */
 	private Point normalizePoint(double x, double y) {
-		return new Point(
-				(int)(x + viewPort.getViewPosition().getX()), 
-				(int)(y + viewPort.getViewPosition().getY()));
+		Point p = new Point();
+		p.setLocation((x + viewPort.getViewPosition().getX()), (y + viewPort.getViewPosition().getY()));
+		return p;
 	}
 
     /**

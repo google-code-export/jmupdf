@@ -130,7 +130,7 @@ public abstract class Page extends JmuPdf {
 	 */
 	public String getText() {
 		if (getHandle() > 0) {
-			return getText(null, getX(), getY(), getWidth(), getHeight());
+			return getText(null, getX(), getY(), getX()+getWidth(), getY()+getHeight());
 		}
 		return null;
 	}
@@ -149,20 +149,20 @@ public abstract class Page extends JmuPdf {
 	 * @param h
 	 * @return
 	 */
-	public synchronized String getText(PagePixels pagePixels, int x, int y, int w, int h) {
+	public synchronized String getText(PagePixels pagePixels, float x0, float y0, float x1, float y1) {
 		if (getHandle() <= 0) {
 			return null;
 		}
 		
 		String text = "";
 
-		PageText[] pdfTextSpan = getTextSpan(pagePixels, x, y, w, h);
+		PageText[] pdfTextSpan = getTextSpan(pagePixels, x0, y0, x1, y1);
 		
 		if (pdfTextSpan == null) {
 			return text;
 		}
 		
-		int len;
+		float len;
 		
 		for(int i=0; i<pdfTextSpan.length; i++) {
 			text += pdfTextSpan[i].getText();
@@ -199,7 +199,7 @@ public abstract class Page extends JmuPdf {
 	 * @param h
 	 * @return
 	 */
-	public synchronized PageText[] getTextSpan(PagePixels pagePixels, int x, int y, int w, int h) {
+	public synchronized PageText[] getTextSpan(PagePixels pagePixels, float x0, float y0, float x1, float y1) {
 		if (getHandle() <= 0) {
 			return null;
 		}
@@ -213,10 +213,10 @@ public abstract class Page extends JmuPdf {
 			rotate = pagePixels.getRotation();
 		}
 
-		pr.setRect(x/zoom, y/zoom, (x+w)/zoom, (y+h)/zoom);		
+		pr.setRect(x0/zoom, y0/zoom, x1/zoom, y1/zoom);		
 		pr = pr.rotate(getBoundBox(), rotate, PAGE_ROTATE_NONE);
 
-		return getPageText(getHandle(), (int)pr.getX0(), (int)pr.getY0(), (int)pr.getX1(), (int)pr.getY1());
+		return getPageText(getHandle(), 0.45f, pr.getX0(), pr.getY0(), pr.getX1(), pr.getY1());
 	}
 	
 	/**

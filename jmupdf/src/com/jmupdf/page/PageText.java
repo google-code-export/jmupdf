@@ -12,10 +12,10 @@ package com.jmupdf.page;
  *
  */
 public class PageText {
-	private int x0;
-	private int y0;
-	private int x1;
-	private int y1;
+	private float x0;
+	private float y0;
+	private float x1;
+	private float y1;
 	private boolean endOfLine; 
 	private String text;
 
@@ -28,7 +28,7 @@ public class PageText {
 	 * @param eol
 	 * @param text
 	 */
-	public PageText(int x0, int y0, int x1, int y1, int eol, int[] text) {
+	public PageText(float x0, float y0, float x1, float y1, int eol, int[] text) {
 		this.x0 = x0;
 		this.y0 = y0;
 		this.x1 = x1;
@@ -42,7 +42,7 @@ public class PageText {
 	 * Get x0 coordinate of text
 	 * @return
 	 */
-	public int getX0() {
+	public float getX0() {
 		return x0;
 	}
 
@@ -50,7 +50,7 @@ public class PageText {
 	 * Get y0 coordinate of text
 	 * @return
 	 */
-	public int getY0() {
+	public float getY0() {
 		return y0;
 	}
 
@@ -58,7 +58,7 @@ public class PageText {
 	 * Get x1 coordinate of text
 	 * @return
 	 */
-	public int getX1() {
+	public float getX1() {
 		return x1;
 	}
 
@@ -66,7 +66,7 @@ public class PageText {
 	 * Get y1 coordinate of text
 	 * @return
 	 */
-	public int getY1() {
+	public float getY1() {
 		return y1;
 	}
 

@@ -311,7 +311,7 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 			page.dispose();
 		}
 		if (document != null) {
-			document.close();
+			document.dispose();
 			if (mousePanController != null) {
 				view.removePanningListener(mousePanController);
 				mousePanController = null;

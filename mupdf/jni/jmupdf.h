@@ -159,10 +159,10 @@ int jni_write_bmp(fz_context*, fz_pixmap*, const char*, float, int);
 #define jni_outline_add_child_call(obj, method) (*env)->CallObjectMethod(env, obj, method);
 #define jni_outline_add_next_call(obj, method) (*env)->CallObjectMethod(env, obj, method);
 
-// Page class and methods: Strong Typing
+// PageText class and methods: Strong Typing
 #define jni_new_page_text_class() (*env)->FindClass(env, "com/jmupdf/page/PageText");
 #define jni_new_page_text_obj(cls, method, x0, y0, x1, y1, eol, text) (*env)->NewObject(env, cls, method, x0, y0, x1, y1, eol, text);
-#define jni_get_page_text_init(cls) (*env)->GetMethodID(env, cls, "<init>", "(IIIII[I)V");
+#define jni_get_page_text_init(cls) (*env)->GetMethodID(env, cls, "<init>", "(FFFFI[I)V");
 
 // Page links and methods: Strong Typing
 #define jni_new_page_links_class() (*env)->FindClass(env, "com/jmupdf/page/PageLinks");
