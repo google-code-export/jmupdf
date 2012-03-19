@@ -106,12 +106,12 @@ static fz_rect jni_normalize_rect(jni_page *page, float x0, float y0, float x1, 
 /**
  * Set anti alias level
  */
-static void jni_set_aa_level(jni_page *page)
+static void jni_set_aa_level(jni_page *page, int aa)
 {
-	if (fz_aa_level(page->ctx) != page->anti_alias)
+	if (fz_aa_level(page->ctx) != aa)
 	{
 		fz_drop_glyph_cache_context(page->ctx);
-		fz_set_aa_level(page->ctx, page->anti_alias);
+		fz_set_aa_level(page->ctx, aa);
 		fz_new_glyph_cache_context(page->ctx);
 	}
 }
@@ -119,7 +119,7 @@ static void jni_set_aa_level(jni_page *page)
 /**
  * Get an RGB, ARGB, Gray scale pixel data
  */
-static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int color, float gamma, float x0, float y0, float x1, float y1)
+static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int color, float gamma, int aa, float x0, float y0, float x1, float y1)
 {
 	fz_pixmap *pix = NULL;
 	fz_device *dev = NULL;
@@ -129,7 +129,7 @@ static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int col
 	// Try to get pixel buffer
 	fz_try(page->ctx)
 	{
-		jni_set_aa_level(page);
+		jni_set_aa_level(page, aa);
 		ctm = jni_get_view_ctm(zoom, rotate);
 		bbox = fz_round_rect(fz_transform_rect(ctm, jni_normalize_rect(page, x0, y0, x1, y1)));
 		pix = fz_new_pixmap_with_bbox(page->ctx, jni_get_color_space(color), bbox);
@@ -453,7 +453,7 @@ int jni_pix_to_binary(fz_context *ctx, fz_pixmap * pix, int dither, unsigned cha
  * Returns a DirectByteBuffer
  */
 JNIEXPORT jobject JNICALL
-Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jfloat zoom, jint rotate, jint color, jfloat gamma, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
+Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jfloat zoom, jint rotate, jint color, jfloat gamma, jint aa, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -462,7 +462,7 @@ Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jflo
 		return NULL;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, x0, y0, x1, y1);
+	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, x0, y0, x1, y1);
 
 	if (!pix)
 	{
@@ -512,37 +512,10 @@ Java_com_jmupdf_JmuPdf_freeByteBuffer(JNIEnv *env, jclass obj, jlong handle, job
 }
 
 /**
- * Set Default Anti Alias Level
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_setAntiAliasLevel(JNIEnv *env, jclass obj, jlong handle, jint anti_alias)
-{
-	jni_page *page = jni_get_page(handle);
-
-	if (!page)
-	{
-		return -1;
-	}
-
-	page->anti_alias = anti_alias;
-
-	return 0;
-}
-
-/**
- * Get Default Anti Alias Level
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_getAntiAliasLevel(JNIEnv *env, jclass obj, jlong handle)
-{
-	return jni_get_page(handle)->anti_alias;
-}
-
-/**
  * Create a PNG file
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jbyteArray out)
+Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -551,7 +524,7 @@ Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint rota
 		return -1;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
 
 	if (!pix)
 	{
@@ -578,7 +551,7 @@ Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint rota
  * Create a single or multi-page TIF file
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writeTif(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jbyteArray out, jint compression, jint mode, jint quality)
+Java_com_jmupdf_JmuPdf_writeTif(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out, jint compression, jint mode, jint quality)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -587,7 +560,7 @@ Java_com_jmupdf_JmuPdf_writeTif(JNIEnv *env, jclass obj, jlong handle, jint rota
 		return -1;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
 
 	if (!pix)
 	{
@@ -608,7 +581,7 @@ Java_com_jmupdf_JmuPdf_writeTif(JNIEnv *env, jclass obj, jlong handle, jint rota
  * Create a JPEG file
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writeJPeg(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jbyteArray out, jint quality)
+Java_com_jmupdf_JmuPdf_writeJPeg(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out, jint quality)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -617,7 +590,7 @@ Java_com_jmupdf_JmuPdf_writeJPeg(JNIEnv *env, jclass obj, jlong handle, jint rot
 		return -1;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
 
 	if (!pix)
 	{
@@ -638,7 +611,7 @@ Java_com_jmupdf_JmuPdf_writeJPeg(JNIEnv *env, jclass obj, jlong handle, jint rot
  * Create a PNM file
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writePnm(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jbyteArray out)
+Java_com_jmupdf_JmuPdf_writePnm(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -647,7 +620,7 @@ Java_com_jmupdf_JmuPdf_writePnm(JNIEnv *env, jclass obj, jlong handle, jint rota
 		return -1;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
 
 	if (!pix)
 	{
@@ -674,7 +647,7 @@ Java_com_jmupdf_JmuPdf_writePnm(JNIEnv *env, jclass obj, jlong handle, jint rota
  * Create a PAM file
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writePam(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jbyteArray out)
+Java_com_jmupdf_JmuPdf_writePam(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -683,7 +656,7 @@ Java_com_jmupdf_JmuPdf_writePam(JNIEnv *env, jclass obj, jlong handle, jint rota
 		return -1;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
 
 	if (!pix)
 	{
@@ -710,7 +683,7 @@ Java_com_jmupdf_JmuPdf_writePam(JNIEnv *env, jclass obj, jlong handle, jint rota
  * Create a PBM file
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writePbm(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jfloat gamma, jbyteArray out)
+Java_com_jmupdf_JmuPdf_writePbm(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jfloat gamma, jint aa, jbyteArray out)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -719,7 +692,7 @@ Java_com_jmupdf_JmuPdf_writePbm(JNIEnv *env, jclass obj, jlong handle, jint rota
 		return -1;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, COLOR_GRAY_SCALE, gamma, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, COLOR_GRAY_SCALE, gamma, aa, 0, 0, 0, 0);
 
 	if (!pix)
 	{
@@ -758,7 +731,7 @@ Java_com_jmupdf_JmuPdf_writePbm(JNIEnv *env, jclass obj, jlong handle, jint rota
  * Create a BMP file
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writeBmp(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jbyteArray out)
+Java_com_jmupdf_JmuPdf_writeBmp(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -767,7 +740,7 @@ Java_com_jmupdf_JmuPdf_writeBmp(JNIEnv *env, jclass obj, jlong handle, jint rota
 		return -1;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
 
 	if (!pix)
 	{

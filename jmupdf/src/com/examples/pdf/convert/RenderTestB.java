@@ -31,9 +31,10 @@ public class RenderTestB {
 			float zoom = 1f;
 			ImageType type = ImageType.IMAGE_TYPE_RGB;
 			float gamma = 1f;
+			int aa = 8;
 			
 			/* Create png file */
-			page.saveAsPng(file, rotate, zoom, type, gamma);
+			page.saveAsPng(file, rotate, zoom, type, gamma, aa);
 		} catch (DocException e) {
 			e.printStackTrace();
 		} catch (DocSecurityException e) {

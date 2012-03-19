@@ -21,24 +21,10 @@ import com.jmupdf.interfaces.Page;
 public abstract class PageImp extends JmuPdf implements Page {
 	protected Document document;
 	protected PageRect boundBox = new PageRect();
-	protected PageLinks[] pageLinks;
+	protected PageLinks[] links;
 	protected long handle = 0;
 	protected int pageNumber = 0;
-	protected int pageRotate = 0;
-	
-	/**
-	 * Load page information
-	 */
-	protected boolean loadPageInfo() {
-		float[] pageInfo = getPageInfo(getHandle());
-		if (pageInfo == null) {
-			handle = 0;
-			return false;
-		}
-		boundBox = new PageRect(pageInfo[0], pageInfo[1], pageInfo[2], pageInfo[3]);
-		pageRotate = (int)pageInfo[4];
-		return true;
-	}
+	protected int rotation = 0;
 	
 	/* */
 	public synchronized long getHandle() {
@@ -77,7 +63,7 @@ public abstract class PageImp extends JmuPdf implements Page {
 
 	/* */
 	public int getRotation() {
-		return pageRotate;
+		return rotation;
 	}
 
 	/* */	
@@ -98,30 +84,30 @@ public abstract class PageImp extends JmuPdf implements Page {
 		if (getHandle() <= 0) {
 			return null;
 		}
-		if (pageLinks == null) {
-			pageLinks = getPageLinks(getHandle());
-			if (pageLinks == null) {
-				pageLinks = new PageLinks[1];
-				pageLinks[0] = new PageLinks(0, 0, 0, 0, 0, "");
+		if (links == null) {
+			links = getPageLinks(getHandle());
+			if (links == null) {
+				links = new PageLinks[1];
+				links[0] = new PageLinks(0, 0, 0, 0, 0, "");
 			} else {
 				if (pagePixels != null) {
 					int rotate = pagePixels.getRotation();
 					PageRect rect = new PageRect();
-					for (int i=0; i<pageLinks.length; i++) {						
-						rect.setRect(pageLinks[i].getX0(), pageLinks[i].getY0(), 
-									 pageLinks[i].getX1(), pageLinks[i].getY1());
+					for (int i=0; i<links.length; i++) {						
+						rect.setRect(links[i].getX0(), links[i].getY0(), 
+									 links[i].getX1(), links[i].getY1());
 						rect = rect.rotate(getBoundBox(), rotate);
 						rect = rect.scale(pagePixels.getZoom());
-						pageLinks[i].setX0(rect.getX0());
-						pageLinks[i].setY0(rect.getY0());
-						pageLinks[i].setX1(rect.getX1());
-						pageLinks[i].setY1(rect.getY1());
+						links[i].setX0(rect.getX0());
+						links[i].setY0(rect.getY0());
+						links[i].setX1(rect.getX1());
+						links[i].setY1(rect.getY1());
 					}
 					rect = null;
 				}
 			}
 		}
-		return pageLinks;
+		return links;
 	}
 
 	/* */
@@ -141,7 +127,7 @@ public abstract class PageImp extends JmuPdf implements Page {
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	
 	/* */
-	public synchronized boolean saveAsPng(String file, int rotate, float zoom, ImageType color, float gamma) {
+	public synchronized boolean saveAsPng(String file, int rotate, float zoom, ImageType color, float gamma, int aa) {
 		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB  	   || 
 				color == ImageType.IMAGE_TYPE_ARGB 	   ||
@@ -150,39 +136,39 @@ public abstract class PageImp extends JmuPdf implements Page {
 				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
 					rotate = PageImp.PAGE_ROTATE_NONE;
 				}
-				return writePng(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				return writePng(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes()) == 0;
 			}
 		}
 		return false;
 	}
 	
 	/* */
-	public synchronized boolean saveAsPbm(String file, int rotate, float zoom, float gamma) {
+	public synchronized boolean saveAsPbm(String file, int rotate, float zoom, float gamma, int aa) {
 		if (getHandle() > 0) {
 			if (rotate == PageImp.PAGE_ROTATE_AUTO) {
 				rotate = PageImp.PAGE_ROTATE_NONE;
 			}
-			return writePbm(getHandle(), rotate, zoom, gamma, file.getBytes()) == 0;
+			return writePbm(getHandle(), rotate, zoom, gamma, aa, file.getBytes()) == 0;
 		}
 		return false;
 	}
 	
 	/* */
-	public synchronized boolean saveAsPnm(String file, int rotate, float zoom, ImageType color, float gamma) {
+	public synchronized boolean saveAsPnm(String file, int rotate, float zoom, ImageType color, float gamma, int aa) {
 		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB || 
 				color == ImageType.IMAGE_TYPE_GRAY) {
 				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
 					rotate = PageImp.PAGE_ROTATE_NONE;
 				}
-				return writePnm(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				return writePnm(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes()) == 0;
 			}
 		}
 		return false;
 	}
 
 	/* */
-	public synchronized boolean saveAsJPeg(String file, int rotate, float zoom, ImageType color, float gamma, int quality) {
+	public synchronized boolean saveAsJPeg(String file, int rotate, float zoom, ImageType color, float gamma, int aa, int quality) {
 		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB || 
 				color == ImageType.IMAGE_TYPE_GRAY) {
@@ -192,14 +178,14 @@ public abstract class PageImp extends JmuPdf implements Page {
 				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
 					rotate = PageImp.PAGE_ROTATE_NONE;
 				}
-				return writeJPeg(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes(), quality) == 0;
+				return writeJPG(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes(), quality) == 0;
 			}
 		}
 		return false;
 	}
 	
 	/* */
-	public synchronized boolean saveAsBmp(String file, int rotate, float zoom, ImageType color, float gamma) {
+	public synchronized boolean saveAsBmp(String file, int rotate, float zoom, ImageType color, float gamma, int aa) {
 		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB    || 
 				color == ImageType.IMAGE_TYPE_GRAY   ||
@@ -208,14 +194,14 @@ public abstract class PageImp extends JmuPdf implements Page {
 				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
 					rotate = PageImp.PAGE_ROTATE_NONE;
 				}
-				return writeBmp(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				return writeBmp(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes()) == 0;
 			}
 		}
 		return false;
 	}
 	
 	/* */
-	public synchronized boolean saveAsPam(String file, int rotate, float zoom, ImageType color, float gamma) {
+	public synchronized boolean saveAsPam(String file, int rotate, float zoom, ImageType color, float gamma, int aa) {
 		if (getHandle() > 0) {
 			if (color == ImageType.IMAGE_TYPE_RGB  	 || 
 				color == ImageType.IMAGE_TYPE_ARGB 	 || 
@@ -224,14 +210,14 @@ public abstract class PageImp extends JmuPdf implements Page {
 				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
 					rotate = PageImp.PAGE_ROTATE_NONE;
 				}
-				return writePam(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes()) == 0;
+				return writePam(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes()) == 0;
 			}
 		}
 		return false;
 	}
 	
 	/* */
-	public synchronized boolean saveAsTif(String file, int rotate, float zoom, ImageType color, float gamma, TifCompression compression, TifMode mode, int quality) {
+	public synchronized boolean saveAsTif(String file, int rotate, float zoom, ImageType color, float gamma, int aa, TifCompression compression, TifMode mode, int quality) {
 		if (getHandle() > 0) {
 			
 			if (!(color == ImageType.IMAGE_TYPE_RGB      || 
@@ -281,7 +267,7 @@ public abstract class PageImp extends JmuPdf implements Page {
 				rotate = PageImp.PAGE_ROTATE_NONE;
 			}
 			
-			return writeTif(getHandle(), rotate, zoom, color.getIntValue(), gamma, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
+			return writeTif(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
 		}
 
 		return false;

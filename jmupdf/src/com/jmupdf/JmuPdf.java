@@ -22,52 +22,36 @@ import com.jmupdf.page.PageText;
 public abstract class JmuPdf {
 	private static final String jmupdf_version = "0.5.0-beta";
 
-	/*
-	 * Open DLL dependency
-	 */
-	static {
-		loadDll();
-	}
+	/* Open DLL dependency */
+	static { loadDll(); }
 
-	/*
-	 * PDF/XPS Common Functions 
-	 */
-	
-	/* document level */
+	/* PDF, XPS, CBZ common document functions (document level) */
 	protected native long open(int type, byte[] pdf, byte[] password, int maxStore);
 	protected native void close(long handle);
 	protected native int getVersion(long handle);
-	protected native DocumentOutline getOutline(long handle);
 	protected native int getPageCount(long handle);
-	protected native int getAntiAliasLevel(long handle);
-	protected native int setAntiAliasLevel(long handle, int antiAliasLevel);
+	protected native DocumentOutline getOutline(long handle);
 	
-	/* page level */
-	protected native long newPage(long handle, int page);
-	protected native long freePage(long handle);
-	protected native float[] getPageInfo(long handle);
-	protected native PageText[] getPageText(long handle, float threshold, float x0, float y0, float x1, float y1);
-	protected native PageLinks[] getPageLinks(long handle);
-	
-	/*
-	 * PDF Specific Functions (document level)
-	 */
+	 /* PDF Specific Functions (document level) */
 	protected native String pdfInfo(long handle, String key);
 	protected native int[] pdfEncryptInfo(long handle);
 
-	/*
-	 * Rendering Functions (all page level)
-	 */
-	protected native ByteBuffer getByteBuffer(long handle, float zoom, int rotate, int color, float gamma, int[] bbox, float x0, float y0, float x1, float y1);
-	protected native void freeByteBuffer(long handle, ByteBuffer buffer);
+	/* PDF, XPS, CBZ common page functions (page level) */
+	protected native long newPage(long handle, int page, float[] info);
+	protected native long freePage(long handle);
+	protected native PageText[] getPageText(long handle, float threshold, float x0, float y0, float x1, float y1);
+	protected native PageLinks[] getPageLinks(long handle);
 	
-	protected native int writePbm(long handle, int rotate, float zoom, float gamma, byte[] file);
-	protected native int writePnm(long handle, int rotate, float zoom, int color, float gamma, byte[] file);
-	protected native int writePam(long handle, int rotate, float zoom, int color, float gamma, byte[] file);
-	protected native int writePng(long handle, int rotate, float zoom, int color, float gamma, byte[] file);
-	protected native int writeTif(long handle, int rotate, float zoom, int color, float gamma, byte[] file, int compression, int mode, int quality);
-	protected native int writeJPeg(long handle,int rotate, float zoom, int color, float gamma, byte[] file, int quality);
-	protected native int writeBmp(long handle, int rotate, float zoom, int color, float gamma, byte[] file);
+	/* PDF, XPS, CBZ common rendering functions (page level) */
+	protected native ByteBuffer getByteBuffer(long handle, float zoom, int rotate, int color, float gamma, int aa, int[] bbox, float x0, float y0, float x1, float y1);
+	protected native void freeByteBuffer(long handle, ByteBuffer buffer);
+	protected native int writePbm(long handle, int rotate, float zoom, float gamma, int aa, byte[] file);
+	protected native int writePnm(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file);
+	protected native int writePam(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file);
+	protected native int writePng(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file);
+	protected native int writeBmp(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file);
+	protected native int writeJPG(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file, int quality);
+	protected native int writeTif(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file, int compression, int mode, int quality);
 
 	/**
 	 * Get library version
@@ -93,8 +77,6 @@ public abstract class JmuPdf {
 	}
 
 	/**
-	 * is64Bit()
-	 *
 	 * Determine if this is a 64 bit environment
 	 */
 	private static boolean is64bit() {

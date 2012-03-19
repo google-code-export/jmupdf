@@ -54,9 +54,6 @@ struct jni_page_s {
 	fz_page *page;
 	fz_display_list *list;
 	fz_rect bbox;
-	int page_number;
-	int anti_alias;
-	float gamma;
 };
 
 // Lock objects structure

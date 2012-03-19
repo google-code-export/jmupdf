@@ -131,7 +131,7 @@ public interface Page {
 	 * @param gamma
 	 * @return
 	 */
-	boolean saveAsPng(String file, int rotate, float zoom, ImageType color, float gamma);
+	boolean saveAsPng(String file, int rotate, float zoom, ImageType color, float gamma, int aa);
 	
 	/**
 	 * Save a page to a file in PBM format</br>
@@ -142,7 +142,7 @@ public interface Page {
 	 * @param gamma
 	 * @return
 	 */
-	boolean saveAsPbm(String file, int rotate, float zoom, float gamma);
+	boolean saveAsPbm(String file, int rotate, float zoom, float gamma, int aa);
 	
 	/**
 	 * Save a page to a file in PNM format
@@ -154,7 +154,7 @@ public interface Page {
 	 * @param gamma
 	 * @return
 	 */
-	boolean saveAsPnm(String file, int rotate, float zoom, ImageType color, float gamma);
+	boolean saveAsPnm(String file, int rotate, float zoom, ImageType color, float gamma, int aa);
 
 	/**
 	 * Save a page to a file in JPEG format
@@ -167,7 +167,7 @@ public interface Page {
 	 * @param quality : quality levels are in the range 0-100 with a default value of 75.
 	 * @return
 	 */
-	boolean saveAsJPeg(String file, int rotate, float zoom, ImageType color, float gamma, int quality);
+	boolean saveAsJPeg(String file, int rotate, float zoom, ImageType color, float gamma, int aa, int quality);
 	
 	/**
 	 * Save a page to a BMP format
@@ -179,7 +179,7 @@ public interface Page {
 	 * @param gamma
 	 * @return
 	 */
-	boolean saveAsBmp(String file, int rotate, float zoom, ImageType color, float gamma);
+	boolean saveAsBmp(String file, int rotate, float zoom, ImageType color, float gamma, int aa);
 	
 	/**
 	 * Save a page to a file in PAM format</br>
@@ -191,7 +191,7 @@ public interface Page {
 	 * @param gamma
 	 * @return
 	 */
-	boolean saveAsPam(String file, int rotate, float zoom, ImageType color, float gamma);
+	boolean saveAsPam(String file, int rotate, float zoom, ImageType color, float gamma, int aa);
 	
 	/**
 	 * Save a page to a TIF format
@@ -219,6 +219,6 @@ public interface Page {
 	 *        </blockquote>  
 	 * @return
 	 */
-	boolean saveAsTif(String file, int rotate, float zoom, ImageType color, float gamma, TifCompression compression, TifMode mode, int quality);
+	boolean saveAsTif(String file, int rotate, float zoom, ImageType color, float gamma, int aa, TifCompression compression, TifMode mode, int quality);
 		
 }

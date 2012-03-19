@@ -128,6 +128,7 @@ public class JMuPDFShowCase
 
         final ImageType color = ImageType.IMAGE_TYPE_RGB;
         final float gamma = 0.0f;
+        final int aa = 8;
         final int rotate = 0;
 
         final int min = 100;
@@ -170,7 +171,7 @@ public class JMuPDFShowCase
                             long st2 = System.currentTimeMillis();
                             System.out.println("getPage " + fPageNumber + " : " + (st2 - st));
 
-                            page.saveAsPng(imagePath, rotate, zoom, color, gamma);
+                            page.saveAsPng(imagePath, rotate, zoom, color, gamma, aa);
                             long st3 = System.currentTimeMillis();
                             imageMin = Math.min(imageMin, (st3 - st2));
                             imageMax = Math.max(imageMax, (st3 - st2));

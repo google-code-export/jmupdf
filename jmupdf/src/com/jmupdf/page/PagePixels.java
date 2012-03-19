@@ -39,7 +39,7 @@ public class PagePixels extends JmuPdf {
 	public PagePixels(Page page) {
 		this.page = page;
 		this.boundBox = new PageRect();
-		this.aaLevel = getAntiAliasLevel(page.getHandle());
+		this.aaLevel = 8;
 		this.gamma = 1f;
 		this.zoom = 1f;
 		this.rotate = Page.PAGE_ROTATE_NONE;
@@ -168,7 +168,7 @@ public class PagePixels extends JmuPdf {
 	 */
 	public void setAntiAliasLevel(int level) {
 		level = validateAntiAliasLevel(level);
-		if (level != this.aaLevel) {
+		if (level != aaLevel) {
 			aaLevel = level;				
 			setDirty(true);
 		}
@@ -428,8 +428,7 @@ public class PagePixels extends JmuPdf {
 	private ByteBuffer getByteBuffer(int[] bbox) {
 		if (getPage().getHandle() > 0) {
 			if (buffer == null) {
-				setAntiAliasLevel(getPage().getHandle(), getAntiAliasLevel());
-				return getByteBuffer(getPage().getHandle(), getZoom(), getRotation(), getColor().getIntValue(), getGamma(), bbox, getX0(), getY0(), getX1(), getY1());
+				return getByteBuffer(getPage().getHandle(), getZoom(), getRotation(), getColor().getIntValue(), getGamma(), getAntiAliasLevel(), bbox, getX0(), getY0(), getX1(), getY1());
 			} else {
 				return buffer;
 			}

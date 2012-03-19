@@ -3,7 +3,7 @@
 /**
  * Create new page object
  */
-static jni_page *jni_new_page(jni_document *doc, int pagen)
+static jni_page *jni_new_page(jni_document *doc)
 {
 	fz_context *ctx = fz_clone_context(doc->ctx);
 	jni_page *page = fz_malloc_no_throw(ctx, sizeof(jni_page));
@@ -16,9 +16,6 @@ static jni_page *jni_new_page(jni_document *doc, int pagen)
 	page->doc = doc;
 	page->page = NULL;
 	page->list = NULL;
-	page->page_number = pagen;
-	page->anti_alias = fz_aa_level(ctx);
-	page->gamma = 1.0f;
 	page->ctx = ctx;
 
 	return page;
@@ -62,7 +59,7 @@ static void jni_free_page(jni_page *page)
  * NOTE #2: This function *must* be syncronized. Syncronization is controlled
  *          in the Java code.
  */
-static void jni_load_page(jni_page *page)
+static void jni_load_page(jni_page *page, int pagen)
 {
 	fz_device *dev = NULL;
 	fz_context *ctx = page->doc->ctx;
@@ -71,7 +68,7 @@ static void jni_load_page(jni_page *page)
 	{
 		page->list = fz_new_display_list(ctx);
 		dev = fz_new_list_device(ctx, page->list);
-		page->page = fz_load_page(doc, page->page_number-1);
+		page->page = fz_load_page(doc, pagen-1);
 		fz_run_page(doc, page->page, dev, fz_identity, NULL);
 		page->bbox = fz_bound_page(doc, page->page);
 	}
@@ -233,43 +230,6 @@ jni_page *jni_get_page(jlong handle)
 		return (jni_page *)jni_jlong_to_ptr(handle);
 	}
 	return NULL;
-}
-
-/**
- * Get page dimensions
- */
-JNIEXPORT jfloatArray JNICALL
-Java_com_jmupdf_JmuPdf_getPageInfo(JNIEnv *env, jclass obj, jlong handle)
-{
-	jni_page *page = jni_get_page(handle);
-
-	if (!page)
-	{
-		return NULL;
-	}
-
-	jfloatArray dataarray = jni_new_float_array(5);
-
-	if (!dataarray)
-	{
-		return NULL;
-	}
-
-	jfloat *data = jni_get_float_array(dataarray);
-
-	data[0] = page->bbox.x0;
-	data[1] = page->bbox.y0;
-	data[2] = page->bbox.x1;
-	data[3] = page->bbox.y1;
-
-	if (page->doc->type == DOC_PDF)
-	{
-		data[4] = ((pdf_page*)page->page)->rotate;
-	}
-
-	jni_release_float_array(dataarray, data);
-
-	return dataarray;
 }
 
 /**
@@ -496,7 +456,7 @@ Java_com_jmupdf_JmuPdf_getPageLinks(JNIEnv *env, jclass obj, jlong handle)
  * Create new page object
  */
 JNIEXPORT jlong JNICALL
-Java_com_jmupdf_JmuPdf_newPage(JNIEnv *env, jclass obj, jlong handle, jint pagen)
+Java_com_jmupdf_JmuPdf_newPage(JNIEnv *env, jclass obj, jlong handle, jint pagen, jfloatArray info)
 {
 	jni_document *doc = jni_get_document(handle);
 	jni_page *page = NULL;
@@ -508,14 +468,34 @@ Java_com_jmupdf_JmuPdf_newPage(JNIEnv *env, jclass obj, jlong handle, jint pagen
 
 	fz_try(doc->ctx)
 	{
-		page = jni_new_page(doc, pagen);
-		jni_load_page(page);
+		page = jni_new_page(doc);
+		jni_load_page(page, pagen);
 	}
 	fz_catch(doc->ctx)
 	{
 		jni_free_page(page);
 		return -2;
 	}
+
+	jfloat *data = jni_get_float_array(info);
+
+	if (!data)
+	{
+		jni_free_page(page);
+		return -3;
+	}
+
+	data[0] = page->bbox.x0;
+	data[1] = page->bbox.y0;
+	data[2] = page->bbox.x1;
+	data[3] = page->bbox.y1;
+
+	if (page->doc->type == DOC_PDF)
+	{
+		data[4] = ((pdf_page*)page->page)->rotate;
+	}
+
+	jni_release_float_array(info, data);
 
 	return jni_ptr_to_jlong(page);
 }
