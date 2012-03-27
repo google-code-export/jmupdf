@@ -22,7 +22,7 @@ static void jni_free_document(jni_document *doc)
 		fz_close_document(doc->doc);
 	}
 
-	void *locks = doc->locks.user;
+	fz_locks_context *locks = ctx->locks;
 
 	fz_free(ctx, doc);
 	fz_free_context(ctx);
@@ -36,10 +36,18 @@ static void jni_free_document(jni_document *doc)
  */
 static jni_document *jni_new_document(int max_store, jni_doc_type type)
 {
-	fz_context *ctx = fz_new_context(NULL, NULL, max_store);
+	fz_locks_context *locks = jni_new_locks();
+
+	if (!locks)
+	{
+		return NULL;
+	}
+
+	fz_context *ctx = fz_new_context(NULL, locks, max_store);
 
 	if (!ctx)
 	{
+		jni_free_locks(locks);
 		return NULL;
 	}
 
@@ -48,20 +56,13 @@ static jni_document *jni_new_document(int max_store, jni_doc_type type)
 	if (!doc)
 	{
 		fz_free_context(ctx);
+		jni_free_locks(locks);
 		return NULL;
 	}
 
 	doc->ctx = ctx;
 	doc->doc = NULL;
 	doc->type = type;
-
-	jni_new_locks(doc);
-
-	if (!doc->locks.user)
-	{
-		jni_free_document(doc);
-		return NULL;
-	}
 
 	return doc;
 }
@@ -414,17 +415,17 @@ Java_com_jmupdf_JmuPdf_pdfEncryptInfo(JNIEnv *env, jclass obj, jlong handle)
 	jint *data = jni_get_int_array(dataarray);
 
 	data[1]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_PRINT); 			// print
-	data[2]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_CHANGE); 		// modify
+	data[2]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_CHANGE); 			// modify
 	data[3]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_COPY);			// copy
 	data[4]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_NOTES);			// annotate
 	data[5]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_FILL_FORM);		// Fill form fields
 	data[6]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_ACCESSIBILITY);	// Extract text and graphics
 	data[7]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_ASSEMBLE);		// Document assembly
 	data[8]  = pdf_has_permission(((pdf_document*)doc->doc), PDF_PERM_HIGH_RES_PRINT);	// Print quality
-	data[9]  = pdf_crypt_revision(((pdf_document*)doc->doc));						// Revision
-	data[10] = pdf_crypt_length(((pdf_document*)doc->doc));						// Length
+	data[9]  = pdf_crypt_revision(((pdf_document*)doc->doc));							// Revision
+	data[10] = pdf_crypt_length(((pdf_document*)doc->doc));								// Length
 
-	char *method = pdf_crypt_method(((pdf_document*)doc->doc));					// Method
+	char *method = pdf_crypt_method(((pdf_document*)doc->doc));							// Method
 
 	if (strcmp(method, "RC4") == 0)  			data[11] = 1;
 	else if (strcmp(method, "AES") == 0)  		data[11] = 2;

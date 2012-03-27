@@ -1,5 +1,43 @@
 #include "jmupdf.h"
 
+enum jni_image_formats
+{
+    FORMAT_PNG = 1,
+    FORMAT_PBM,
+    FORMAT_PNM,
+    FORMAT_JPG,
+    FORMAT_BMP,
+    FORMAT_PAM,
+    FORMAT_TIF,
+    FORMAT_BUFFERED_IMAGE,
+};
+
+struct jni_options_s
+{
+	jint imageFormat;
+	jint imageType;
+	jint rotate;
+	jint quality;
+	jint compression;
+	jint mode;
+	jint antiAlias;
+	jfloat zoom;
+	jfloat gamma;
+	jfloat x0;
+	jfloat y0;
+	jfloat x1;
+	jfloat y1;
+};
+
+/**
+ * Create new options object
+ */
+jni_options * jni_new_options(fz_context *ctx)
+{
+	jni_options *o = fz_malloc_no_throw(ctx, sizeof(jni_options));
+	return o;
+}
+
 /**
  * Convert jbyte array to char array.
  */
@@ -80,25 +118,23 @@ static fz_colorspace * jni_get_color_space(int color)
 /**
  * Normalize rectangle bounds
  */
-static fz_rect jni_normalize_rect(jni_page *page, float x0, float y0, float x1, float y1)
+static fz_rect jni_normalize_rect(jni_page *page)
 {
 	fz_rect rect = fz_empty_rect;
-	if (page->page)
+	if (page->options->x0 == 0 && page->options->y0 == 0 &&
+		page->options->x1 == 0 && page->options->y1 == 0)
 	{
-		if (x0==0 && y0==0 && x1==0 && y1==0)
-		{
-			rect.x0 = page->bbox.x0;
-			rect.y0 = page->bbox.y0;
-			rect.x1 = page->bbox.x1;
-			rect.y1 = page->bbox.y1;
-		}
-		else
-		{
-			rect.x0 = MAX(x0, page->bbox.x0);
-			rect.y0 = MAX(y0, page->bbox.y0);
-			rect.x1 = MIN(x1, page->bbox.x1);
-			rect.y1 = MIN(y1, page->bbox.y1);
-		}
+		rect.x0 = page->bbox.x0;
+		rect.y0 = page->bbox.y0;
+		rect.x1 = page->bbox.x1;
+		rect.y1 = page->bbox.y1;
+	}
+	else
+	{
+		rect.x0 = MAX(page->options->x0, page->bbox.x0);
+		rect.y0 = MAX(page->options->y0, page->bbox.y0);
+		rect.x1 = MIN(page->options->x1, page->bbox.x1);
+		rect.y1 = MIN(page->options->y1, page->bbox.y1);
 	}
 	return rect;
 }
@@ -106,12 +142,12 @@ static fz_rect jni_normalize_rect(jni_page *page, float x0, float y0, float x1, 
 /**
  * Set anti alias level
  */
-static void jni_set_aa_level(jni_page *page, int aa)
+static void jni_set_aa_level(jni_page *page)
 {
-	if (fz_aa_level(page->ctx) != aa)
+	if (fz_aa_level(page->ctx) != page->options->antiAlias)
 	{
 		fz_drop_glyph_cache_context(page->ctx);
-		fz_set_aa_level(page->ctx, aa);
+		fz_set_aa_level(page->ctx, page->options->antiAlias);
 		fz_new_glyph_cache_context(page->ctx);
 	}
 }
@@ -119,7 +155,7 @@ static void jni_set_aa_level(jni_page *page, int aa)
 /**
  * Get an RGB, ARGB, Gray scale pixel data
  */
-static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int color, float gamma, int aa, float x0, float y0, float x1, float y1)
+static fz_pixmap *jni_get_pixmap(jni_page *page)
 {
 	fz_pixmap *pix = NULL;
 	fz_device *dev = NULL;
@@ -129,10 +165,10 @@ static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int col
 	// Try to get pixel buffer
 	fz_try(page->ctx)
 	{
-		jni_set_aa_level(page, aa);
-		ctm = jni_get_view_ctm(zoom, rotate);
-		bbox = fz_round_rect(fz_transform_rect(ctm, jni_normalize_rect(page, x0, y0, x1, y1)));
-		pix = fz_new_pixmap_with_bbox(page->ctx, jni_get_color_space(color), bbox);
+		jni_set_aa_level(page);
+		ctm = jni_get_view_ctm(page->options->zoom, page->options->rotate);
+		bbox = fz_round_rect(fz_transform_rect(ctm, jni_normalize_rect(page)));
+		pix = fz_new_pixmap_with_bbox(page->ctx, jni_get_color_space(page->options->imageType), bbox);
 	}
 	fz_catch(page->ctx)
 	{
@@ -150,7 +186,7 @@ static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int col
 	}
 
 	// Set background color
-	if (jni_save_alpha(color))
+	if (jni_save_alpha(page->options->imageType))
 	{
 		fz_clear_pixmap(page->ctx, pix);
 	}
@@ -164,11 +200,11 @@ static fz_pixmap *jni_get_pixmap(jni_page *page, float zoom, int rotate, int col
 	{
 		dev = fz_new_draw_device(page->ctx, pix);
 		fz_run_display_list(page->list, dev, ctm, bbox, NULL);
-		if (gamma != 1 && gamma > 0)
+		if (page->options->gamma != 1 && page->options->gamma > 0)
 		{
-			fz_gamma_pixmap(page->ctx, pix, gamma);
+			fz_gamma_pixmap(page->ctx, pix, page->options->gamma);
 		}
-		if (color != COLOR_ARGB_PRE)
+		if (page->options->imageType != COLOR_ARGB_PRE)
 		{
 			fz_unmultiply_pixmap(page->ctx, pix);
 		}
@@ -453,7 +489,7 @@ int jni_pix_to_binary(fz_context *ctx, fz_pixmap * pix, int dither, unsigned cha
  * Returns a DirectByteBuffer
  */
 JNIEXPORT jobject JNICALL
-Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jfloat zoom, jint rotate, jint color, jfloat gamma, jint aa, jintArray bbox, jfloat x0, jfloat y0, jfloat x1, jfloat y1)
+Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jintArray bbox)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -462,14 +498,14 @@ Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jflo
 		return NULL;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, x0, y0, x1, y1);
+	fz_pixmap *pix = jni_get_pixmap(page);
 
 	if (!pix)
 	{
 		return NULL;
 	}
 
-	jobject pixarray = jni_get_packed_pixels(env, page->ctx, pix, color);
+	jobject pixarray = jni_get_packed_pixels(env, page->ctx, pix, page->options->imageType);
 
 	if (!pixarray)
 	{
@@ -512,10 +548,10 @@ Java_com_jmupdf_JmuPdf_freeByteBuffer(JNIEnv *env, jclass obj, jlong handle, job
 }
 
 /**
- * Create a PNG file
+ * Create an image file from a given page
  */
 JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out)
+Java_com_jmupdf_JmuPdf_saveAsFile(JNIEnv *env, jobject obj, jlong handle, jbyteArray out)
 {
 	jni_page *page = jni_get_page(handle);
 
@@ -524,7 +560,7 @@ Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint rota
 		return -1;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page);
 
 	if (!pix)
 	{
@@ -532,227 +568,114 @@ Java_com_jmupdf_JmuPdf_writePng(JNIEnv *env, jclass obj, jlong handle, jint rota
 	}
 
 	char * file = jni_jbyte_to_char(env, page->ctx, out);
-	int rc = -3;
+	int rc = 0;
 
 	fz_try(page->ctx)
 	{
-		jni_write_png(page->ctx, pix, (const char*)file, jni_save_alpha(color), zoom);
-		rc = 0;
-	}
-	fz_catch(page->ctx){}
-
-	fz_free(page->ctx, file);
-	fz_drop_pixmap(page->ctx, pix);
-
-	return rc;
-}
-
-/**
- * Create a single or multi-page TIF file
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writeTif(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out, jint compression, jint mode, jint quality)
-{
-	jni_page *page = jni_get_page(handle);
-
-	if (!page)
-	{
-		return -1;
-	}
-
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
-
-	if (!pix)
-	{
-		return -2;
-	}
-
-	char * file = jni_jbyte_to_char(env, page->ctx, out);
-
-	int rc = jni_write_tif(page->ctx, pix, (const char*)file, zoom, compression, color, mode, quality);
-
-	fz_free(page->ctx, file);
-	fz_drop_pixmap(page->ctx, pix);
-
-	return rc==0?0:-3;
-}
-
-/**
- * Create a JPEG file
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writeJPeg(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out, jint quality)
-{
-	jni_page *page = jni_get_page(handle);
-
-	if (!page)
-	{
-		return -1;
-	}
-
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
-
-	if (!pix)
-	{
-		return -2;
-	}
-
-	char * file = jni_jbyte_to_char(env, page->ctx, out);
-
-	int rc = jni_write_jpg(page->ctx, pix, (const char*)file, zoom, color, quality);
-
-	fz_free(page->ctx, file);
-	fz_drop_pixmap(page->ctx, pix);
-
-	return rc==0?0:-3;
-}
-
-/**
- * Create a PNM file
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writePnm(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out)
-{
-	jni_page *page = jni_get_page(handle);
-
-	if (!page)
-	{
-		return -1;
-	}
-
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
-
-	if (!pix)
-	{
-		return -2;
-	}
-
-	char * file = jni_jbyte_to_char(env, page->ctx, out);
-	int rc = -3;
-
-	fz_try(page->ctx)
-	{
-		fz_write_pnm(page->ctx, pix, file);
-		rc = 0;
-	}
-	fz_catch(page->ctx) {}
-
-	fz_free(page->ctx, file);
-	fz_drop_pixmap(page->ctx, pix);
-
-	return rc;
-}
-
-/**
- * Create a PAM file
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writePam(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out)
-{
-	jni_page *page = jni_get_page(handle);
-
-	if (!page)
-	{
-		return -1;
-	}
-
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
-
-	if (!pix)
-	{
-		return -2;
-	}
-
-	char * file = jni_jbyte_to_char(env, page->ctx, out);
-	int rc = -3;
-
-	fz_try(page->ctx)
-	{
-		fz_write_pam(page->ctx, pix, file, jni_save_alpha(color));
-		rc = 0;
-	}
-	fz_catch(page->ctx) {}
-
-	fz_free(page->ctx, file);
-	fz_drop_pixmap(page->ctx, pix);
-
-	return rc;
-}
-
-/**
- * Create a PBM file
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writePbm(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jfloat gamma, jint aa, jbyteArray out)
-{
-	jni_page *page = jni_get_page(handle);
-
-	if (!page)
-	{
-		return -1;
-	}
-
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, COLOR_GRAY_SCALE, gamma, aa, 0, 0, 0, 0);
-
-	if (!pix)
-	{
-		return -2;
-	}
-
-	char * file = jni_jbyte_to_char(env, page->ctx, out);
-	int rc = -3;
-
-	fz_halftone *ht = fz_default_halftone(page->ctx, 1);
-	fz_bitmap *bit = NULL;
-
-	if (ht)
-	{
-		bit = fz_halftone_pixmap(page->ctx, pix, ht);
-	}
-	if (bit)
-	{
-		fz_try(page->ctx)
+		switch (page->options->imageFormat)
 		{
-			fz_write_pbm(page->ctx, bit, (char*)file);
-			rc = 0;
+		case FORMAT_PNG:
+			jni_write_png(NULL, page->ctx, pix, (const char*)file, jni_save_alpha(page->options->imageType), page->options->zoom);
+			break;
+		case FORMAT_JPG:
+			jni_write_jpg(NULL, page->ctx, pix, (const char*)file, page->options->zoom, page->options->imageType, page->options->quality);
+			break;
+		case FORMAT_TIF:
+			rc = jni_write_tif(page->ctx, pix, (const char*)file, page->options->zoom, page->options->compression, page->options->imageType, page->options->mode, page->options->quality);
+			break;
+		case FORMAT_PNM:
+			fz_write_pnm(page->ctx, pix, file);
+			break;
+		case FORMAT_PAM:
+			fz_write_pam(page->ctx, pix, file, jni_save_alpha(page->options->imageType));
+			break;
+		case FORMAT_PBM:
+		{
+			fz_halftone *ht = fz_default_halftone(page->ctx, 1);
+			fz_bitmap *bit = NULL;
+			if (ht)
+			{
+				bit = fz_halftone_pixmap(page->ctx, pix, ht);
+			}
+			if (bit)
+			{
+				fz_write_pbm(page->ctx, bit, (char*)file);
+			}
+			break;
 		}
-		fz_catch(page->ctx){}
+		case FORMAT_BMP:
+			rc = jni_write_bmp(page->ctx, pix, (const char*)file, page->options->zoom, page->options->imageType);
+			break;
+		default:
+			fprintf(stderr,"Image Format not supported : %i\n", (int)page->options->imageFormat);
+			rc = -4;
+			break;
+		}
+	}
+	fz_catch(page->ctx)
+	{
+		rc = -3;
 	}
 
 	fz_free(page->ctx, file);
-	fz_drop_bitmap(page->ctx, bit);
-	fz_drop_halftone(page->ctx, ht);
 	fz_drop_pixmap(page->ctx, pix);
 
 	return rc;
 }
 
-/**
- * Create a BMP file
- */
-JNIEXPORT jint JNICALL
-Java_com_jmupdf_JmuPdf_writeBmp(JNIEnv *env, jclass obj, jlong handle, jint rotate, jfloat zoom, jint color, jfloat gamma, jint aa, jbyteArray out)
+JNIEXPORT jbyteArray JNICALL
+Java_com_jmupdf_JmuPdf_saveAsByte(JNIEnv *env, jobject obj, jlong handle)
 {
 	jni_page *page = jni_get_page(handle);
 
 	if (!page)
 	{
-		return -1;
+		return NULL;
 	}
 
-	fz_pixmap *pix = jni_get_pixmap(page, zoom, rotate, color, gamma, aa, 0, 0, 0, 0);
+	fz_pixmap *pix = jni_get_pixmap(page);
 
 	if (!pix)
 	{
-		return -2;
+		return NULL;
 	}
 
-	char * file = jni_jbyte_to_char(env, page->ctx, out);
+	jbyteArray buffer = NULL;
 
-	int rc = jni_write_bmp(page->ctx, pix, (const char*)file, zoom, color);
+	fz_try(page->ctx)
+	{
+		switch (page->options->imageFormat)
+		{
+		case FORMAT_PNG:
+			buffer = (jbyteArray)jni_write_png(env, page->ctx, pix, NULL, jni_save_alpha(page->options->imageType), page->options->zoom);
+			break;
+		case FORMAT_JPG:
+			buffer = (jbyteArray)jni_write_jpg(env, page->ctx, pix, NULL, page->options->zoom, page->options->imageType, page->options->quality);
+			break;
+		default:
+			fprintf(stderr,"Image Format not supported : %i\n", (int)page->options->imageFormat);
+			break;
+		}
+	}
+	fz_catch(page->ctx) {}
 
-	fz_free(page->ctx, file);
 	fz_drop_pixmap(page->ctx, pix);
 
-	return rc==0?0:-3;
+	return buffer;
+}
+
+/**
+ * Get pointer to page options structure
+ */
+JNIEXPORT jobject JNICALL
+Java_com_jmupdf_JmuPdf_getPageOptionsStruct(JNIEnv *env, jclass obj, jlong handle)
+{
+	jni_page *page = jni_get_page(handle);
+
+	if (!page)
+	{
+		return NULL;
+	}
+
+	return jni_new_buffer_direct((void *)page->options, sizeof(*page->options));
 }

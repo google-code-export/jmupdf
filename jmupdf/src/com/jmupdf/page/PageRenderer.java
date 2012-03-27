@@ -11,6 +11,7 @@ import javax.swing.JComponent;
 
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.interfaces.Page;
+import com.jmupdf.interfaces.PagePixels;
 
 /**
  * PdfRenderer class.</br></br>
@@ -29,12 +30,6 @@ public class PageRenderer implements Runnable {
 	private JComponent component;
 	private boolean isPageRendered;
 	private boolean isPageRendering;
-	
-	private float zoom;
-	private int rotation;
-	private ImageType color;
-	private float gamma;
-	private int antiAlias;
 	
 	/**
 	 * Create renderer instance with default values. 
@@ -186,7 +181,10 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public int getRotation() {
-		return rotation;
+		if (getPagePixels() == null) {
+			return 0;
+		}
+		return getPagePixels().getOptions().getRotate();
 	}
 	
 	/**
@@ -198,9 +196,8 @@ public class PageRenderer implements Runnable {
 			return;
 		}
 		if (!isPageRendering()) {			
-			this.rotation = rotate;
 			if (getPagePixels() != null) {
-				getPagePixels().setRotation(rotate);
+				getPagePixels().getOptions().setRotate(rotate);
 			}
 			needsRendering();
 		}
@@ -211,7 +208,10 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public float getZoom() {
-		return zoom;
+		if (getPagePixels() == null) {
+			return 1f;
+		}
+		return getPagePixels().getOptions().getZoom();
 	}
 
 	/**
@@ -223,9 +223,8 @@ public class PageRenderer implements Runnable {
 			return;
 		}
 		if (!isPageRendering()) {
-			this.zoom = zoom;
 			if (getPagePixels() != null) {
-				getPagePixels().setZoom(zoom);
+				getPagePixels().getOptions().setZoom(zoom);
 			}
 			needsRendering();
 		}
@@ -235,8 +234,11 @@ public class PageRenderer implements Runnable {
 	 * Get color type
 	 * @return
 	 */
-	public ImageType getColorType() {		
-		return color;
+	public ImageType getColorType() {	
+		if (getPagePixels() == null) {
+			return ImageType.IMAGE_TYPE_RGB;
+		}
+		return getPagePixels().getOptions().getImageType();
 	}
 
 	/**
@@ -248,9 +250,8 @@ public class PageRenderer implements Runnable {
 			return;
 		}
 		if (!isPageRendering()) {
-			this.color = color;
 			if (getPagePixels() != null) {
-				getPagePixels().setColor(color);
+				getPagePixels().getOptions().setImageType(color);
 			}
 			needsRendering();
 		}
@@ -261,7 +262,10 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public float getGamma() {
-		return gamma;
+		if (getPagePixels() == null) {
+			return 1f;
+		}
+		return getPagePixels().getOptions().getGamma();
 	}
 
 	/**
@@ -277,9 +281,8 @@ public class PageRenderer implements Runnable {
 			return;
 		}
 		if (!isPageRendering()) {			
-			this.gamma = gamma;
 			if (getPagePixels() != null) {
-				getPagePixels().setGamma(gamma);
+				getPagePixels().getOptions().setGamma(gamma);
 			}
 			needsRendering();
 		}
@@ -290,7 +293,10 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public int getAntiAliasLevel() {
-		return antiAlias;
+		if (getPagePixels() == null) {
+			return 0;
+		}
+		return getPagePixels().getOptions().getAntiAlias();
 	}
 	
 	/**
@@ -305,9 +311,8 @@ public class PageRenderer implements Runnable {
 			return;
 		}
 		if (!isPageRendering()) {
-			this.antiAlias = level;
 			if (getPagePixels() != null) {
-				getPagePixels().setAntiAliasLevel(level);
+				getPagePixels().getOptions().setAntiAlias(level);
 			}
 			needsRendering();
 		}
@@ -321,7 +326,7 @@ public class PageRenderer implements Runnable {
 		if (getPagePixels() == null) {
 			return 0;
 		}
-		return getPagePixels().getResolution();
+		return getPagePixels().getOptions().getResolution();
 	}
 
 	/**
@@ -329,6 +334,9 @@ public class PageRenderer implements Runnable {
 	 * @return
 	 */
 	public Page getPage() {
+		if (getPagePixels() == null) {
+			return null;
+		}
 		return getPagePixels().getPage();
 	}
 
@@ -377,12 +385,12 @@ public class PageRenderer implements Runnable {
 				pagePixels.dispose();
 			}
 			if (page != null) {
-				pagePixels = new PagePixels(page);
-				pagePixels.setAntiAliasLevel(getAntiAliasLevel());
-				pagePixels.setColor(getColorType());
-				pagePixels.setGamma(getGamma());
-				pagePixels.setRotation(getRotation());
-				pagePixels.setZoom(getZoom());
+				pagePixels = page.getPagePixels();
+				pagePixels.getOptions().setAntiAlias(getAntiAliasLevel());
+				pagePixels.getOptions().setImageType(getColorType());
+				pagePixels.getOptions().setGamma(getGamma());
+				pagePixels.getOptions().setRotate(getRotation());
+				pagePixels.getOptions().setZoom(getZoom());
 			}
 			needsRendering();
 		}
@@ -442,7 +450,6 @@ public class PageRenderer implements Runnable {
 	 */
 	public void run() {
 		try {
-
 			if (isPageRendering() || 
 				isPageRendered()) {
 				return;
@@ -452,8 +459,9 @@ public class PageRenderer implements Runnable {
 			needsRendering();			
 
 			getPagePixels().drawPage(null, getX0(), getY0(), getX1(), getY1());
-			boundBox.setRect(getPagePixels().getX0(), getPagePixels().getY0(), getPagePixels().getX1(), getPagePixels().getY1());
 			
+			PageRect bb = getPagePixels().getOptions().getBoundBox();
+			boundBox.setRect(bb.getX0(), bb.getY0(), bb.getX1(), bb.getY1());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {

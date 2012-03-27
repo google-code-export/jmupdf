@@ -1,27 +1,6 @@
 #include "jmupdf.h"
 
 /**
- * Create new page object
- */
-static jni_page *jni_new_page(jni_document *doc)
-{
-	fz_context *ctx = fz_clone_context(doc->ctx);
-	jni_page *page = fz_malloc_no_throw(ctx, sizeof(jni_page));
-
-	if (!page)
-	{
-		fz_throw(doc->ctx, "Could not create page object.");
-	}
-
-	page->doc = doc;
-	page->page = NULL;
-	page->list = NULL;
-	page->ctx = ctx;
-
-	return page;
-}
-
-/**
  * Free page object
  */
 static void jni_free_page(jni_page *page)
@@ -44,9 +23,42 @@ static void jni_free_page(jni_page *page)
 		fz_free_page(doc->doc, page->page);
 	}
 
+	if (page->options)
+	{
+		fz_free(ctx, page->options);
+	}
+
 	fz_free(ctx, page);
 	fz_free_context(ctx);
 	page = NULL;
+}
+
+/**
+ * Create new page object
+ */
+static jni_page *jni_new_page(jni_document *doc)
+{
+	fz_context *ctx = fz_clone_context(doc->ctx);
+	jni_page *page = fz_malloc_no_throw(ctx, sizeof(jni_page));
+
+	if (!page)
+	{
+		fz_throw(doc->ctx, "Could not create page object.");
+	}
+
+	page->doc = doc;
+	page->page = NULL;
+	page->list = NULL;
+	page->ctx = ctx;
+	page->options = jni_new_options(ctx);
+
+	if (page->options == NULL)
+	{
+		jni_free_page(page);
+		page = NULL;
+	}
+
+	return page;
 }
 
 /**
@@ -56,7 +68,7 @@ static void jni_free_page(jni_page *page)
  *          else some documents will cause the application to experience
  *          a horrible death.
  *
- * NOTE #2: This function *must* be syncronized. Syncronization is controlled
+ * NOTE #2: This function *must* be synchronized. Synchronization is controlled
  *          in the Java code.
  */
 static void jni_load_page(jni_page *page, int pagen)

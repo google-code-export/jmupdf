@@ -5,12 +5,14 @@
  */
 package com.jmupdf.page;
 
+import java.nio.ByteOrder;
+
 import com.jmupdf.JmuPdf;
-import com.jmupdf.enums.ImageType;
-import com.jmupdf.enums.TifCompression;
-import com.jmupdf.enums.TifMode;
+import com.jmupdf.enums.ImageFormat;
 import com.jmupdf.interfaces.Document;
 import com.jmupdf.interfaces.Page;
+import com.jmupdf.interfaces.PagePixels;
+import com.jmupdf.interfaces.PageRendererOptions;
 
 /**
  * Page class.
@@ -25,6 +27,7 @@ public abstract class PageImp extends JmuPdf implements Page {
 	protected long handle = 0;
 	protected int pageNumber = 0;
 	protected int rotation = 0;
+	protected PageRendererOptions options = null;
 	
 	/* */
 	public synchronized long getHandle() {
@@ -80,7 +83,7 @@ public abstract class PageImp extends JmuPdf implements Page {
 	}
 
 	/* */
-	public synchronized PageLinks[] getLinks(PagePixels pagePixels) {
+	public synchronized PageLinks[] getLinks(PageRendererOptions options) {
 		if (getHandle() <= 0) {
 			return null;
 		}
@@ -90,14 +93,14 @@ public abstract class PageImp extends JmuPdf implements Page {
 				links = new PageLinks[1];
 				links[0] = new PageLinks(0, 0, 0, 0, 0, "");
 			} else {
-				if (pagePixels != null) {
-					int rotate = pagePixels.getRotation();
+				if (options != null) {
+					int rotate = options.getRotate();
 					PageRect rect = new PageRect();
 					for (int i=0; i<links.length; i++) {						
 						rect.setRect(links[i].getX0(), links[i].getY0(), 
 									 links[i].getX1(), links[i].getY1());
 						rect = rect.rotate(getBoundBox(), rotate);
-						rect = rect.scale(pagePixels.getZoom());
+						rect = rect.scale(options.getZoom());
 						links[i].setX0(rect.getX0());
 						links[i].setY0(rect.getY0());
 						links[i].setX1(rect.getX1());
@@ -114,163 +117,80 @@ public abstract class PageImp extends JmuPdf implements Page {
 	public synchronized void dispose() {
 		if (getHandle() > 0) {
 			freePage(getHandle());
+			if (options != null) {
+				((PageRendererOptionsImp)options).dispose();
+			}
 			handle = 0;
 		}
 	}
-	
-	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	
-	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	/* saveAsXXX() methods.                      */
-	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	
-	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	
-	/* */
-	public synchronized boolean saveAsPng(String file, int rotate, float zoom, ImageType color, float gamma, int aa) {
-		if (getHandle() > 0) {
-			if (color == ImageType.IMAGE_TYPE_RGB  	   || 
-				color == ImageType.IMAGE_TYPE_ARGB 	   ||
-				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
-				color == ImageType.IMAGE_TYPE_GRAY) {
-				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
-					rotate = PageImp.PAGE_ROTATE_NONE;
-				}
-				return writePng(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes()) == 0;
-			}
-		}
-		return false;
-	}
-	
-	/* */
-	public synchronized boolean saveAsPbm(String file, int rotate, float zoom, float gamma, int aa) {
-		if (getHandle() > 0) {
-			if (rotate == PageImp.PAGE_ROTATE_AUTO) {
-				rotate = PageImp.PAGE_ROTATE_NONE;
-			}
-			return writePbm(getHandle(), rotate, zoom, gamma, aa, file.getBytes()) == 0;
-		}
-		return false;
-	}
-	
-	/* */
-	public synchronized boolean saveAsPnm(String file, int rotate, float zoom, ImageType color, float gamma, int aa) {
-		if (getHandle() > 0) {
-			if (color == ImageType.IMAGE_TYPE_RGB || 
-				color == ImageType.IMAGE_TYPE_GRAY) {
-				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
-					rotate = PageImp.PAGE_ROTATE_NONE;
-				}
-				return writePnm(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes()) == 0;
-			}
-		}
-		return false;
-	}
 
-	/* */
-	public synchronized boolean saveAsJPeg(String file, int rotate, float zoom, ImageType color, float gamma, int aa, int quality) {
-		if (getHandle() > 0) {
-			if (color == ImageType.IMAGE_TYPE_RGB || 
-				color == ImageType.IMAGE_TYPE_GRAY) {
-				if (!(quality >= 0 && quality <= 100)) {
-					quality = 75;
-				}
-				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
-					rotate = PageImp.PAGE_ROTATE_NONE;
-				}
-				return writeJPG(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes(), quality) == 0;
-			}
-		}
-		return false;
-	}
-	
-	/* */
-	public synchronized boolean saveAsBmp(String file, int rotate, float zoom, ImageType color, float gamma, int aa) {
-		if (getHandle() > 0) {
-			if (color == ImageType.IMAGE_TYPE_RGB    || 
-				color == ImageType.IMAGE_TYPE_GRAY   ||
-				color == ImageType.IMAGE_TYPE_BINARY ||
-				color == ImageType.IMAGE_TYPE_BINARY_DITHER) {
-				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
-					rotate = PageImp.PAGE_ROTATE_NONE;
-				}
-				return writeBmp(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes()) == 0;
-			}
-		}
-		return false;
-	}
-	
-	/* */
-	public synchronized boolean saveAsPam(String file, int rotate, float zoom, ImageType color, float gamma, int aa) {
-		if (getHandle() > 0) {
-			if (color == ImageType.IMAGE_TYPE_RGB  	 || 
-				color == ImageType.IMAGE_TYPE_ARGB 	 || 
-				color == ImageType.IMAGE_TYPE_ARGB_PRE ||
-				color == ImageType.IMAGE_TYPE_GRAY) {
-				if (rotate == PageImp.PAGE_ROTATE_AUTO) {
-					rotate = PageImp.PAGE_ROTATE_NONE;
-				}
-				return writePam(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes()) == 0;
-			}
-		}
-		return false;
-	}
-	
-	/* */
-	public synchronized boolean saveAsTif(String file, int rotate, float zoom, ImageType color, float gamma, int aa, TifCompression compression, TifMode mode, int quality) {
-		if (getHandle() > 0) {
-			
-			if (!(color == ImageType.IMAGE_TYPE_RGB      || 
-				  color == ImageType.IMAGE_TYPE_ARGB     ||
-				  color == ImageType.IMAGE_TYPE_ARGB_PRE ||
-				  color == ImageType.IMAGE_TYPE_GRAY     ||
-				  color == ImageType.IMAGE_TYPE_BINARY   || 
-				  color == ImageType.IMAGE_TYPE_BINARY_DITHER)) {
-				log("Invalid color type specified.");
-				return false;
-			}
-			
-			if (!(mode == TifMode.TIF_DATA_APPEND || 
-				  mode == TifMode.TIF_DATA_DISCARD)) {
-				log("Invalid mode value specified.");
-				return false;
-			}
+    /* */
+    public synchronized boolean saveAsImage(String file, PageRendererOptions options) {
+        if (getHandle() > 0) {
+        	if (options.isValid()) {
+        		return saveAsFile(getHandle(), file.getBytes()) == 0;
+        	}
+        }
+        return false;
+    }
 
-			if (compression == TifCompression.TIF_COMPRESSION_CCITT_RLE || 
-				compression == TifCompression.TIF_COMPRESSION_CCITT_T_4 ||
-				compression == TifCompression.TIF_COMPRESSION_CCITT_T_6) {
-				if (!(color == ImageType.IMAGE_TYPE_BINARY || 
-					  color == ImageType.IMAGE_TYPE_BINARY_DITHER)) {
-					log("When using CCITT compression, color must be type binary");
-					return false;
-				}
-				if (color == ImageType.IMAGE_TYPE_ARGB || 
-					color == ImageType.IMAGE_TYPE_ARGB_PRE) {
-					log("When using CCITT compression, color cannot be type of ARGB");
-					return false;
-				}
-			}
+    /* */
+    public synchronized byte[] saveAsImage(PageRendererOptions options) {
+        if (getHandle() > 0) {
+            if (options.getImageFormat() == ImageFormat.FORMAT_PNG ||
+            	options.getImageFormat() == ImageFormat.FORMAT_JPG) {
+            	if (options.isValid()) {
+            		return saveAsByte(getHandle());
+            	}
+            } else {
+            	log("Currently only PNG and JPEG file formats are supported when creating a byte array.");
+            }
+        }
+        return null;
+    }
 
-			if (compression == TifCompression.TIF_COMPRESSION_JPEG) {
-				if (!(quality >= 1 && quality <= 100)) {
-					quality = 75;
-				}
-			}
+    /* */
+    public synchronized PagePixels getPagePixels() {
+    	if (getHandle() > 0) {
+    		return new PagePixelsFactory(this);
+    	}
+    	return null;
+    };
 
-			if (compression == TifCompression.TIF_COMPRESSION_ZLIB) {
-				if (!(quality >= 1 && quality <= 9)) {
-					quality = 6;
-				}
-			}
+    /* */
+    public synchronized PageRendererOptions getRenderingOptions() {
+    	if (getHandle() > 0) {
+    		if (options == null) {
+    			options = new PageRendererOptionsFactory(this);
+	    	}
+    		return options;
+    	}
+    	return null;
+    }
 
-			if (rotate == PageImp.PAGE_ROTATE_AUTO) {
-				rotate = PageImp.PAGE_ROTATE_NONE;
-			}
-			
-			return writeTif(getHandle(), rotate, zoom, color.getIntValue(), gamma, aa, file.getBytes(), compression.getIntValue(), mode.getIntValue(), quality) == 0;
-		}
+    /**
+     * PagePixelsFactory class
+     */
+    class PagePixelsFactory extends PagePixelsImp {
 
-		return false;
-	}
-		
+        public PagePixelsFactory(Page page) {
+    		this.page = page;
+    		options = page.getRenderingOptions();
+    		options.setImageFormat(ImageFormat.FORMAT_BUFFERED_IMAGE);
+    	}
+        
+    }
+    
+    /**
+     * PageRendererOptionsFactory class
+     */
+    class PageRendererOptionsFactory extends PageRendererOptionsImp {
+
+        public PageRendererOptionsFactory(Page page) {
+    		pageStruct = getPageOptionsStruct(page.getHandle()).order(ByteOrder.nativeOrder());
+    		loadDefaults();
+    	}
+        
+    }
+
 }

@@ -32,7 +32,7 @@ public abstract class JmuPdf {
 	protected native int getPageCount(long handle);
 	protected native DocumentOutline getOutline(long handle);
 	
-	 /* PDF Specific Functions (document level) */
+	/* PDF Specific Functions (document level) */
 	protected native String pdfInfo(long handle, String key);
 	protected native int[] pdfEncryptInfo(long handle);
 
@@ -43,15 +43,13 @@ public abstract class JmuPdf {
 	protected native PageLinks[] getPageLinks(long handle);
 	
 	/* PDF, XPS, CBZ common rendering functions (page level) */
-	protected native ByteBuffer getByteBuffer(long handle, float zoom, int rotate, int color, float gamma, int aa, int[] bbox, float x0, float y0, float x1, float y1);
+	protected native ByteBuffer getByteBuffer(long handle, int[] bbox);
 	protected native void freeByteBuffer(long handle, ByteBuffer buffer);
-	protected native int writePbm(long handle, int rotate, float zoom, float gamma, int aa, byte[] file);
-	protected native int writePnm(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file);
-	protected native int writePam(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file);
-	protected native int writePng(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file);
-	protected native int writeBmp(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file);
-	protected native int writeJPG(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file, int quality);
-	protected native int writeTif(long handle, int rotate, float zoom, int color, float gamma, int aa, byte[] file, int compression, int mode, int quality);
+	protected native int saveAsFile(long handle, byte[] file);
+	protected native byte[] saveAsByte(long handle);
+	
+	/* Get pointer to page rendering options data structure */
+	protected native ByteBuffer getPageOptionsStruct(long handle);
 
 	/**
 	 * Get library version
@@ -89,11 +87,11 @@ public abstract class JmuPdf {
 	}
 
     /**
-     * Print test messages
+     * Print error messages
      * @param text
      */
     protected static void log(String text) {
-    	System.out.println(text);
+    	System.err.println(text);
     }
 
 }

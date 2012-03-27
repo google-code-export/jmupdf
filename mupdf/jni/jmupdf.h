@@ -37,29 +37,28 @@ typedef enum jni_doc_types
 	DOC_CBZ = 2
 } jni_doc_type;
 
+// Page rendering options
+typedef struct jni_options_s jni_options;
+
 // Document structure
 typedef struct jni_document_s jni_document;
-struct jni_document_s {
+struct jni_document_s
+{
 	fz_context *ctx;
 	fz_document *doc;
 	jni_doc_type type;
-	fz_locks_context locks;
 };
 
 // Page structure
 typedef struct jni_page_s jni_page;
-struct jni_page_s {
+struct jni_page_s
+{
 	fz_context *ctx;
 	jni_document *doc;
+	jni_options *options;
 	fz_page *page;
 	fz_display_list *list;
 	fz_rect bbox;
-};
-
-// Lock objects structure
-typedef struct jni_locks_s jni_locks;
-struct jni_locks_s {
-	jobject lock;
 };
 
 // Default DPI
@@ -80,8 +79,8 @@ static const int DEFAULT_DPI = 72;
 #define jni_resolution(Z) (Z*DEFAULT_DPI)
 
 // jni_concurrent.c
-void jni_new_locks(jni_document*);
-void jni_free_locks(void*);
+fz_locks_context * jni_new_locks();
+void jni_free_locks(fz_locks_context*);
 void jni_lock(fz_context*);
 void jni_unlock(fz_context*);
 
@@ -92,15 +91,16 @@ jni_document *jni_get_document(jlong);
 jni_page *jni_get_page(jlong);
 
 // jni_java_pixmap.c
+jni_options * jni_new_options(fz_context*);
 char * jni_jbyte_to_char(JNIEnv*, fz_context*, jbyteArray);
 fz_matrix jni_get_view_ctm(float, int);
 int jni_pix_to_black_white(fz_context*, fz_pixmap*, int, unsigned char* );
 int jni_pix_to_binary(fz_context*, fz_pixmap*, int, unsigned char*);
 
 // jni_write_xxx.c
-void jni_write_png(fz_context*, fz_pixmap*, const char*, int, float);
+void * jni_write_png(JNIEnv*, fz_context*, fz_pixmap*, const char*, int, float);
+void * jni_write_jpg(JNIEnv*, fz_context*, fz_pixmap*, const char*, float, int, int);
 int jni_write_tif(fz_context*, fz_pixmap*, const char*, float, int, int, int, int);
-int jni_write_jpg(fz_context*, fz_pixmap*, const char*, float, int, int);
 int jni_write_bmp(fz_context*, fz_pixmap*, const char*, float, int);
 
 // JNI String

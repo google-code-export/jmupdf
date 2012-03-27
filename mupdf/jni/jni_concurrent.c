@@ -21,6 +21,12 @@
 
 static JavaVM *jvm;
 
+typedef struct jni_locks_s jni_locks;
+struct jni_locks_s
+{
+	jobject lock;
+};
+
 enum
 {
 	JNI_LOCK_INTERNAL = FZ_LOCK_MAX,
@@ -74,18 +80,18 @@ static void jni_unlock_internal(void *user, int lock)
  */
 static void * jni_new_lock_obj()
 {
-	jni_locks *locks = malloc(sizeof(jni_locks) * JNI_MAX_LOCKS);
-	if (locks)
+	jni_locks *obj = malloc(sizeof(jni_locks) * JNI_MAX_LOCKS);
+	if (obj)
 	{
 		JNIEnv *env = jni_get_env();
 		int i = 0;
 		for (i = 0; i < JNI_MAX_LOCKS; i++)
 		{
 			jclass c = (*env)->FindClass(env, "java/lang/Boolean");
-			locks[i].lock = (*env)->NewGlobalRef(env, c);
+			obj[i].lock = (*env)->NewGlobalRef(env, c);
 			(*env)->DeleteLocalRef(env, c);
 		}
-		return locks;
+		return obj;
 	}
 	return NULL;
 }
@@ -93,28 +99,43 @@ static void * jni_new_lock_obj()
 /**
  * Configure fz_locks_context
  */
-void jni_new_locks(jni_document *doc)
+fz_locks_context * jni_new_locks()
 {
-	doc->locks.user = jni_new_lock_obj();
-	doc->locks.lock = jni_lock_internal;
-	doc->locks.unlock = jni_unlock_internal;
-	doc->ctx->locks = &doc->locks;
+	fz_locks_context *locks = malloc(sizeof(fz_locks_context));
+
+	if (!locks)
+	{
+		return NULL;
+	}
+
+	locks->user = jni_new_lock_obj();
+	locks->lock = jni_lock_internal;
+	locks->unlock = jni_unlock_internal;
+
+	if (!locks->user)
+	{
+		free(locks);
+		return NULL;
+	}
+
+	return locks;
 }
 
 /**
  * Free lock object
  */
-void jni_free_locks(void *user)
+void jni_free_locks(fz_locks_context *locks)
 {
-	if (user)
+	if (locks->user)
 	{
-		jni_locks *locks = (jni_locks*)user;
+		jni_locks *obj = (jni_locks*)locks->user;
 		JNIEnv *env = jni_get_env();
 		int i = 0;
 		for (i = 0; i < JNI_MAX_LOCKS; i++)
 		{
-			(*env)->DeleteGlobalRef(env, locks[i].lock);
+			(*env)->DeleteGlobalRef(env, obj[i].lock);
 		}
+		free(obj);
 		free(locks);
 	}
 }

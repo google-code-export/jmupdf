@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.pdf.PdfDocument;
-import com.jmupdf.xps.XpsDocument;
 
 public class TestMutexA {
 
@@ -15,13 +14,13 @@ public class TestMutexA {
 		
 		// Limit each opened doc to a max of 30mb
 		int maxMemory = 30;		
-		PdfDocument doc1 = new PdfDocument("c:\\tmp\\test2.pdf", maxMemory);
-		PdfDocument doc2 = new PdfDocument("c:\\tmp\\test3.pdf", maxMemory);
-		PdfDocument doc3 = new PdfDocument("c:\\tmp\\test4.pdf", maxMemory);
+		PdfDocument doc1 = new PdfDocument("f:\\tmp\\test1.pdf", maxMemory);
+		PdfDocument doc2 = new PdfDocument("f:\\tmp\\test1.pdf", maxMemory);
+		PdfDocument doc3 = new PdfDocument("f:\\tmp\\test1.pdf", maxMemory);
 		
 		// Let's process up to 12 concurrent pages
 		ExecutorService jobPool;
-		jobPool = Executors.newFixedThreadPool(12);
+		jobPool = Executors.newFixedThreadPool(3);
 
 		// Loop thru pages and queue up for rendering
 		boolean more = true;
@@ -46,8 +45,24 @@ public class TestMutexA {
 
 		try {
 			while (jobPool.awaitTermination(2, TimeUnit.SECONDS) == false) {}
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally {
+
+		}
 		
+		log("Closing doc1...");
+		doc1.dispose();
+		
+		log("Closing doc2...");
+		doc2.dispose();
+		
+		log("Closing doc3...");
+		doc3.dispose();
+
      }
 
+    protected static void log(String text) {
+    	System.out.println(text);
+    }
 }

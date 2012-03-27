@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import com.jmupdf.enums.ImageType;
 import com.jmupdf.interfaces.Page;
-import com.jmupdf.page.PagePixels;
+import com.jmupdf.interfaces.PagePixels;
 import com.jmupdf.page.PageRect;
 
 /**
@@ -38,14 +38,14 @@ public class TileCache {
 		this.tilew = tilew;
 		this.tileh = tileh;
 		
-		PagePixels pagePixels = new PagePixels(page);
-		pagePixels.setZoom(zoom);
-		pagePixels.setRotation(rotate);
-		pagePixels.setColor(color);
+		PagePixels pagePixels = page.getPagePixels();
+		pagePixels.getOptions().setZoom(zoom);
+		pagePixels.getOptions().setRotate(rotate);
+		pagePixels.getOptions().setImageType(color);
 		
 		// Rotate page as we want to display it
 		PageRect m = page.getBoundBox().scale(zoom);
-		m = m.rotate(m, pagePixels.getRotation());
+		m = m.rotate(m, rotate);
 
 		// Calculate tiles based on rotation
 		int w = m.getWidth();
@@ -70,7 +70,6 @@ public class TileCache {
 		}
 		
 		pagePixels.dispose();
-		
 	}
 
 	/**

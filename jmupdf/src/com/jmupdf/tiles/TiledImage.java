@@ -8,7 +8,7 @@ package com.jmupdf.tiles;
 import java.awt.image.BufferedImage;
 
 import com.jmupdf.interfaces.Page;
-import com.jmupdf.page.PagePixels;
+import com.jmupdf.interfaces.PagePixels;
 import com.jmupdf.page.PageRect;
 
 /**
@@ -39,7 +39,7 @@ public class TiledImage {
 		this.tiley = tiley;
 		this.tileRect = new PageRect(tilex * tilew, tiley * tileh, tilew, tileh);
 		this.pixRect = new PageRect();		
-		this.pagePixels = (PagePixels)pagePixels.clone();
+		this.pagePixels = pagePixels.clone();
 		normalize();
 	}
 
@@ -57,10 +57,10 @@ public class TiledImage {
 	public void render() {
 		getPagePixels().drawPage(
 				 null,
-				 pixRect.getX0() / getPagePixels().getZoom(), 
-				 pixRect.getY0() / getPagePixels().getZoom(), 
-				 pixRect.getX1() / getPagePixels().getZoom(), 
-				 pixRect.getY1() / getPagePixels().getZoom() );
+				 pixRect.getX0() / getPagePixels().getOptions().getZoom(), 
+				 pixRect.getY0() / getPagePixels().getOptions().getZoom(), 
+				 pixRect.getX1() / getPagePixels().getOptions().getZoom(), 
+				 pixRect.getY1() / getPagePixels().getOptions().getZoom() );
 	}
 
 	/**
@@ -115,11 +115,10 @@ public class TiledImage {
 	 * Dispose of resources
 	 */
 	public void dispose() {
-		if (getPagePixels() != null) {
-			getPagePixels().dispose();
-		}
 		tileRect = null;
 		pixRect = null;
+		pagePixels.getPage().dispose();
+		pagePixels.dispose();
 	}
 
 	/**
@@ -128,8 +127,8 @@ public class TiledImage {
 	private void normalize() {
 		
 		// Rotate bound box to actual rotation
-		PageRect bb = getPage().getBoundBox().scale(getPagePixels().getZoom());
-		PageRect rb = bb.rotate(bb, getPagePixels().getRotation());
+		PageRect bb = getPage().getBoundBox().scale(getPagePixels().getOptions().getZoom());
+		PageRect rb = bb.rotate(bb, getPagePixels().getOptions().getRotate());
 
 		// Adjust width of tile
 		int x1 = rb.getWidth();
@@ -140,7 +139,7 @@ public class TiledImage {
 
 		// Rotate to default page rotation
 		pixRect.setRect(getX(), getY(), getWidth(), getHeight());
-		pixRect = pixRect.rotate(bb, getPagePixels().getRotation(), Page.PAGE_ROTATE_NONE);
+		pixRect = pixRect.rotate(bb, getPagePixels().getOptions().getRotate(), Page.PAGE_ROTATE_NONE);
 	}
 
 	/**

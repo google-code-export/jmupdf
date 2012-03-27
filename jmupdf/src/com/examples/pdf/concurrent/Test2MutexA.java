@@ -16,16 +16,16 @@ public class Test2MutexA {
 		
 		// Let's process up to 12 concurrent pages
 		ExecutorService jobPool;
-		jobPool = Executors.newFixedThreadPool(20);
+		jobPool = Executors.newFixedThreadPool(12);
 
 		// Loop thru pages and queue up for rendering
-		for (int i = 0; i < 2; i++) {
-			jobPool.execute( new Test2MutexB("d:\\tmp\\test1.pdf") );
-			jobPool.execute( new Test2MutexB("d:\\tmp\\test2.pdf") );
-			jobPool.execute( new Test2MutexB("d:\\tmp\\test3.pdf") );
-			jobPool.execute( new Test2MutexB("d:\\tmp\\test4.pdf") );
-			jobPool.execute( new Test2MutexB("d:\\tmp\\test5.pdf") );
-			jobPool.execute( new Test2MutexB("d:\\tmp\\test6.pdf") );
+		for (int i = 0; i < 1; i++) {
+			jobPool.execute( new Test2MutexB("f:\\tmp\\test1.pdf") );
+			jobPool.execute( new Test2MutexB("f:\\tmp\\test2.pdf") );
+			jobPool.execute( new Test2MutexB("f:\\tmp\\test3.pdf") );
+			jobPool.execute( new Test2MutexB("f:\\tmp\\test4.pdf") );
+			//jobPool.execute( new Test2MutexB("d:\\tmp\\test5.pdf") );
+			//jobPool.execute( new Test2MutexB("d:\\tmp\\test6.pdf") );
 		}
 		
 		jobPool.shutdown();

@@ -1,12 +1,29 @@
 #include "jmupdf.h"
 #include "jpeglib.h"
 
-int jni_write_jpg(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom, int color, int quality)
+/**
+ *
+ * Create a JPEG image format and save to file or byte buffer
+ *
+ * When *env is passed in we are assuming creation of a byte buffer.
+ *
+ * To improve performance I am using GetPrimitiveArrayCritical(). Later on we could change this to a
+ * ByteBuffer and avoid getting in the way of the GC due to array pinning.
+ *
+ */
+void * jni_write_jpg(JNIEnv *env, fz_context *ctx, fz_pixmap *pix, const char *file, float zoom, int color, int quality)
 {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
-	FILE * fp;
-	int rc = 0;
+
+	FILE *fp = NULL;
+	unsigned char *outbuffer = NULL;
+	long unsigned int outlen = 4096;
+
+	JSAMPLE *trgbuf = NULL;
+	int stride = pix->w * (pix->n - 1);
+	int size = pix->w * pix->h;
+	int i = 0;
 
 	/*
 	 * Step 1: allocate and initialize JPEG compression object
@@ -17,13 +34,20 @@ int jni_write_jpg(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom,
 	/*
 	 * Step 2: specify data destination
 	 */
-	fp = fopen(file, "wb");
-	if (!fp) {
-		jpeg_destroy_compress(&cinfo);
-		return -1;
+	if (env)
+	{
+		outbuffer = malloc(outlen);
+		if (!outbuffer)
+			goto cleanup;
+		jpeg_mem_dest(&cinfo, &outbuffer, &outlen);
 	}
-
-	jpeg_stdio_dest(&cinfo, fp);
+	else
+	{
+		fp = fopen(file, "wb");
+		if (!fp)
+			goto cleanup;
+		jpeg_stdio_dest(&cinfo, fp);
+	}
 
 	/*
 	 * Step 3: set parameters for compression
@@ -32,13 +56,13 @@ int jni_write_jpg(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom,
 	cinfo.image_height = pix->h;
 	cinfo.input_components = pix->n - 1;
 
-	if (color == COLOR_RGB || color == COLOR_ARGB)
+	if (color == COLOR_GRAY_SCALE)
 	{
-		cinfo.in_color_space = JCS_RGB;
+		cinfo.in_color_space = JCS_GRAYSCALE;
 	}
 	else
 	{
-		cinfo.in_color_space = JCS_GRAYSCALE;
+		cinfo.in_color_space = JCS_RGB;
 	}
 
 	jpeg_set_defaults(&cinfo);
@@ -49,41 +73,38 @@ int jni_write_jpg(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom,
 	cinfo.density_unit = 1;
 
 	/*
-	 * Step 4: Start compressor
+	 * Step 4: Compression initialization
 	 */
 	jpeg_start_compress(&cinfo, TRUE);
 
 	/*
 	 * Step 5: Remove alpha from original pixels
 	 */
-	int stride = pix->w * (pix->n - 1);
-	JSAMPLE * trgbuf = (JSAMPLE*)fz_malloc_no_throw(ctx, pix->h*stride);
+	trgbuf = (JSAMPLE*)fz_malloc_no_throw(ctx, pix->h*stride);
+
 	if (!trgbuf)
 	{
-		rc = -2;
 		goto cleanup;
 	}
 
 	JSAMPLE * ptrbuf = trgbuf;
 	JSAMPLE * pixels = pix->samples;
-	int i;
-	int size = pix->w*pix->h;
 
-	if (color == COLOR_RGB || color == COLOR_ARGB)
+	if (color == COLOR_GRAY_SCALE)
+	{
+		for (i=0; i<size; i++)
+		{
+			*ptrbuf++ = pixels[0];
+			pixels += pix->n;
+		}
+	}
+	else
 	{
 		for (i=0; i<size; i++)
 		{
 			*ptrbuf++ = pixels[0];
 			*ptrbuf++ = pixels[1];
 			*ptrbuf++ = pixels[2];
-			pixels += pix->n;
-		}
-	}
-	else if (color == COLOR_GRAY_SCALE)
-	{
-		for (i=0; i<size; i++)
-		{
-			*ptrbuf++ = pixels[0];
 			pixels += pix->n;
 		}
 	}
@@ -104,13 +125,42 @@ cleanup:
 	 * Step 7: Finish compression
 	 */
 	jpeg_finish_compress(&cinfo);
-	fclose(fp);
+
+	jbyteArray ba = NULL;
+
+	if (env)
+	{
+		ba = jni_new_byte_array(outlen);
+		if (ba)
+		{
+			jbyte *pa = jni_start_array_critical(ba);
+			if (pa)
+			{
+				JOCTET *pbuf = outbuffer;
+				for (i=0; i<outlen; i++)
+					*pa++ = (jbyte)*pbuf++;
+				jni_end_array_critical(ba, pa);
+			}
+		}
+		free(outbuffer);
+	}
+	else
+	{
+		if (fp)
+			fclose(fp);
+	}
 
 	/*
 	 * Step 8: release JPEG compression object
 	 */
 	jpeg_destroy_compress(&cinfo);
-	fz_free(ctx, trgbuf);
 
-	return rc;
+	if (trgbuf)
+		fz_free(ctx, trgbuf);
+
+	if (env)
+	{
+		return ba;
+	}
+	return NULL;
 }

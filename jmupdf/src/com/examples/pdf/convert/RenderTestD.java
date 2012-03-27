@@ -13,10 +13,10 @@ import com.jmupdf.interfaces.PageRendererOptions;
 import com.jmupdf.pdf.PdfDocument;
 
 /**
- * Create a PNG file
+ * Create a JPEG file
  *
  */
-public class RenderTestB {
+public class RenderTestD {
 
 	public static void main(String[] args) {
 		PdfDocument doc = null;
@@ -31,18 +31,19 @@ public class RenderTestB {
 			page = doc.getPage(1);
 			
 			/* Set file */
-			String file = "f:/tmp/test-png-1.png";
+			String file = "f:/tmp/test-png-1.jpg";
 			
 			/* Set rendering options */
 			PageRendererOptions options = page.getRenderingOptions();
 			options.setRotate(Page.PAGE_ROTATE_NONE);
-			options.setZoom(2f);
-			options.setImageFormat(ImageFormat.FORMAT_PNG);
+			options.setZoom(.5f);
+			options.setImageFormat(ImageFormat.FORMAT_JPG);
 			options.setImageType(ImageType.IMAGE_TYPE_RGB);
 			options.setGamma(1f);
 			options.setAntiAlias(8);
+			options.setQuality(75);
 			
-			/* Create png file */
+			/* Create jpg file */
 			page.saveAsImage(file, options);
 			
 			byte[] buffer = page.saveAsImage(options);

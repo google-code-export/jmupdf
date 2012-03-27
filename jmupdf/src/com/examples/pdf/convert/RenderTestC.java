@@ -5,6 +5,7 @@ import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
 import com.jmupdf.interfaces.Page;
+import com.jmupdf.interfaces.PageRendererOptions;
 import com.jmupdf.pdf.PdfDocument;
 
 /**
@@ -20,21 +21,24 @@ public class RenderTestC {
 		try {
 			
 			/* Open document */
-			doc = new PdfDocument("C:\\tmp\\test-aa.pdf", "");			
+			doc = new PdfDocument("D:\\tmp\\test1.pdf", "");			
 			
 			/* Get page object */
-			page = doc.getPage(1);
+			page = doc.getPage(2);
 			
-			/* Set parameter values */
-			String file = "c:\\tmp\\test-aa-0.png";
-			int rotate = Page.PAGE_ROTATE_NONE;
-			float zoom = 3f;
-			ImageType type = ImageType.IMAGE_TYPE_ARGB;
-			float gamma = 1f;
-			int aa = 8;
+			/* Set file */			
+			String file = "D:\\tmp\\test1.png";
 			
+			/* Set rendering options */
+            PageRendererOptions options = page.getRenderingOptions();
+            options.setRotate(Page.PAGE_ROTATE_NONE);
+            options.setZoom(3f);
+            options.setImageType(ImageType.IMAGE_TYPE_ARGB);
+            options.setGamma(1f);
+            options.setAntiAlias(8);
+
 			/* Create png file */
-			page.saveAsPng(file, rotate, zoom, type, gamma, aa);
+			page.saveAsImage(file, options);
 
 		} catch (DocException e) {
 			e.printStackTrace();

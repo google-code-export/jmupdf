@@ -16,6 +16,8 @@ import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
 import com.jmupdf.interfaces.Document;
 import com.jmupdf.interfaces.Page;
+import com.jmupdf.page.PageImp;
+import com.jmupdf.page.PageRect;
 
 /**
  * Document Implementation Class
@@ -220,5 +222,23 @@ public abstract class DocumentImp extends JmuPdf implements Document {
 			o = null;
 		}
 	}
-	
+
+	/**
+	 * DocumentPageFactory class
+	 */
+	class DocumentPageFactory extends PageImp {		
+		public DocumentPageFactory(Document doc, int page) throws PageException {
+			float[] info = new float[5];
+			document = doc;
+			pageNumber = page;
+			handle = newPage(doc.getHandle(), page, info);
+			if (handle > 0) {
+				boundBox = new PageRect(info[0], info[1], info[2], info[3]);
+				rotation = (int)info[4];
+			} else {
+				throw new PageException("Error: Page could not be created.");
+			}
+		}
+	}
+
 }

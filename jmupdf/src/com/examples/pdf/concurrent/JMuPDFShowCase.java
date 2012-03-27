@@ -17,6 +17,7 @@ import com.jmupdf.exceptions.DocException;
 import com.jmupdf.exceptions.DocSecurityException;
 import com.jmupdf.exceptions.PageException;
 import com.jmupdf.interfaces.Page;
+import com.jmupdf.interfaces.PageRendererOptions;
 import com.jmupdf.pdf.PdfDocument;
 
 public class JMuPDFShowCase
@@ -141,7 +142,7 @@ public class JMuPDFShowCase
         {
             for (int pageNumber = 1; pageNumber <= pdfDocument.getPageCount(); pageNumber++)
             {
-                final String imagePath = "d:/tmp/images/jmupdf_" + pageNumber + "_" + desc + "_" + Math.random() + ".png";
+                final String imagePath = "f:/tmp/images/jmupdf_" + pageNumber + "_" + desc + "_" + Math.random() + ".png";
                 System.out.println("Page : " + pageNumber + " => file " + imagePath);
                 final float zoom = ((float) desc) / 595f;
                 final int fPageNumber = pageNumber;
@@ -171,7 +172,16 @@ public class JMuPDFShowCase
                             long st2 = System.currentTimeMillis();
                             System.out.println("getPage " + fPageNumber + " : " + (st2 - st));
 
-                            page.saveAsPng(imagePath, rotate, zoom, color, gamma, aa);
+                            PageRendererOptions options = page.getRenderingOptions();
+                            options.setRotate(rotate);
+                            options.setZoom(zoom);
+                            options.setImageType(color);
+                            options.setGamma(gamma);
+                            options.setAntiAlias(aa);
+
+                            //page.saveAsImage(imagePath, options);
+                            byte[] ba = page.saveAsImage(options);
+                            
                             long st3 = System.currentTimeMillis();
                             imageMin = Math.min(imageMin, (st3 - st2));
                             imageMax = Math.max(imageMax, (st3 - st2));
@@ -204,7 +214,7 @@ public class JMuPDFShowCase
     {
         System.out.println("Jmupdf version : " + JmuPdf.getLibVersion());
 
-        BufferedReader br = new BufferedReader(new FileReader("d:\\tmp\\filelist.txt"));
+        BufferedReader br = new BufferedReader(new FileReader("f:\\tmp\\filelist.txt"));
 
         int documentCount = 0;
 

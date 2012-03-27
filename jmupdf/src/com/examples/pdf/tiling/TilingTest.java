@@ -30,13 +30,13 @@ public class TilingTest {
 		try {
 
 			// Open document
-			doc = new PdfDocument("d:\\tmp\\itextinaction.pdf", 10);
+			doc = new PdfDocument("f:\\tmp\\test2.pdf", 10);
 
 			// Get page object
 			page = doc.getPage(1);
 
 			// setup zoom, rotation, color, and tile info
-			float zoom = 3f;
+			float zoom = 2f;
 			int rotate = Page.PAGE_ROTATE_90;
 			ImageType color = ImageType.IMAGE_TYPE_RGB;
 			int tilew = 512;
@@ -48,10 +48,10 @@ public class TilingTest {
 			// Loop through tiles and save
 			for (TiledImage t : cache.getTiles()) {	
 				t.render();
-				ImageIO.write(t.getImage(), "PNG", new File("d:\\tmp\\img\\test1_" + t.getTileY() + "_" + t.getTileX() + ".png"));
+				ImageIO.write(t.getImage(), "PNG", new File("f:\\tmp\\images\\test1_" + t.getTileY() + "_" + t.getTileX() + ".png"));
 				t.dispose();
 			}
-
+			
 			log("done!");
 
 		} catch (DocException e) {

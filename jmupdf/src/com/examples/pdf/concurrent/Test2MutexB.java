@@ -32,6 +32,7 @@ public class Test2MutexB implements Runnable {
 			e.printStackTrace();
 		} finally {
 			if (d != null) {
+				log("closing doc " + doc);
 				d.dispose();
 			}
 		}

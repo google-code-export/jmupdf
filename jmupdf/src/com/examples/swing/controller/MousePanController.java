@@ -40,8 +40,9 @@ import com.examples.swing.util.ImageSelection;
 import com.examples.swing.view.MainView;
 import com.examples.swing.view.PageView;
 import com.jmupdf.enums.LinkType;
+import com.jmupdf.interfaces.Page;
+import com.jmupdf.interfaces.PagePixels;
 import com.jmupdf.page.PageLinks;
-import com.jmupdf.page.PagePixels;
 import com.jmupdf.page.PageRect;
 import com.jmupdf.page.PageText;
 
@@ -223,7 +224,7 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 	 * @param e
 	 */
 	private void processLinks(MouseEvent e) {
-		PageLinks[] links = pageView.getPage().getLinks(pageView.getRenderer().getPagePixels());
+		PageLinks[] links = pageView.getPage().getLinks(pageView.getRenderer().getPagePixels().getOptions());
 		
 		if (links == null || links.length == 0) {
 			return;
@@ -282,15 +283,19 @@ public class MousePanController implements MouseListener, MouseMotionListener, A
 		if (copyAsImage) {
 			// Render region
 			PagePixels r = pageView.getRenderer().getPagePixels().clone();
-			r.drawPage(pageView.getRenderer().getPagePixels(), x0, y0, x1, y1);
+			r.drawPage(pageView.getRenderer().getPagePixels().getOptions(), x0, y0, x1, y1);
 
 			// Copy to clip board
 			ImageSelection is = new ImageSelection(r.getImage());			
 			cb.setContents(is, null);
+			r.getPage().dispose();
 			r.dispose();
 		} else {
-			float zoom = pageView.getRenderer().getPagePixels().getZoom();
+			/* zero rotate and 1f zoom */
+			float zoom = pageView.getRenderer().getZoom();
 			PageRect rect = new PageRect(x0/zoom, y0/zoom, x1/zoom, y1/zoom);
+			rect = rect.rotate(pageView.getPage().getBoundBox(), pageView.getRenderer().getRotation(), Page.PAGE_ROTATE_NONE);
+			
 			String text = PageText.getStringFromArray(pageView.getPage().getTextSpan(rect));
 			StringSelection ss = new StringSelection(text);
 			cb.setContents(ss, null);
