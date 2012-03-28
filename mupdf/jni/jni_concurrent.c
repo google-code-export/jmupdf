@@ -48,6 +48,10 @@ static void jni_lock_internal(void *user, int lock)
 	if (user)
 	{
 		jni_locks *locks = (jni_locks*)user;
+		if (!locks[lock].lock)
+		{
+			return;
+		}
 		JNIEnv *env = jni_get_env();
 		if ((*env)->MonitorEnter(env, locks[lock].lock) != JNI_OK)
 		{
@@ -64,6 +68,10 @@ static void jni_unlock_internal(void *user, int lock)
 	if (user)
 	{
 		jni_locks *locks = (jni_locks*)user;
+		if (!locks[lock].lock)
+		{
+			return;
+		}
 		JNIEnv *env = jni_get_env();
 		if ((*env)->MonitorExit(env, locks[lock].lock) != JNI_OK)
 		{
@@ -81,12 +89,21 @@ static void * jni_new_lock_obj()
 	if (obj)
 	{
 		JNIEnv *env = jni_get_env();
+		jclass cls = (*env)->FindClass(env, "java/lang/String");
+		jmethodID mid = (*env)->GetMethodID(env, cls, "<init>", "()V");
 		int i = 0;
 		for (i = 0; i < JNI_MAX_LOCKS; i++)
 		{
-			jclass c = (*env)->FindClass(env, "java/lang/Boolean");
-			obj[i].lock = (*env)->NewGlobalRef(env, c);
-			(*env)->DeleteLocalRef(env, c);
+			jobject new_obj = (*env)->NewObject(env, cls, mid);
+			if (new_obj)
+			{
+				obj[i].lock = (*env)->NewGlobalRef(env, new_obj);
+				(*env)->DeleteLocalRef(env, new_obj);
+			}
+			else
+			{
+				obj[i].lock = NULL;
+			}
 		}
 		return obj;
 	}
@@ -130,7 +147,10 @@ void jni_free_locks(fz_locks_context *locks)
 		int i = 0;
 		for (i = 0; i < JNI_MAX_LOCKS; i++)
 		{
-			(*env)->DeleteGlobalRef(env, obj[i].lock);
+			if (obj[i].lock)
+			{
+				(*env)->DeleteGlobalRef(env, obj[i].lock);
+			}
 		}
 		free(obj);
 		free(locks);
