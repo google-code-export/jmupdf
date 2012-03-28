@@ -13,7 +13,7 @@ import com.jmupdf.interfaces.PagePixels;
 import com.jmupdf.page.PageRect;
 
 /**
- * TileCache 
+ * TileCache Class
  * 
  * Maintains a list of TiledImage objects to be rendered later.
  * 

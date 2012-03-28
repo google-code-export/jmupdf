@@ -122,15 +122,15 @@ public final class PdfDocument extends DocumentImp {
 		}
 		return null;
 	}
-
 	
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	/* Begin encrypt info methods                        */
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	/* TODO: Document each method!                       */ 
-	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	
-	
+	/**
+	 * Is document encrypted
+	 * @return
+	 */
 	public boolean isEncrypted() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().isEncrypted();
@@ -138,6 +138,10 @@ public final class PdfDocument extends DocumentImp {
 		return false;
 	}
 	
+	/**
+	 * Get encryption revision number
+	 * @return
+	 */
 	public int getRevision() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getRevision();
@@ -145,6 +149,10 @@ public final class PdfDocument extends DocumentImp {
 		return 0;
 	}
 	
+	/**
+	 * Get encryption length
+	 * @return
+	 */
 	public int getLength() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getLength();
@@ -152,6 +160,10 @@ public final class PdfDocument extends DocumentImp {
 		return 0;
 	}
 
+	/**
+	 * Get encryption method
+	 * @return
+	 */
 	public EncryptType getMethod() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getMethod();
@@ -159,6 +171,10 @@ public final class PdfDocument extends DocumentImp {
 		return null;
 	}
 
+	/**
+	 * Can document be printed?
+	 * @return
+	 */
 	public boolean getCanPrint() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getCanPrint();
@@ -166,6 +182,10 @@ public final class PdfDocument extends DocumentImp {
 		return false;
 	}
 
+	/**
+	 * Can document be modified?
+	 * @return
+	 */
 	public boolean getCanModify() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getCanModify();
@@ -173,6 +193,10 @@ public final class PdfDocument extends DocumentImp {
 		return false;
 	}
 
+	/**
+	 * Can document have annotations modified?
+	 * @return
+	 */
 	public boolean getCanNotes() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getCanNotes();
@@ -180,6 +204,10 @@ public final class PdfDocument extends DocumentImp {
 		return false;
 	}
 
+	/**
+	 * Can document content be copied?
+	 * @return
+	 */
 	public boolean getCanCopy() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getCanCopy();
@@ -187,6 +215,10 @@ public final class PdfDocument extends DocumentImp {
 		return false;
 	}
 
+	/**
+	 * Can document form fields be filled in?
+	 * @return
+	 */
 	public boolean getCanFillForm() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getCanFillForm();
@@ -194,6 +226,10 @@ public final class PdfDocument extends DocumentImp {
 		return false;
 	}
 
+	/**
+	 * Can document text and graphics be extracted?
+	 * @return
+	 */
 	public boolean getCanAccessibility() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getCanAccessibility();
@@ -201,6 +237,10 @@ public final class PdfDocument extends DocumentImp {
 		return false;
 	}
 
+	/**
+	 * Can document be modified?
+	 * @return
+	 */
 	public boolean getCanAssemble() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getCanAssemble();
@@ -208,6 +248,10 @@ public final class PdfDocument extends DocumentImp {
 		return false;
 	}
 
+	/**
+	 * Can document be printed in high quality?
+	 * @return
+	 */
 	public boolean getCanPrintQuality() {
 		if (getEncryptInfo() != null) {
 			return getEncryptInfo().getCanPrintQuality();
@@ -229,7 +273,6 @@ public final class PdfDocument extends DocumentImp {
 		}
 		return null;
 	}
-
 	
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	/* Begin document information methods                */

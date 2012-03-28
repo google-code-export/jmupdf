@@ -9,6 +9,7 @@ package com.jmupdf.page;
 /**
  * PageRendererWorker class
  * 
+ * This is a helper class. </br>
  * Create a single thread worker for rendering pages. </br>
  * This is used by PageRenderer class and only beneficial if </br>
  * reusing instance while rendering pages. It is meant to keep </br>
@@ -17,7 +18,7 @@ package com.jmupdf.page;
  * @author Pedro J Rivera
  * 
  */
-public class PageRendererWorker implements Runnable {
+class PageRendererWorker implements Runnable {
 	private boolean isWorkerActive;
 	private PageRenderer render;
 	private Thread th;

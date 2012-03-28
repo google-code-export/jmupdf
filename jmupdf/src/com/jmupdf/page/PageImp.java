@@ -15,7 +15,7 @@ import com.jmupdf.interfaces.PagePixels;
 import com.jmupdf.interfaces.PageRendererOptions;
 
 /**
- * Page class.
+ * Page Class Implementation
  * 
  * @author Pedro J Rivera
  *

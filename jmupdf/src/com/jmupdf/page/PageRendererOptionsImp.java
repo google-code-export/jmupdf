@@ -15,7 +15,7 @@ import com.jmupdf.interfaces.Page;
 import com.jmupdf.interfaces.PageRendererOptions;
 
 /**
- * Page rendering descriptor
+ * Page Rendering Options Class Implementation
  * 
  * @author Francois Barre
  * @author Pedro J Rivera

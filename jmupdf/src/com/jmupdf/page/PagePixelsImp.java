@@ -13,7 +13,7 @@ import com.jmupdf.interfaces.PagePixels;
 import com.jmupdf.interfaces.PageRendererOptions;
 
 /**
- * PagePixels Class
+ * PagePixels Class Implementation
  * 
  * This class represents pixel/image data for a given page.
  * 

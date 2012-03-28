@@ -10,7 +10,7 @@ import com.jmupdf.page.PageRect;
 import com.jmupdf.page.PageText;
 
 /**
- * Page class.
+ * Page Interface
  * 
  * @author Pedro J Rivera
  *

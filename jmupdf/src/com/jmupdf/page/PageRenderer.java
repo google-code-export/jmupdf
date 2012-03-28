@@ -18,8 +18,6 @@ import com.jmupdf.interfaces.PagePixels;
  * 
  * This is a helper class to render pages either in current thread or in the background. </br></br>
  * 
- * Implements Runnable 
- * 
  * @author Pedro J Rivera
  *
  */

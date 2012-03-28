@@ -10,8 +10,6 @@ import com.jmupdf.interfaces.Page;
 /**
  * PageRect Class
  * 
- * Object is reusable.
- * 
  * @author Pedro J Rivera
  *
  */

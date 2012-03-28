@@ -12,7 +12,7 @@ import com.jmupdf.interfaces.PagePixels;
 import com.jmupdf.page.PageRect;
 
 /**
- * TiledImage
+ * TiledImage Class
  * 
  * Represents a single tiled image
  * 

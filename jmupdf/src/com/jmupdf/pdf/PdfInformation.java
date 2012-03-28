@@ -10,7 +10,7 @@ import com.jmupdf.enums.DictionaryType;
 /**
  * Document Information
  * 
- * @author Pedro Rivera
+ * @author Pedro J Rivera
  *
  */
 class PdfInformation {

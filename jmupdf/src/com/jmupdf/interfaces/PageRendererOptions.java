@@ -12,7 +12,7 @@ import com.jmupdf.enums.TifMode;
 import com.jmupdf.page.PageRect;
 
 /**
- * Page rendering descriptor </br></br>
+ * Page rendering options Interface </br></br>
  * 
  * The PageRendererOption object is implemented as a singleton within the </br> 
  * Page object via the Page.getRenderingOptions() factory method. </br></br>

@@ -32,7 +32,6 @@ public class DocumentOutline {
 	 * Constructor
 	 * @param title
 	 * @param page
-	 * 
 	 */
 	public DocumentOutline(int type, String title, String destination) {
 		this.next = null;
@@ -52,7 +51,6 @@ public class DocumentOutline {
 
 	/**
 	 * Constructor
-	 * 
 	 */
 	public DocumentOutline() {
 		this(0, "", "");
