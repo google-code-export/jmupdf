@@ -90,22 +90,26 @@ static void * jni_new_lock_obj()
 	{
 		JNIEnv *env = jni_get_env();
 		jclass cls = (*env)->FindClass(env, "java/lang/String");
-		jmethodID mid = (*env)->GetMethodID(env, cls, "<init>", "()V");
-		int i = 0;
-		for (i = 0; i < JNI_MAX_LOCKS; i++)
+		if (cls)
 		{
-			jobject new_obj = (*env)->NewObject(env, cls, mid);
-			if (new_obj)
+			jmethodID mid = (*env)->GetMethodID(env, cls, "<init>", "()V");
+			int i = 0;
+			for (i = 0; i < JNI_MAX_LOCKS; i++)
 			{
-				obj[i].lock = (*env)->NewGlobalRef(env, new_obj);
-				(*env)->DeleteLocalRef(env, new_obj);
+				jobject new_obj = (*env)->NewObject(env, cls, mid);
+				if (new_obj)
+				{
+					obj[i].lock = (*env)->NewGlobalRef(env, new_obj);
+					(*env)->DeleteLocalRef(env, new_obj);
+				}
+				else
+				{
+					obj[i].lock = NULL;
+				}
 			}
-			else
-			{
-				obj[i].lock = NULL;
-			}
+			(*env)->DeleteLocalRef(env, cls);
+			return obj;
 		}
-		return obj;
 	}
 	return NULL;
 }
