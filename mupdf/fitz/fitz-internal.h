@@ -61,22 +61,6 @@ fz_unlock(fz_context *ctx, int lock)
  * Basic runtime and utility functions
  */
 
-/*
-	fz_malloc_struct: Allocate storage for a structure (with scavenging),
-	clear it, and (in Memento builds) tag the pointer as belonging to a
-	struct of this type.
-
-	CTX: The context.
-
-	STRUCT: The structure type.
-
-	Returns a pointer to allocated (and cleared) structure. Throws
-	exception on failure to allocate.
-*/
-/* alloc and zero a struct, and tag it for memento */
-#define fz_malloc_struct(CTX, STRUCT) \
-	Memento_label(fz_calloc(CTX,1,sizeof(STRUCT)), #STRUCT)
-
 /* Range checking atof */
 float fz_atof(const char *s);
 
@@ -639,7 +623,7 @@ struct fz_image_s
 	fz_pixmap *(*get_pixmap)(fz_context *, fz_image *, int w, int h);
 };
 
-fz_pixmap *fz_load_jpx(fz_context *ctx, unsigned char *data, int size, fz_colorspace *cs);
+fz_pixmap *fz_load_jpx(fz_context *ctx, unsigned char *data, int size, fz_colorspace *cs, int indexed);
 fz_pixmap *fz_load_jpeg(fz_context *doc, unsigned char *data, int size);
 fz_pixmap *fz_load_png(fz_context *doc, unsigned char *data, int size);
 fz_pixmap *fz_load_tiff(fz_context *doc, unsigned char *data, int size);

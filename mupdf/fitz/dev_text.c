@@ -150,6 +150,8 @@ init_span(fz_context *ctx, fz_text_span *span, fz_text_style *style)
 static void
 append_span(fz_context *ctx, fz_text_line *line, fz_text_span *span)
 {
+	if (span->len == 0)
+		return;
 	if (line->len == line->cap)
 	{
 		line->cap = MAX(8, line->cap * 2);
@@ -188,10 +190,12 @@ lookup_block_for_line(fz_context *ctx, fz_text_page *page, fz_text_line *line)
 	for (i = 0; i < page->len; i++)
 	{
 		fz_text_block *block = page->blocks + i;
-		int w = block->bbox.x1 - block->bbox.x0;
-		if (block->bbox.y0 - line->bbox.y1 < size * PARAGRAPH_DIST)
-			if (line->bbox.x0 < block->bbox.x1 && line->bbox.x1 > block->bbox.x0)
-				if (ABS(line->bbox.x0 - block->bbox.x0) < w / 4)
+		float w = block->bbox.x1 - block->bbox.x0;
+		float dx = line->bbox.x0 - block->bbox.x0;
+		float dy = line->bbox.y0 - block->bbox.y1;
+		if (dy > -size * 1.5f && dy < size * PARAGRAPH_DIST)
+			if (line->bbox.x0 <= block->bbox.x1 && line->bbox.x1 >= block->bbox.x0)
+				if (ABS(dx) < w / 2)
 					return block;
 	}
 
@@ -212,6 +216,8 @@ lookup_block_for_line(fz_context *ctx, fz_text_page *page, fz_text_line *line)
 static void
 insert_line(fz_context *ctx, fz_text_page *page, fz_text_line *line)
 {
+	if (line->len == 0)
+		return;
 	append_line(ctx, lookup_block_for_line(ctx, page, line), line);
 }
 
@@ -494,15 +500,6 @@ fz_text_ignore_text(fz_device *dev, fz_text *text, fz_matrix ctm)
 	fz_text_extract(dev->ctx, tdev, text, ctm, style);
 }
 
-static int cmp_block(const void *av, const void *bv)
-{
-	const fz_text_block *a = av;
-	const fz_text_block *b = bv;
-	int x = a->bbox.x0 - b->bbox.x0;
-	if (x) return x;
-	return -(a->bbox.y0 - b->bbox.y0);
-}
-
 static void
 fz_text_free_user(fz_device *dev)
 {
@@ -512,8 +509,7 @@ fz_text_free_user(fz_device *dev)
 	append_span(ctx, &tdev->cur_line, &tdev->cur_span);
 	insert_line(ctx, tdev->page, &tdev->cur_line);
 
-	qsort(tdev->page->blocks, tdev->page->len, sizeof *tdev->page->blocks, cmp_block);
-
+	/* TODO: smart sorting of blocks in reading order */
 	/* TODO: unicode NFC normalization */
 	/* TODO: bidi logical reordering */
 
@@ -638,7 +634,7 @@ fz_print_text_page_html(fz_context *ctx, FILE *out, fz_text_page *page)
 				span = &line->spans[span_n];
 				if (style != span->style)
 				{
-					if (style != NULL)
+					if (style)
 						fz_print_style_end(out, style);
 					fz_print_style_begin(out, span->style);
 					style = span->style;
@@ -659,7 +655,7 @@ fz_print_text_page_html(fz_context *ctx, FILE *out, fz_text_page *page)
 						fprintf(out, "&#x%x;", ch->c);
 				}
 			}
-			if (style != NULL)
+			if (style)
 				fz_print_style_end(out, style);
 			fprintf(out, "</p>\n");
 		}
