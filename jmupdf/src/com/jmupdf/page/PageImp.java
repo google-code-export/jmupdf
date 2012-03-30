@@ -30,7 +30,7 @@ public abstract class PageImp extends JmuPdf implements Page {
 	protected PageRendererOptions options = null;
 	
 	/* */
-	public synchronized long getHandle() {
+	public long getHandle() {
 		return handle;
 	}
 	
@@ -75,7 +75,7 @@ public abstract class PageImp extends JmuPdf implements Page {
 	}
 
 	/* */
-	public synchronized PageText[] getTextSpan(PageRect rect) {
+	public PageText[] getTextSpan(PageRect rect) {
 		if (getHandle() > 0) {
 			return getPageText(getHandle(), 0.45f, rect.getX0(), rect.getY0(), rect.getX1(), rect.getY1());			
 		}
@@ -83,32 +83,34 @@ public abstract class PageImp extends JmuPdf implements Page {
 	}
 
 	/* */
-	public synchronized PageLinks[] getLinks(PageRendererOptions options) {
+	public PageLinks[] getLinks(PageRendererOptions options) {
 		if (getHandle() <= 0) {
 			return null;
 		}
-		if (links == null) {
-			links = getPageLinks(getHandle());
+		synchronized (this) {
 			if (links == null) {
-				links = new PageLinks[1];
-				links[0] = new PageLinks(0, 0, 0, 0, 0, "");
-			} else {
-				if (options != null) {
-					int rotate = options.getRotate();
-					PageRect rect = new PageRect();
-					for (int i=0; i<links.length; i++) {						
-						rect.setRect(links[i].getX0(), links[i].getY0(), 
-									 links[i].getX1(), links[i].getY1());
-						rect = rect.rotate(getBoundBox(), rotate);
-						rect = rect.scale(options.getZoom());
-						links[i].setX0(rect.getX0());
-						links[i].setY0(rect.getY0());
-						links[i].setX1(rect.getX1());
-						links[i].setY1(rect.getY1());
+				links = getPageLinks(getHandle());
+				if (links == null) {
+					links = new PageLinks[1];
+					links[0] = new PageLinks(0, 0, 0, 0, 0, "");
+				} else {
+					if (options != null) {
+						int rotate = options.getRotate();
+						PageRect rect = new PageRect();
+						for (int i=0; i<links.length; i++) {						
+							rect.setRect(links[i].getX0(), links[i].getY0(), 
+										 links[i].getX1(), links[i].getY1());
+							rect = rect.rotate(getBoundBox(), rotate);
+							rect = rect.scale(options.getZoom());
+							links[i].setX0(rect.getX0());
+							links[i].setY0(rect.getY0());
+							links[i].setX1(rect.getX1());
+							links[i].setY1(rect.getY1());
+						}
+						rect = null;
 					}
-					rect = null;
 				}
-			}
+			}			
 		}
 		return links;
 	}
@@ -125,7 +127,7 @@ public abstract class PageImp extends JmuPdf implements Page {
 	}
 
     /* */
-    public synchronized boolean saveAsImage(String file, PageRendererOptions options) {
+    public boolean saveAsImage(String file, PageRendererOptions options) {
         if (getHandle() > 0) {
         	if (options.isValid()) {
         		return saveAsFile(getHandle(), file.getBytes()) == 0;
@@ -135,7 +137,7 @@ public abstract class PageImp extends JmuPdf implements Page {
     }
 
     /* */
-    public synchronized byte[] saveAsImage(PageRendererOptions options) {
+    public byte[] saveAsImage(PageRendererOptions options) {
         if (getHandle() > 0) {
             if (options.getImageFormat() == ImageFormat.FORMAT_PNG ||
             	options.getImageFormat() == ImageFormat.FORMAT_JPG) {
@@ -150,7 +152,7 @@ public abstract class PageImp extends JmuPdf implements Page {
     }
 
     /* */
-    public synchronized PagePixels getPagePixels() {
+    public PagePixels getPagePixels() {
     	if (getHandle() > 0) {
     		return new PagePixelsFactory(this);
     	}
@@ -158,11 +160,13 @@ public abstract class PageImp extends JmuPdf implements Page {
     };
 
     /* */
-    public synchronized PageRendererOptions getRenderingOptions() {
+    public PageRendererOptions getRenderingOptions() {
     	if (getHandle() > 0) {
-    		if (options == null) {
-    			options = new PageRendererOptionsFactory(this);
-	    	}
+    		synchronized (this) {
+        		if (options == null) {
+        			options = new PageRendererOptionsFactory(this);
+    	    	}				
+			}
     		return options;
     	}
     	return null;

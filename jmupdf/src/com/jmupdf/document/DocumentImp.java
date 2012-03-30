@@ -105,7 +105,7 @@ public abstract class DocumentImp extends JmuPdf implements Document {
 	}
 
 	/* */
-	public synchronized void dispose() {
+	public void dispose() {
 		if (getHandle() > 0) {
 			close(getHandle());
 			if (isCached) {
@@ -122,7 +122,7 @@ public abstract class DocumentImp extends JmuPdf implements Document {
 	}
 
 	/* */
-	public synchronized long getHandle() {
+	public long getHandle() {
 		return handle;
 	}
 	
@@ -180,18 +180,20 @@ public abstract class DocumentImp extends JmuPdf implements Document {
 	}
 
 	/* */
-	public synchronized DocumentOutline getOutline() {
+	public DocumentOutline getOutline() {
 		if (getHandle() > 0) {
-			if (outline == null) {
-				outline = getOutline(getHandle());	
+			synchronized (this) {
+				if (outline == null) {
+					outline = getOutline(getHandle());	
+				}
 			}
 			return outline;
 		}
 		return null;
 	}
-	
+
 	/* */
-	public synchronized int getPageCount() {
+	public int getPageCount() {
 		if (getHandle() > 0) {
 			return pageCount;
 		}
@@ -199,7 +201,7 @@ public abstract class DocumentImp extends JmuPdf implements Document {
 	}
 
 	/* */
-	public synchronized Page getPage(int page) throws PageException {
+	public Page getPage(int page) throws PageException {
 		if (getHandle() > 0) {
 			return new DocumentPageFactory(this, page);
 		}

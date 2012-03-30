@@ -81,6 +81,8 @@ static const int DEFAULT_DPI = 72;
 // jni_concurrent.c
 fz_locks_context * jni_new_locks();
 void jni_free_locks(fz_locks_context*);
+void jni_lock(fz_context*);
+void jni_unlock(fz_context*);
 
 // jni_java_document.c
 jni_document *jni_get_document(jlong);

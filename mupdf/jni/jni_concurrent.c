@@ -135,3 +135,19 @@ void jni_free_locks(fz_locks_context *locks)
 		free(locks);
 	}
 }
+
+/**
+ * Enter critical section
+ */
+void jni_lock(fz_context *ctx)
+{
+	jni_lock_internal(ctx->locks->user, JNI_LOCK_INTERNAL);
+}
+
+/**
+ * Exit critical section
+ */
+void jni_unlock(fz_context *ctx)
+{
+	jni_unlock_internal(ctx->locks->user, JNI_LOCK_INTERNAL);
+}
