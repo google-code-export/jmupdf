@@ -1,5 +1,4 @@
 #include "jmupdf.h"
-#include "pthread.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * This program implements the fz_lock()/fz_unlock()
@@ -11,31 +10,28 @@
  * A unique lock object is created for each opened document
  * this way each document handles locks within itself. This
  * lets us process multiple documents concurrently as well.
- *
- * =====================
- * Compiling for Windows
- * =====================
- * Make sure to have PTHREAD-W32 library and dll's.
- * I have placed the required DLL's in thirdpart/pthread/win32.
- * If you have MINGW just install the openMP feature. If not you
- * will have to download the binaries.
- *
- * =====================
- * Compiling for Linux
- * =====================
- * It just works!
- *
- * =====================
- * Final Notes
- * =====================
- * This is not 100% portable but at least it will work under
- * Windows, Linux and Mac.
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+#ifdef _POSIX_
+#include <pthread.h>
+typedef pthread_mutex_t jni_mutex;
+#define jni_init_mutex(l) pthread_mutex_init(l, NULL)
+#define jni_destroy_mutex(l) pthread_mutex_destroy(l)
+#define jni_enter_critical(l) pthread_mutex_lock(l)
+#define jni_leave_critical(l) pthread_mutex_unlock(l)
+#else
+#include <windows.h>
+typedef CRITICAL_SECTION jni_mutex;
+#define jni_init_mutex(l) InitializeCriticalSection(l)
+#define jni_destroy_mutex(l) DeleteCriticalSection(l)
+#define jni_enter_critical(l) EnterCriticalSection(l)
+#define jni_leave_critical(l) LeaveCriticalSection(l)
+#endif
 
 typedef struct jni_locks_s jni_locks;
 struct jni_locks_s
 {
-	pthread_mutex_t * lock;
+	jni_mutex * lock;
 };
 
 enum
@@ -54,7 +50,7 @@ static void jni_lock_internal(void *user, int lock)
 		jni_locks *locks = (jni_locks*)user;
 		if (locks[lock].lock)
 		{
-			pthread_mutex_lock(locks[lock].lock);
+			jni_enter_critical(locks[lock].lock);
 		}
 	}
 }
@@ -69,7 +65,7 @@ static void jni_unlock_internal(void *user, int lock)
 		jni_locks *locks = (jni_locks*)user;
 		if (locks[lock].lock)
 		{
-			pthread_mutex_unlock(locks[lock].lock);
+			jni_leave_critical(locks[lock].lock);
 		}
 	}
 }
@@ -85,8 +81,8 @@ static void * jni_new_lock_obj()
 		int i = 0;
 		for (i = 0; i < JNI_MAX_LOCKS; i++)
 		{
-			obj[i].lock = malloc(sizeof(pthread_mutex_t));
-			pthread_mutex_init(obj[i].lock, NULL);
+			obj[i].lock = malloc(sizeof(jni_mutex));
+			jni_init_mutex(obj[i].lock);
 		}
 		return obj;
 	}
@@ -131,7 +127,7 @@ void jni_free_locks(fz_locks_context *locks)
 		{
 			if (obj[i].lock)
 			{
-				pthread_mutex_destroy(obj[i].lock);
+				jni_destroy_mutex(obj[i].lock);
 				free(obj[i].lock);
 			}
 		}

@@ -14,7 +14,7 @@ GEN := generated
 default: all
 
 CFLAGS += -Ifitz -Ipdf -Ixps -Icbz -Iscripts
-LIBS += -lpthread -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
+LIBS += -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
 
 include MakeJNI1
 include Makerules
