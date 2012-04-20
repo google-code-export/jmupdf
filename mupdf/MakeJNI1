@@ -59,7 +59,7 @@ endif
 #
 ifeq "$(findstring Linux,$(OS))" "Linux"
 LIBS += -lpthread
-CFLAGS += -fPIC -std=c99
+CFLAGS += -fPIC -std=c99 -D_POSIX_
 endif
 
 #
