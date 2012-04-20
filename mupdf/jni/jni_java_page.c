@@ -75,8 +75,8 @@ static void jni_load_page(jni_page *page, int pagen)
 	fz_device *dev = NULL;
 	fz_context *ctx = page->doc->ctx;
 	fz_document *doc = page->doc->doc;
-	jni_lock(ctx);
-	{
+	//jni_lock(ctx);
+	//{
 		fz_try(ctx)
 		{
 			page->list = fz_new_display_list(ctx);
@@ -94,8 +94,8 @@ static void jni_load_page(jni_page *page, int pagen)
 			jni_unlock(ctx);
 			fz_throw(ctx, "Could not load page.");
 		}
-	}
-	jni_unlock(ctx);
+	//}
+	//jni_unlock(ctx);
 }
 
 /**

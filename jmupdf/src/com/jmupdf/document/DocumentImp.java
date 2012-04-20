@@ -233,7 +233,9 @@ public abstract class DocumentImp extends JmuPdf implements Document {
 			float[] info = new float[5];
 			document = doc;
 			pageNumber = page;
-			handle = newPage(doc.getHandle(), page, info);
+			synchronized (doc) {
+				handle = newPage(doc.getHandle(), page, info);	
+			}
 			if (handle > 0) {
 				boundBox = new PageRect(info[0], info[1], info[2], info[3]);
 				rotation = (int)info[4];
