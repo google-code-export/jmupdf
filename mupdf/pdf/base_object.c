@@ -438,9 +438,10 @@ static void
 pdf_array_grow(pdf_obj *obj)
 {
 	int i;
+	int new_cap = (obj->u.a.cap * 3) / 2;
 
-	obj->u.a.cap = (obj->u.a.cap * 3) / 2;
-	obj->u.a.items = fz_resize_array(obj->ctx, obj->u.a.items, obj->u.a.cap, sizeof(pdf_obj*));
+	obj->u.a.items = fz_resize_array(obj->ctx, obj->u.a.items, new_cap, sizeof(pdf_obj*));
+	obj->u.a.cap = new_cap;
 
 	for (i = obj->u.a.len ; i < obj->u.a.cap; i++)
 		obj->u.a.items[i] = NULL;
@@ -607,9 +608,10 @@ static void
 pdf_dict_grow(pdf_obj *obj)
 {
 	int i;
+	int new_cap = (obj->u.d.cap * 3) / 2;
 
-	obj->u.d.cap = (obj->u.d.cap * 3) / 2;
-	obj->u.d.items = fz_resize_array(obj->ctx, obj->u.d.items, obj->u.d.cap, sizeof(struct keyval));
+	obj->u.d.items = fz_resize_array(obj->ctx, obj->u.d.items, new_cap, sizeof(struct keyval));
+	obj->u.d.cap = new_cap;
 
 	for (i = obj->u.d.len; i < obj->u.d.cap; i++)
 	{
@@ -1181,7 +1183,7 @@ static void fmt_obj(struct fmt *fmt, pdf_obj *obj)
 	}
 	else if (pdf_is_real(obj))
 	{
-		sprintf(buf, "%g", pdf_to_real(obj));
+		sprintf(buf, "%1.9g", pdf_to_real(obj));
 		if (strchr(buf, 'e')) /* bad news! */
 			sprintf(buf, fabsf(pdf_to_real(obj)) > 1 ? "%1.1f" : "%1.8f", pdf_to_real(obj));
 		fmt_puts(fmt, buf);

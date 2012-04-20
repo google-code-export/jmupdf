@@ -13,7 +13,7 @@ GEN := generated
 
 default: all
 
-CFLAGS += -Ifitz -Ipdf -Ixps -Icbz -Iscripts
+CFLAGS += $(XCFLAGS) -Ifitz -Ipdf -Ixps -Icbz -Iscripts
 LIBS += -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
 
 include MakeJNI1
@@ -43,6 +43,11 @@ MKDIR_CMD = $(QUIET_MKDIR) mkdir -p $@
 
 # --- Rules ---
 
+FITZ_HDR := fitz/fitz.h fitz/fitz-internal.h
+MUPDF_HDR := $(FITZ_HDR) pdf/mupdf.h pdf/mupdf-internal.h
+MUXPS_HDR := $(FITZ_HDR) xps/muxps.h xps/muxps-internal.h
+MUCBZ_HDR := $(FITZ_HDR) cbz/mucbz.h
+
 $(OUT) $(GEN) :
 	$(MKDIR_CMD)
 
@@ -53,15 +58,15 @@ $(OUT)/%.a :
 $(OUT)/% : $(OUT)/%.o
 	$(LINK_CMD)
 
-$(OUT)/%.o : fitz/%.c fitz/fitz.h | $(OUT)
+$(OUT)/%.o : fitz/%.c $(FITZ_HDR) | $(OUT)
 	$(CC_CMD)
-$(OUT)/%.o : draw/%.c fitz/fitz.h | $(OUT)
+$(OUT)/%.o : draw/%.c $(FITZ_HDR) | $(OUT)
 	$(CC_CMD)
-$(OUT)/%.o : pdf/%.c fitz/fitz.h pdf/mupdf.h | $(OUT)
+$(OUT)/%.o : pdf/%.c $(MUPDF_HDR) | $(OUT)
 	$(CC_CMD)
-$(OUT)/%.o : xps/%.c fitz/fitz.h xps/muxps.h | $(OUT)
+$(OUT)/%.o : xps/%.c $(MUXPS_HDR) | $(OUT)
 	$(CC_CMD)
-$(OUT)/%.o : cbz/%.c fitz/fitz.h cbz/mucbz.h | $(OUT)
+$(OUT)/%.o : cbz/%.c $(MUCBZ_HDR) | $(OUT)
 	$(CC_CMD)
 $(OUT)/%.o : apps/%.c fitz/fitz.h pdf/mupdf.h xps/muxps.h cbz/mucbz.h | $(OUT)
 	$(CC_CMD)
@@ -132,11 +137,9 @@ $(OUT)/cmapdump.o : pdf/pdf_cmap.c pdf/pdf_cmap_parse.c
 
 # --- Tools and Apps ---
 
-#PDF_APPS := $(addprefix $(OUT)/, mupdfdraw mupdfclean mupdfextract mupdfinfo mupdfshow)
-#XPS_APPS := $(addprefix $(OUT)/, muxpsdraw)
+#MU_APPS := $(addprefix $(OUT)/, mudraw mupdfclean mupdfextract mupdfinfo mupdfshow)
 
-#$(PDF_APPS) : $(FITZ_LIB) $(THIRD_LIBS)
-#$(XPS_APPS) : $(FITZ_LIB) $(THIRD_LIBS)
+#$(MU_APPS) : $(FITZ_LIB) $(THIRD_LIBS)
 
 #BUSY_SRC := $(notdir $(wildcard apps/mubusy_*.c))
 #BUSY_APP := $(addprefix $(OUT)/, mubusy)
@@ -150,6 +153,16 @@ $(OUT)/cmapdump.o : pdf/pdf_cmap.c pdf/pdf_cmap_parse.c
 #	$(LINK_CMD) $(X11_LIBS)
 #endif
 
+# --- Format man pages ---
+
+%.txt: %.1
+	nroff -man $< | col -b | expand > $@
+
+MAN_FILES := $(wildcard apps/man/*.1)
+TXT_FILES := $(MAN_FILES:%.1=%.txt)
+
+catman: $(TXT_FILES)
+
 # --- JNI DLL ---
 
 include MakeJNI2
@@ -162,17 +175,17 @@ libdir ?= $(prefix)/lib
 incdir ?= $(prefix)/include
 mandir ?= $(prefix)/share/man
 
-install: $(FITZ_LIB) $(PDF_APPS) $(XPS_APPS) $(MUPDF)
+install: $(FITZ_LIB) $(MU_APPS) $(MUPDF)
 	install -d $(bindir) $(libdir) $(incdir) $(mandir)/man1
 	install $(FITZ_LIB) $(libdir)
 	install fitz/memento.h fitz/fitz.h pdf/mupdf.h xps/muxps.h cbz/mucbz.h $(incdir)
-	install $(PDF_APPS) $(XPS_APPS) $(MUPDF) $(bindir)
+	install $(MU_APPS) $(MUPDF) $(bindir)
 	install $(wildcard apps/man/*.1) $(mandir)/man1
 
 # --- Clean and Default ---
 
-#all: $(THIRD_LIBS) $(FITZ_LIB) $(PDF_APPS) $(XPS_APPS) $(MUPDF) $(BUSY_APP)
-all: $(THIRD_LIBS) $(FITZ_LIB) $(PDF_APPS) $(XPS_APPS) $(MUPDF) $(JNI_DLL)
+#all: $(THIRD_LIBS) $(FITZ_LIB) $(MU_APPS) $(MUPDF) $(BUSY_APP)
+all: $(THIRD_LIBS) $(FITZ_LIB) $(JNI_DLL)
 	install $(JNI_DLL) $(prefix)
 	rm -f $(OUT)/*.dll
 	rm -f $(OUT)/*.so
