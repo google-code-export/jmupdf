@@ -35,7 +35,7 @@ static void pdfapp_error(pdfapp_t *app, char *msg)
 char *pdfapp_version(pdfapp_t *app)
 {
 	return
-		"MuPDF 1.0rc1\n"
+		"MuPDF 1.0\n"
 		"Copyright 2006-2012 Artifex Software, Inc.\n";
 }
 
@@ -89,26 +89,14 @@ void pdfapp_invert(pdfapp_t *app, fz_bbox rect)
 	fz_invert_pixmap_rect(app->image, rect);
 }
 
-void pdfapp_open(pdfapp_t *app, char *filename, int fd, int reload)
+void pdfapp_open(pdfapp_t *app, char *filename, int reload)
 {
 	fz_context *ctx = app->ctx;
-	fz_stream *file;
 	char *password = "";
 
 	fz_try(ctx)
 	{
-		file = fz_open_fd(ctx, fd);
-
-		if (strstr(filename, ".rels"))
-			app->doc = (fz_document*) xps_open_document(ctx, filename);
-		else if (strstr(filename, ".xps") || strstr(filename, ".XPS") || strstr(filename, ".rels"))
-			app->doc = (fz_document*) xps_open_document_with_stream(file);
-		else if (strstr(filename, ".cbz") || strstr(filename, ".CBZ") || strstr(filename, ".zip") || strstr(filename, ".ZIP"))
-			app->doc = (fz_document*) cbz_open_document_with_stream(file);
-		else
-			app->doc = (fz_document*) pdf_open_document_with_stream(file);
-
-		fz_close(file);
+		app->doc = fz_open_document(ctx, filename);
 
 		if (fz_needs_password(app->doc))
 		{

@@ -68,34 +68,30 @@ static jni_page *jni_new_page(jni_document *doc)
  *          else some documents will cause the application to experience
  *          a horrible death.
  *
- * NOTE #2: This function *must* be synchronized.
+ * NOTE #2: This function *must* be synchronized. Currently it is
+ *          synch'd from the java side.
  */
 static void jni_load_page(jni_page *page, int pagen)
 {
 	fz_device *dev = NULL;
 	fz_context *ctx = page->doc->ctx;
 	fz_document *doc = page->doc->doc;
-	//jni_lock(ctx);
-	//{
-		fz_try(ctx)
-		{
-			page->list = fz_new_display_list(ctx);
-			dev = fz_new_list_device(ctx, page->list);
-			page->page = fz_load_page(doc, pagen-1);
-			fz_run_page(doc, page->page, dev, fz_identity, NULL);
-			page->bbox = fz_bound_page(doc, page->page);
-		}
-		fz_always(ctx)
-		{
-			fz_free_device(dev);
-		}
-		fz_catch(ctx)
-		{
-			jni_unlock(ctx);
-			fz_throw(ctx, "Could not load page.");
-		}
-	//}
-	//jni_unlock(ctx);
+	fz_try(ctx)
+	{
+		page->list = fz_new_display_list(ctx);
+		dev = fz_new_list_device(ctx, page->list);
+		page->page = fz_load_page(doc, pagen-1);
+		fz_run_page(doc, page->page, dev, fz_identity, NULL);
+		page->bbox = fz_bound_page(doc, page->page);
+	}
+	fz_always(ctx)
+	{
+		fz_free_device(dev);
+	}
+	fz_catch(ctx)
+	{
+		fz_throw(ctx, "Could not load page.");
+	}
 }
 
 /**
