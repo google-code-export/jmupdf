@@ -230,6 +230,9 @@ public class MainController implements ActionListener, ChangeListener, WindowLis
 	 */
 	private void setPage() {
 		if (isOpened) {
+			if (view.getPageCanvas().isPageRendering()) {
+				return;
+			}
 			if (page != null) {
 				page.dispose();
 			}			

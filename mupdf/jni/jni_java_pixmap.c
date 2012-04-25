@@ -49,7 +49,8 @@ char * jni_jbyte_to_char(JNIEnv *env, fz_context *ctx, jbyteArray ba)
 	char * buf = fz_malloc_no_throw(ctx, len + 1);
 	int i = 0;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		buf[i] = jb[i];
 	}
 
@@ -172,32 +173,20 @@ static fz_pixmap *jni_get_pixmap(jni_page *page)
 	}
 	fz_catch(page->ctx)
 	{
-		fz_drop_pixmap(page->ctx, pix);
-	}
-
-	if (!pix)
-	{
 		return NULL;
-	}
-	if (!pix->samples)
-	{
-		fz_drop_pixmap(page->ctx, pix);
-		return NULL;
-	}
-
-	// Set background color
-	if (jni_save_alpha(page->options->imageType))
-	{
-		fz_clear_pixmap(page->ctx, pix);
-	}
-	else
-	{
-		fz_clear_pixmap_with_value(page->ctx, pix, 255);
 	}
 
 	// Render image
 	fz_try(page->ctx)
 	{
+		if (jni_save_alpha(page->options->imageType))
+		{
+			fz_clear_pixmap(page->ctx, pix);
+		}
+		else
+		{
+			fz_clear_pixmap_with_value(page->ctx, pix, 255);
+		}
 		dev = fz_new_draw_device(page->ctx, pix);
 		fz_run_display_list(page->list, dev, ctm, bbox, NULL);
 		if (page->options->gamma != 1 && page->options->gamma > 0)
