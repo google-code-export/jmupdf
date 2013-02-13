@@ -63,7 +63,11 @@ Write some bytes
 @param n Number of bytes to write
 @return Returns the number of bytes written or 0 if an error occured
 */
+#if defined(__BORLANDC__)
+unsigned int cio_write(opj_cio_t *cio, unsigned __int64 v, int n);
+#else
 unsigned int cio_write(opj_cio_t *cio, unsigned long long int v, int n);
+#endif
 /**
 Read some bytes
 @param cio CIO handle

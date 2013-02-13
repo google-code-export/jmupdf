@@ -450,6 +450,13 @@ void tcd_init_encode(opj_tcd_t *tcd, opj_image_t * image, opj_cp_t * cp, int cur
 			
 			opj_tcd_tilecomp_t *tilec = &tile->comps[compno];
 
+			/* RJW: Changes here imported from SVN r1730 */
+			if (tccp->numresolutions <= 0)
+			{
+				cp->tileno[tileno] = -1;
+				return;
+			}
+
 			/* border of each tile component (global) */
 			tilec->x0 = int_ceildiv(tile->x0, image->comps[compno].dx);
 			tilec->y0 = int_ceildiv(tile->y0, image->comps[compno].dy);

@@ -1269,7 +1269,8 @@ static void j2k_read_sot(opj_j2k_t *j2k) {
 		static int backup_tileno = 0;
 
 		/* tileno is negative or larger than the number of tiles!!! */
-		if ((tileno < 0) || (tileno > (cp->tw * cp->th))) {
+		/* RJW: Changes here imported from r1728 */
+		if ((tileno < 0) || (tileno >= (cp->tw * cp->th))) {
 			opj_event_msg(j2k->cinfo, EVT_ERROR,
 				"JPWL: bad tile number (%d out of a maximum of %d)\n",
 				tileno, (cp->tw * cp->th));
@@ -1286,8 +1287,19 @@ static void j2k_read_sot(opj_j2k_t *j2k) {
 
 		/* keep your private count of tiles */
 		backup_tileno++;
-	};
+	}
+  else
 #endif /* USE_JPWL */
+  /* RJW: Changes here imported from r1728 */
+  {
+    /* tileno is negative of larger than the number of tiles!!! */
+    if ((tileno < 0) || (tileno >= (cp->tw * cp->th))) {
+      opj_event_msg(j2k->cinfo, EVT_ERROR,
+        "JPWL: bad tile number (%d out of a maximum of %d)\n",
+        tileno, (cp->tw * cp-> th));
+      return;
+    }
+  }
 	
 	if (cp->tileno_size == 0) {
 		cp->tileno[cp->tileno_size] = tileno;
@@ -1325,8 +1337,19 @@ static void j2k_read_sot(opj_j2k_t *j2k) {
 				totlen);
 		}
 
-	};
+	}
+  else
 #endif /* USE_JPWL */
+  /* RJW: Changes here imported from r1728 */
+  {
+    /* tileno is negative of larger than the number of tiles!!! */
+    if ((tileno < 0) || (tileno >= (cp->tw * cp->th))) {
+      opj_event_msg(j2k->cinfo, EVT_ERROR,
+        "JPWL: bad tile number (%d out of a maximum of %d)\n",
+        tileno, (cp->tw * cp-> th));
+      return;
+    }
+  }
 
 	if (!totlen)
 		totlen = cio_numbytesleft(cio) + 8;
@@ -1554,7 +1577,7 @@ static void j2k_write_eoc(opj_j2k_t *j2k) {
 
 static void j2k_read_eoc(opj_j2k_t *j2k) {
 	int i, tileno;
-	opj_bool success;
+	opj_bool success = OPJ_FALSE;
 
 	/* if packets should be decoded */
 	if (j2k->cp->limit_decoding != DECODE_ALL_BUT_PACKETS) {
@@ -1562,11 +1585,17 @@ static void j2k_read_eoc(opj_j2k_t *j2k) {
 		tcd_malloc_decode(tcd, j2k->image, j2k->cp);
 		for (i = 0; i < j2k->cp->tileno_size; i++) {
 			tcd_malloc_decode_tile(tcd, j2k->image, j2k->cp, i, j2k->cstr_info);
-			tileno = j2k->cp->tileno[i];
-			success = tcd_decode_tile(tcd, j2k->tile_data[tileno], j2k->tile_len[tileno], tileno, j2k->cstr_info);
-			opj_free(j2k->tile_data[tileno]);
-			j2k->tile_data[tileno] = NULL;
-			tcd_free_decode_tile(tcd, i);
+			/* RJW: Changes here imported from SVN r1730 */
+			if (j2k->cp->tileno[i] != -1)
+			{
+				tileno = j2k->cp->tileno[i];
+				success = tcd_decode_tile(tcd, j2k->tile_data[tileno], j2k->tile_len[tileno], tileno, j2k->cstr_info);
+				opj_free(j2k->tile_data[tileno]);
+				j2k->tile_data[tileno] = NULL;
+				tcd_free_decode_tile(tcd, i);
+			}
+			else
+				success = OPJ_FALSE;
 			if (success == OPJ_FALSE) {
 				j2k->state |= J2K_STATE_ERR;
 				break;
