@@ -76,13 +76,17 @@ static void jni_load_page(jni_page *page, int pagen)
 	fz_device *dev = NULL;
 	fz_context *ctx = page->doc->ctx;
 	fz_document *doc = page->doc->doc;
+	fz_cookie cookie = { 0 };
 	fz_try(ctx)
 	{
 		page->list = fz_new_display_list(ctx);
 		dev = fz_new_list_device(ctx, page->list);
 		page->page = fz_load_page(doc, pagen-1);
-		fz_run_page(doc, page->page, dev, fz_identity, NULL);
+		fz_run_page(doc, page->page, dev, fz_identity, &cookie);
 		page->bbox = fz_bound_page(doc, page->page);
+		if (cookie.errors) {
+			fz_warn(ctx, "Warning, errors found on page.");
+		}
 	}
 	fz_always(ctx)
 	{
@@ -171,6 +175,7 @@ static fz_text_page * jni_load_text(jni_page *page, fz_rect clipbox)
 	fz_text_page *page_text = NULL;
 	fz_text_sheet *page_sheet = NULL;
 	fz_device *dev = NULL;
+	fz_cookie cookie = { 0 };
 
 	fz_try(page->ctx)
 	{
@@ -179,7 +184,10 @@ static fz_text_page * jni_load_text(jni_page *page, fz_rect clipbox)
 		page_text = fz_new_text_page(page->ctx, page->bbox);
 		dev = fz_new_text_device(page->ctx, page_sheet, page_text);
 		fz_bbox bb = fz_bbox_covering_rect(clipbox);
-		fz_run_display_list(page->list, dev, ctm, bb, NULL);
+		fz_run_display_list(page->list, dev, ctm, bb, &cookie);
+		if (cookie.errors) {
+			fz_warn(page->ctx, "Warning, errors found on page.");
+		}
 	}
 	fz_always(page->ctx)
 	{

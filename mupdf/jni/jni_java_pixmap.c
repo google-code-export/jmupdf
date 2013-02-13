@@ -132,10 +132,10 @@ static fz_rect jni_normalize_rect(jni_page *page)
 	}
 	else
 	{
-		rect.x0 = MAX(page->options->x0, page->bbox.x0);
-		rect.y0 = MAX(page->options->y0, page->bbox.y0);
-		rect.x1 = MIN(page->options->x1, page->bbox.x1);
-		rect.y1 = MIN(page->options->y1, page->bbox.y1);
+		rect.x0 = fz_maxi(page->options->x0, page->bbox.x0);
+		rect.y0 = fz_maxi(page->options->y0, page->bbox.y0);
+		rect.x1 = fz_mini(page->options->x1, page->bbox.x1);
+		rect.y1 = fz_mini(page->options->y1, page->bbox.y1);
 	}
 	return rect;
 }
@@ -349,22 +349,22 @@ int jni_pix_to_black_white(fz_context *ctx, fz_pixmap * pix, int dither, unsigne
 					// 7/16 = 0.4375f
 					srcbuf = ptrstr + x + 1 + stride;
 					value = *srcbuf;
-					*srcbuf = CLAMP(roundf(value + 0.4375f * qerror), 0, 255);
+					*srcbuf = fz_clamp(roundf(value + 0.4375f * qerror), 0, 255);
 
 					// 3/16 = 0.1875f
 					srcbuf = ptrstr + x - 1 + stride + pix->w;
 					value = *srcbuf;
-					*srcbuf = CLAMP(roundf(value + 0.1875f * qerror), 0, 255);
+					*srcbuf = fz_clamp(roundf(value + 0.1875f * qerror), 0, 255);
 
 					// 5/16 = 0.3125f
 					srcbuf = ptrstr + x + stride + pix->w;
 					value = *srcbuf;
-					*srcbuf = CLAMP(roundf(value + 0.3125f * qerror), 0, 255);
+					*srcbuf = fz_clamp(roundf(value + 0.3125f * qerror), 0, 255);
 
 					// 1/16 = 0.0625f
 					srcbuf = ptrstr + x + 1 + stride + pix->w;
 					value = *srcbuf;
-					*srcbuf = CLAMP(roundf(value + 0.0625f * qerror), 0, 255);
+					*srcbuf = fz_clamp(roundf(value + 0.0625f * qerror), 0, 255);
 				}
 			}
 		}
@@ -436,22 +436,22 @@ int jni_pix_to_binary(fz_context *ctx, fz_pixmap * pix, int dither, unsigned cha
 					// 7/16 = 0.4375f
 					srcbuf = ptrstr + x + 1 + stride;
 					value = *srcbuf;
-					*srcbuf = CLAMP(roundf(value + 0.4375f * qerror), 0, 255);
+					*srcbuf = fz_clamp(roundf(value + 0.4375f * qerror), 0, 255);
 
 					// 3/16 = 0.1875f
 					srcbuf = ptrstr + x - 1 + stride + pix->w;
 					value = *srcbuf;
-					*srcbuf = CLAMP(roundf(value + 0.1875f * qerror), 0, 255);
+					*srcbuf = fz_clamp(roundf(value + 0.1875f * qerror), 0, 255);
 
 					// 5/16 = 0.3125f
 					srcbuf = ptrstr + x + stride + pix->w;
 					value = *srcbuf;
-					*srcbuf = CLAMP(roundf(value + 0.3125f * qerror), 0, 255);
+					*srcbuf = fz_clamp(roundf(value + 0.3125f * qerror), 0, 255);
 
 					// 1/16 = 0.0625f
 					srcbuf = ptrstr + x + 1 + stride + pix->w;
 					value = *srcbuf;
-					*srcbuf = CLAMP(roundf(value + 0.0625f * qerror), 0, 255);
+					*srcbuf = fz_clamp(roundf(value + 0.0625f * qerror), 0, 255);
 				}
 			}
 		}
@@ -508,8 +508,8 @@ Java_com_jmupdf_JmuPdf_getByteBuffer(JNIEnv *env, jclass obj, jlong handle, jint
 	{
 		ae[0] = 0;
 		ae[1] = 0;
-		ae[2] = ABS(pix->w);
-		ae[3] = ABS(pix->h);
+		ae[2] = fz_absi(pix->w);
+		ae[3] = fz_absi(pix->h);
 	}
 
 	jni_release_int_array(bbox, ae);
