@@ -7,6 +7,9 @@
 #ifndef _TIFFCONF_
 #define _TIFFCONF_
 
+/* Added for portability */
+#include <inttypes.h>
+
 /* Define to 1 if the system has the type `int16'. */
 /* #undef HAVE_INT16 */
 
@@ -20,49 +23,40 @@
 #define SIZEOF_INT 4
 
 /* Signed 8-bit type */
-#define TIFF_INT8_T signed char
+#define TIFF_INT8_T signed __int8
 
 /* Unsigned 8-bit type */
-#define TIFF_UINT8_T unsigned char
+#define TIFF_UINT8_T unsigned __int8
 
 /* Signed 16-bit type */
-#define TIFF_INT16_T signed short
+#define TIFF_INT16_T signed __int16
 
 /* Unsigned 16-bit type */
-#define TIFF_UINT16_T unsigned short
+#define TIFF_UINT16_T unsigned __int16
 
 /* Signed 32-bit type formatter */
 #define TIFF_INT32_FORMAT "%d"
 
 /* Signed 32-bit type */
-#define TIFF_INT32_T signed int
+#define TIFF_INT32_T signed __int32
 
 /* Unsigned 32-bit type formatter */
 #define TIFF_UINT32_FORMAT "%u"
 
 /* Unsigned 32-bit type */
-#define TIFF_UINT32_T unsigned int
+#define TIFF_UINT32_T unsigned __int32
 
 /* Signed 64-bit type formatter */
 #define TIFF_INT64_FORMAT "%I64d"
 
 /* Signed 64-bit type */
-#ifdef __APPLE__
-#define TIFF_INT64_T long long
-#else
 #define TIFF_INT64_T signed __int64
-#endif
-
 
 /* Unsigned 64-bit type formatter */
 #define TIFF_UINT64_FORMAT "%I64u"
 
 /* Unsigned 64-bit type */
-#ifdef __APPLE__
-#define TIFF_UINT64_T unsigned long long
-#else
 #define TIFF_UINT64_T unsigned __int64
-#endif
 
 /* Signed size type */
 #if defined(_WIN64)
