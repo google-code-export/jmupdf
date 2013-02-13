@@ -1,4 +1,4 @@
-#include "jmupdf.h"
+#include "includes/jmupdf.h"
 
 enum jni_image_formats
 {

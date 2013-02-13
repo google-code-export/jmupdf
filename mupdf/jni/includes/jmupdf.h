@@ -8,7 +8,14 @@
 #include "mupdf-internal.h"
 #include "muxps-internal.h"
 #include "mucbz.h"
-#include "jni.h"
+
+#ifdef _POSIX_
+#include "linux/jni.h"
+#elif _MACOS_
+#include "mac/jni.h"
+#else
+#include "win/jni.h"
+#endif
 
 // Define JMuPdf internal version
 #define JMUPDF_VERSION "0.5.0"

@@ -1,4 +1,4 @@
-#include "jmupdf.h"
+#include "includes/jmupdf.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * This program implements the fz_lock()/fz_unlock()

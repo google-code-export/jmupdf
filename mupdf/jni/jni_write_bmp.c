@@ -1,4 +1,4 @@
-#include "jmupdf.h"
+#include "includes/jmupdf.h"
 #include "bmpfile.h"
 
 int jni_write_bmp(fz_context *ctx, fz_pixmap *pix, const char *file, float zoom, int color)

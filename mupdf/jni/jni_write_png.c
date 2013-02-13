@@ -9,7 +9,7 @@
  *
  */
 
-#include "jmupdf.h"
+#include "includes/jmupdf.h"
 #include "zlib.h"
 
 static inline void big32(unsigned char *buf, unsigned int v)

@@ -8,7 +8,7 @@
 #define SLEEP(x) usleep(x)
 #endif
 
-#include "jmupdf.h"
+#include "includes/jmupdf.h"
 #include "tiffio.h"
 
 /**
