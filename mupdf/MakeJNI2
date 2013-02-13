@@ -40,6 +40,18 @@ JNI_CMD := -shared
 endif
 
 #
+# --- Mac
+#
+ifeq "$(findstring Darwin,$(OS))" "Darwin"
+ifeq "$(BIT)" "-m32"
+JNI_DLL := $(OUT)/libjmupdf32.jnilib
+else
+JNI_DLL := $(OUT)/libjmupdf64.jnilib
+endif
+JNI_CMD := -shared
+endif
+
+#
 # --- Compile rules
 #
 $(OUT)/%.o : $(JNI_DIR)/%.c | $(OUT)

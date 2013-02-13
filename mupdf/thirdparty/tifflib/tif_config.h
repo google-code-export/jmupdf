@@ -63,7 +63,10 @@
 # endif
 #endif
 
+#ifndef __APPLE__
 #define lfind _lfind
+#endif
+
 /*
  * Local Variables:
  * mode: c

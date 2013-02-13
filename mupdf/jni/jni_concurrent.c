@@ -12,20 +12,20 @@
  * lets us process multiple documents concurrently as well.
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifdef _POSIX_
-#include <pthread.h>
-typedef pthread_mutex_t jni_mutex;
-#define jni_init_mutex(l) pthread_mutex_init(l, NULL)
-#define jni_destroy_mutex(l) pthread_mutex_destroy(l)
-#define jni_enter_critical(l) pthread_mutex_lock(l)
-#define jni_leave_critical(l) pthread_mutex_unlock(l)
-#else
+#ifdef _WIN32_
 #include <windows.h>
 typedef CRITICAL_SECTION jni_mutex;
 #define jni_init_mutex(l) InitializeCriticalSection(l)
 #define jni_destroy_mutex(l) DeleteCriticalSection(l)
 #define jni_enter_critical(l) EnterCriticalSection(l)
 #define jni_leave_critical(l) LeaveCriticalSection(l)
+#else
+#include <pthread.h>
+typedef pthread_mutex_t jni_mutex;
+#define jni_init_mutex(l) pthread_mutex_init(l, NULL)
+#define jni_destroy_mutex(l) pthread_mutex_destroy(l)
+#define jni_enter_critical(l) pthread_mutex_lock(l)
+#define jni_leave_critical(l) pthread_mutex_unlock(l)
 #endif
 
 typedef struct jni_locks_s jni_locks;

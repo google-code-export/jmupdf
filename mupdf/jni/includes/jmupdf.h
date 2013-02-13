@@ -11,7 +11,7 @@
 
 #ifdef _POSIX_
 #include "linux/jni.h"
-#elif _MACOS_
+#elif __APPLE__
 #include "mac/jni.h"
 #else
 #include "win/jni.h"

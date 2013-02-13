@@ -17,7 +17,7 @@ OUT 	:= $(prefix)/$(build)
 verbose := "Y"
 
 ifndef BIT
-BIT := ""
+BIT := "-m32"
 endif
 
 #
@@ -60,6 +60,15 @@ endif
 ifeq "$(findstring Linux,$(OS))" "Linux"
 LIBS += -lpthread
 CFLAGS += -fPIC -std=c99 -D_POSIX_
+endif
+
+#
+# --- Mac 
+#
+ifeq "$(OS)" "Darwin"
+CC := $(CC) $(BIT)
+LIBS += -lpthread
+CFLAGS += -fPIC -std=c99 -D__APPLE__
 endif
 
 #
