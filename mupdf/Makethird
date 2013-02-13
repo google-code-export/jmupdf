@@ -109,7 +109,7 @@ FREETYPE_SRC := \
 	truetype.c \
 	type1.c \
 	type1cid.c \
-	
+
 $(FREETYPE_LIB): $(addprefix $(OUT)/ft_, $(FREETYPE_SRC:%.c=%.o))
 
 FT_CFLAGS := -DFT2_BUILD_LIBRARY -DDARWIN_NO_CARBON \
