@@ -75,6 +75,7 @@ endif
 # --- Omit symbol information on release version
 #
 ifeq "$(build)" "release"
+ifneq "$(OS)" "Darwin"
 CC += -s 
 endif
-
+endif

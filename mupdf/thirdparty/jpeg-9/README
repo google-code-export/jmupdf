@@ -1,10 +1,10 @@
 The Independent JPEG Group's JPEG software
 ==========================================
 
-README for release 8d of 15-Jan-2012
-====================================
+README for release 9 of 13-Jan-2013
+===================================
 
-This distribution contains the eighth public release of the Independent JPEG
+This distribution contains the ninth public release of the Independent JPEG
 Group's free JPEG software.  You are welcome to redistribute this software and
 to use it for any purpose, subject to the conditions under LEGAL ISSUES, below.
 
@@ -115,7 +115,7 @@ with respect to this software, its quality, accuracy, merchantability, or
 fitness for a particular purpose.  This software is provided "AS IS", and you,
 its user, assume the entire risk as to its quality and accuracy.
 
-This software is copyright (C) 1991-2012, Thomas G. Lane, Guido Vollbeding.
+This software is copyright (C) 1991-2013, Thomas G. Lane, Guido Vollbeding.
 All Rights Reserved except as specified below.
 
 Permission is hereby granted to use, copy, modify, and distribute this
@@ -145,15 +145,6 @@ We specifically permit and encourage the use of this software as the basis of
 commercial products, provided that all warranty or liability claims are
 assumed by the product vendor.
 
-
-ansi2knr.c is included in this distribution by permission of L. Peter Deutsch,
-sole proprietor of its copyright holder, Aladdin Enterprises of Menlo Park, CA.
-ansi2knr.c is NOT covered by the above copyright and conditions, but instead
-by the usual distribution terms of the Free Software Foundation; principally,
-that you must include source code if you redistribute it.  (See the file
-ansi2knr.c for full details.)  However, since ansi2knr.c is not needed as part
-of any program generated from the IJG code, this does not limit you more than
-the foregoing paragraphs do.
 
 The Unix configuration script "configure" was produced with GNU Autoconf.
 It is copyright by the Free Software Foundation but is freely distributable.
@@ -257,8 +248,8 @@ ARCHIVE LOCATIONS
 The "official" archive site for this software is www.ijg.org.
 The most recent released version can always be found there in
 directory "files".  This particular version will be archived as
-http://www.ijg.org/files/jpegsrc.v8d.tar.gz, and in Windows-compatible
-"zip" archive format as http://www.ijg.org/files/jpegsr8d.zip.
+http://www.ijg.org/files/jpegsrc.v9.tar.gz, and in Windows-compatible
+"zip" archive format as http://www.ijg.org/files/jpegsr9.zip.
 
 The JPEG FAQ (Frequently Asked Questions) article is a source of some
 general information about JPEG.
@@ -344,7 +335,7 @@ Don't use an obsolete code base!
 TO DO
 =====
 
-Version 8 is the first release of a new generation JPEG standard
+Version 9 is the second release of a new generation JPEG standard
 to overcome the limitations of the original JPEG specification.
 More features are being prepared for coming releases...
 
