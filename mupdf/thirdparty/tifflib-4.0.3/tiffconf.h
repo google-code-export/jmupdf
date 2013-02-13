@@ -23,50 +23,50 @@
 #define SIZEOF_INT 4
 
 /* Signed 8-bit type */
-#define TIFF_INT8_T signed __int8
+#define TIFF_INT8_T int8_t
 
 /* Unsigned 8-bit type */
-#define TIFF_UINT8_T unsigned __int8
+#define TIFF_UINT8_T uint8_t
 
 /* Signed 16-bit type */
-#define TIFF_INT16_T signed __int16
+#define TIFF_INT16_T int16_t
 
 /* Unsigned 16-bit type */
-#define TIFF_UINT16_T unsigned __int16
+#define TIFF_UINT16_T uint16_t
 
 /* Signed 32-bit type formatter */
 #define TIFF_INT32_FORMAT "%d"
 
 /* Signed 32-bit type */
-#define TIFF_INT32_T signed __int32
+#define TIFF_INT32_T int32_t
 
 /* Unsigned 32-bit type formatter */
 #define TIFF_UINT32_FORMAT "%u"
 
 /* Unsigned 32-bit type */
-#define TIFF_UINT32_T unsigned __int32
+#define TIFF_UINT32_T uint32_t
 
 /* Signed 64-bit type formatter */
 #define TIFF_INT64_FORMAT "%I64d"
 
 /* Signed 64-bit type */
-#define TIFF_INT64_T signed __int64
+#define TIFF_INT64_T int64_t
 
 /* Unsigned 64-bit type formatter */
 #define TIFF_UINT64_FORMAT "%I64u"
 
 /* Unsigned 64-bit type */
-#define TIFF_UINT64_T unsigned __int64
+#define TIFF_UINT64_T uint64_t
 
 /* Signed size type */
-#if defined(_WIN64)
-#define TIFF_SSIZE_T signed __int64
+#if defined(__x86_64)
+#define TIFF_SSIZE_T int64_t
 #else
-#define TIFF_SSIZE_T signed int
+#define TIFF_SSIZE_T int32_t
 #endif
 
 /* Signed size type formatter */
-#if defined(_WIN64)
+#if defined(__x86_64)
 #define TIFF_SSIZE_FORMAT "%I64d"
 #else
 #define TIFF_SSIZE_FORMAT "%ld"
