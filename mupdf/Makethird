@@ -272,7 +272,7 @@ endif
 # --- ZLIB ---
 
 ifneq "$(ZLIB_DIR)" ""
-CFLAGS += -I$(ZLIB_DIR)
+CFLAGS += -I$(ZLIB_DIR) -Dverbose=-1
 LIBS := $(filter-out -lz, $(LIBS))
 ZLIB_LIB := $(OUT)/libz.a
 
@@ -287,12 +287,9 @@ ZLIB_SRC := \
 	trees.c \
 	uncompr.c \
 	zutil.c \
-	gzread.c \
-	gzwrite.c \
-	gzclose.c \
-	gzlib.c \
 
 $(ZLIB_LIB): $(addprefix $(OUT)/zlib_, $(ZLIB_SRC:%.c=%.o))
 $(OUT)/zlib_%.o: $(ZLIB_DIR)/%.c | $(OUT)
-	$(CC_CMD) -Dverbose=-1
+	$(CC_CMD)
 endif
+
