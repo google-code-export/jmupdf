@@ -14,6 +14,7 @@
 # Add the following variables:
 #          1. BIT = -m64 or -m32
 #          2. BUILD = release or debug
+#          3. CC = gcc   (If not already defined)
 # --------------------------------------------------------------
 
 ifndef CC
@@ -32,7 +33,7 @@ verbose := "Y"
 #
 # --- Windows
 #
-ifeq "$(findstring Windows,$(OS))" "MINGW"
+ifeq "$(findstring MINGW,$(OS))" "MINGW"
 CFLAGS  += -std=c99
 endif
 

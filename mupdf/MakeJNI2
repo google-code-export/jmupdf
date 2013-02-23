@@ -3,26 +3,25 @@
 # --------------------------------------------------------------
 # 
 # GNU Makefile for JNI code
-#
-# NOTES:
-#   1. JVM_INCLUDES needs to be modified to reflect your
-#      own Java install
 # --------------------------------------------------------------
 
 JNI_DIR      := $(wildcard jni*)
 JNI_SRC      := $(notdir $(wildcard $(JNI_DIR)/*.c))
 JNI_DLL      := ""
 JNI_CMD      := ""
-ARCH         := $(shell uname -m)
 
-ifeq ($(ARCH), x86_64)
-64BIT  := 1
-else ifeq ($(ARCH), i686)
-64BIT  := 1
-endif
-
+#
+# --- Determine if 64BIT compile
+#
 ifdef BIT
 ifeq ($(BIT), -m64)
+64BIT := 1
+endif
+else
+ARCH := $(shell uname -m)
+ifeq ($(ARCH), x86_64)
+64BIT := 1
+else ifeq ($(ARCH), i686)
 64BIT := 1
 endif
 endif
@@ -30,7 +29,7 @@ endif
 #
 # --- Windows
 #
-ifeq "$(findstring Windows,$(OS))" "MINGW"
+ifeq "$(findstring MINGW,$(OS))" "MINGW"
 ifdef 64BIT
 JNI_DLL := $(OUT)/jmupdf64.dll
 else
@@ -43,7 +42,6 @@ endif
 # --- Linux 
 #
 ifeq ($(OS), Linux)
-LBITS := $(shell getconf LONG_BIT)
 ifdef 64BIT
 JNI_DLL := $(OUT)/libjmupdf64.so
 else
