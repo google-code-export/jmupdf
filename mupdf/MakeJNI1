@@ -4,60 +4,42 @@
 # 
 # GNU Makefile for JNI code
 #
-# Set some defaults needed in order to create DLL file
+# Set some defaults needed in order to create native binaries
 # --------------------------------------------------------------
 
-ifndef OS
-OS ?= $(shell uname)
-OS := $(OS:MINGW%=MINGW)
+# --------------------------------------------------------------
+# Make sure to define variables at project level. 
+# In Eclipse Juno its: 
+#          Project->Properties->C/C++ Build->Environment
+# Add the following variables:
+#          1. BIT = -m64 or -m32
+#          2. BUILD = release or debug
+# --------------------------------------------------------------
+
+ifndef CC
+CC := gcc
 endif
 
+ifdef BIT
+CC := $(CC) $(BIT)
+endif
+
+OS      := $(shell uname)
 prefix  := build
 OUT 	:= $(prefix)/$(build)
 verbose := "Y"
 
-ifndef BIT
-BIT := "-m32"
-endif
-
-#
-# --- MINGW/MSYS has cc defined but is empty
-#
-ifndef CC
-CC := gcc
-endif   
-ifeq "$(findstring MINGW,$(shell uname))" "MINGW"
-CC := gcc
-endif
-
-#
-# --- Set bit value when using TDM-GCC x64
-# --- Force -m32 on x86 systems 
-#
-TDMGCC := $(shell $(CC) --version)
-ifeq "$(findstring tdm64,$(TDMGCC))" "tdm64"
-ifneq "$(findstring -m,$(BIT))" "-m"
-ifeq "$(findstring 64,$(PROCESSOR_ARCHITEW6432))" "64"
-BIT := -m64			
-else
-BIT := -m32
-endif
-endif
-endif
-
 #
 # --- Windows
 #
-ifeq "$(findstring Windows,$(OS))" "Windows"
-CC  	:= $(CC) $(BIT)
-WINDRES := windres.exe
+ifeq "$(findstring Windows,$(OS))" "MINGW"
 CFLAGS  += -std=c99
 endif
 
 #
 # --- Linux 
 #
-ifeq "$(findstring Linux,$(OS))" "Linux"
+ifeq ($(OS), Linux)
 LIBS += -lpthread
 CFLAGS += -fPIC -std=c99 -D_POSIX_C_SOURCE
 endif
@@ -65,8 +47,7 @@ endif
 #
 # --- Mac 
 #
-ifeq "$(OS)" "Darwin"
-CC := $(CC) $(BIT)
+ifeq ($(OS), Darwin)
 LIBS += -lpthread
 CFLAGS += -fPIC -std=c99
 endif

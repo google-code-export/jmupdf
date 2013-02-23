@@ -13,15 +13,28 @@ JNI_DIR      := $(wildcard jni*)
 JNI_SRC      := $(notdir $(wildcard $(JNI_DIR)/*.c))
 JNI_DLL      := ""
 JNI_CMD      := ""
+ARCH         := $(shell uname -m)
+
+ifeq ($(ARCH), x86_64)
+64BIT  := 1
+else ifeq ($(ARCH), i686)
+64BIT  := 1
+endif
+
+ifdef BIT
+ifeq ($(BIT), -m64)
+64BIT := 1
+endif
+endif
 
 #
 # --- Windows
 #
-ifeq "$(findstring Windows,$(OS))" "Windows"
-ifeq "$(BIT)" "-m32"
-JNI_DLL := $(OUT)/jmupdf32.dll
-else
+ifeq "$(findstring Windows,$(OS))" "MINGW"
+ifdef 64BIT
 JNI_DLL := $(OUT)/jmupdf64.dll
+else
+JNI_DLL := $(OUT)/jmupdf32.dll
 endif
 JNI_CMD := $(BIT) -Wl,-export-all,-kill-at -shared
 endif
@@ -29,9 +42,9 @@ endif
 #
 # --- Linux 
 #
-ifeq "$(findstring Linux,$(OS))" "Linux"
+ifeq ($(OS), Linux)
 LBITS := $(shell getconf LONG_BIT)
-ifeq ($(LBITS),64)
+ifdef 64BIT
 JNI_DLL := $(OUT)/libjmupdf64.so
 else
 JNI_DLL := $(OUT)/libjmupdf32.so
@@ -42,11 +55,11 @@ endif
 #
 # --- Mac
 #
-ifeq "$(findstring Darwin,$(OS))" "Darwin"
-ifeq "$(BIT)" "-m32"
-JNI_DLL := $(OUT)/libjmupdf32.jnilib
-else
+ifeq ($(OS), Darwin)
+ifdef 64BIT
 JNI_DLL := $(OUT)/libjmupdf64.jnilib
+else
+JNI_DLL := $(OUT)/libjmupdf32.jnilib
 endif
 JNI_CMD := -shared
 endif
