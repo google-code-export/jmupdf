@@ -12,14 +12,14 @@
  * lets us process multiple documents concurrently as well.
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#ifdef _WIN32_
+#ifdef __WIN32__
 #include <windows.h>
 typedef CRITICAL_SECTION jni_mutex;
 #define jni_init_mutex(l) InitializeCriticalSection(l)
 #define jni_destroy_mutex(l) DeleteCriticalSection(l)
 #define jni_enter_critical(l) EnterCriticalSection(l)
 #define jni_leave_critical(l) LeaveCriticalSection(l)
-#else
+#elif __linux__ || __APPLE__
 #include <pthread.h>
 typedef pthread_mutex_t jni_mutex;
 #define jni_init_mutex(l) pthread_mutex_init(l, NULL)

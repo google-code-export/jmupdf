@@ -9,11 +9,11 @@
 #include "muxps-internal.h"
 #include "mucbz.h"
 
-#ifdef _POSIX_
+#ifdef __linux__
 #include "linux/jni.h"
 #elif __APPLE__
 #include "mac/jni.h"
-#else
+#elif __WIN32__
 #include "win/jni.h"
 #endif
 

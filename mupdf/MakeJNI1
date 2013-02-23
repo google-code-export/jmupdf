@@ -51,7 +51,7 @@ endif
 ifeq "$(findstring Windows,$(OS))" "Windows"
 CC  	:= $(CC) $(BIT)
 WINDRES := windres.exe
-CFLAGS  += -std=c99 -D_WIN32_
+CFLAGS  += -std=c99
 endif
 
 #
@@ -59,7 +59,7 @@ endif
 #
 ifeq "$(findstring Linux,$(OS))" "Linux"
 LIBS += -lpthread
-CFLAGS += -fPIC -std=c99 -D_POSIX_
+CFLAGS += -fPIC -std=c99 -D_POSIX_C_SOURCE
 endif
 
 #
@@ -68,7 +68,7 @@ endif
 ifeq "$(OS)" "Darwin"
 CC := $(CC) $(BIT)
 LIBS += -lpthread
-CFLAGS += -fPIC -std=c99 -D__APPLE__
+CFLAGS += -fPIC -std=c99
 endif
 
 #
