@@ -17,12 +17,6 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
-#ifdef __WIN32__
-# define HAVE_IO_H 1
-#else
-# define HAVE_UNISTD_H 1
-#endif
-
 /* Define to 1 if you have the <search.h> header file. */
 #define HAVE_SEARCH_H 1
 
@@ -52,8 +46,15 @@
 # endif
 #endif
 
-#ifndef __APPLE__
+#ifdef __WIN32__
 # define lfind _lfind
+# define HAVE_IO_H 1
+#else
+# define HAVE_UNISTD_H 1
+# define HAVE_GETOPT 1
+# ifdef __linux__
+#  define lfind _lfind
+# endif
 #endif
 
 /*
