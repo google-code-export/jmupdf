@@ -25,15 +25,6 @@
 				<fileset dir="${build.dir}" includes="**/jmupdf/**"/>   
 			</jar>
 
-			<jar destfile="${build.dir}/jmupdf-viewer.jar">
-				<manifest>
-					<attribute name="Created-By" value="Pedro J Rivera"/>
-					<attribute name="Main-Class" value="com.examples.swing.Main"/>
-					<attribute name="Class-Path" value=". jmupdf.jar"/>
-				</manifest>
-				<fileset dir="${build.dir}" includes="**/examples/**"/>   
-			</jar>
-
 		</target>
 		
 	</project>
