@@ -55,11 +55,11 @@ public class PageRenderer implements Runnable {
 	 */
 	public PageRenderer(Page page, float zoom, int rotate, ImageType color) {
 		this.boundBox = new PageRect();
+		setPage(page);
 		setZoom(zoom);
 		setRotation(rotate);
 		setColorType(color);
 		setGamma(1f);
-		setPage(page);
 	}
 
 	/**
