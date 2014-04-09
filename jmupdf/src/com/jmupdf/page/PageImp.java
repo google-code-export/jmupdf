@@ -129,8 +129,12 @@ public abstract class PageImp extends JmuPdf implements Page {
     /* */
     public boolean saveAsImage(String file, PageRendererOptions options) {
         if (getHandle() > 0) {
-        	if (options.isValid()) {
-        		return saveAsFile(getHandle(), file.getBytes()) == 0;
+        	if (!options.getImageFormat().equals(ImageFormat.FORMAT_BUFFERED_IMAGE)) {
+            	if (options.isValid()) {
+            		return saveAsFile(getHandle(), file.getBytes()) == 0;
+            	}
+        	} else {
+        		log("Image format cannot be FORMAT_BUFFERED_IMAGE when saving to a file.");
         	}
         }
         return false;
@@ -145,7 +149,7 @@ public abstract class PageImp extends JmuPdf implements Page {
             		return saveAsByte(getHandle());
             	}
             } else {
-            	log("Currently only PNG and JPEG file formats are supported when creating a byte array.");
+            	log("Currently only PNG and JPEG formats are supported when creating a byte array.");
             }
         }
         return null;
