@@ -20,7 +20,7 @@ import com.jmupdf.page.PageText;
  *
  */
 public abstract class JmuPdf {
-	private static final String jmupdf_version = "0.5.0";
+	private static final String jmupdf_version = "0.5.1";
 
 	/* Open DLL dependency */
 	static { loadDll(); }
