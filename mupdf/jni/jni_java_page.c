@@ -43,7 +43,7 @@ static jni_page *jni_new_page(jni_document *doc)
 
 	if (!page)
 	{
-		fz_throw(doc->ctx, "Could not create page object.");
+		fz_throw(doc->ctx, FZ_ERROR_GENERIC, "Could not create page object.");
 	}
 
 	page->doc = doc;
@@ -94,7 +94,7 @@ static void jni_load_page(jni_page *page, int pagen)
 	}
 	fz_catch(ctx)
 	{
-		fz_throw(ctx, "Could not load page.");
+		fz_throw(ctx, FZ_ERROR_GENERIC, "Could not load page.");
 	}
 }
 
@@ -312,11 +312,13 @@ Java_com_jmupdf_JmuPdf_getPageText(JNIEnv *env, jclass obj, jlong handle, jfloat
 			fz_text_line *line;
 			fz_text_span *span;
 
+
+			// See: http://git.ghostscript.com/?p=mupdf.git;a=blob;f=apps/pdfapp.c;h=33f222fc529d696ed5aa3865667ef6d7b834df96;hb=97c5a387c7b50f50254d5e97fdc39d2cf84c9e7a
 			for (block = page_text->blocks; block < page_text->blocks + page_text->len; block++)
 			{
 				for (line = block->lines; line < block->lines + block->len; line++)
 				{
-					for (span = line->spans; span < line->spans + line->len; span++)
+					for (span = line->first_span; span < line->spans + line->len; span++)
 					{
 						seen = 0;
 						p = 0;

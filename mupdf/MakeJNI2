@@ -71,7 +71,7 @@ $(OUT)/%.o : $(JNI_DIR)/%.c | $(OUT)
 #
 # --- Link rules
 #
-$(JNI_DLL) : $(FITZ_LIB) $(THIRD_LIBS)
+$(JNI_DLL) : $(MUPDF_LIB) $(THIRD_LIBS)
 $(JNI_DLL) : $(addprefix $(OUT)/, $(JNI_SRC:%.c=%.o))	
 	$(LINK_CMD) $(JNI_CMD)
 

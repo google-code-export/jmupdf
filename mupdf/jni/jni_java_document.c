@@ -80,15 +80,15 @@ static int jni_open_document(jni_document *doc, const char *file, char *password
 		stm = fz_open_file(doc->ctx, file);
 		if (doc->type == DOC_PDF)
 		{
-			doc->doc = (fz_document*)pdf_open_document_with_stream(stm);
+			doc->doc = (fz_document*)fz_open_document(doc->ctx, stm);   //pdf_open_document_with_stream(stm);
 		}
 		else if (doc->type == DOC_XPS)
 		{
-			doc->doc = (fz_document*)xps_open_document_with_stream(stm);
+			doc->doc = (fz_document*)fz_open_document(doc->ctx, stm);   //xps_open_document_with_stream(stm);
 		}
 		else if (doc->type == DOC_CBZ)
 		{
-			doc->doc = (fz_document*)cbz_open_document_with_stream(stm);
+			doc->doc = (fz_document*)fz_open_document(doc->ctx, stm);   //cbz_open_document_with_stream(stm);
 		}
 	}
 	fz_always(doc->ctx)
@@ -365,7 +365,8 @@ Java_com_jmupdf_JmuPdf_pdfInfo(JNIEnv *env, jclass obj, jlong handle, jstring ke
 		return NULL;
 	}
 
-	pdf_obj *info = pdf_dict_gets(((pdf_document*)doc->doc)->trailer, "Info");
+	pdf_obj *info = pdf_dict_gets(pdf_trailer(doc->doc), "Info");
+	//pdf_obj *info = pdf_dict_gets(((pdf_document*)doc->doc)->trailer, "Info");
 	char *text = NULL;
 
 	if (info)

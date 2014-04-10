@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "fitz-internal.h"
-#include "mupdf-internal.h"
-#include "muxps-internal.h"
-#include "mucbz.h"
+#include "mupdf/fitz.h"
+#include "mupdf/pdf.h"
+#include "mupdf/xps.h"
+#include "mupdf/cbz.h"
 
 #ifdef __linux__
 #include "linux/jni.h"
